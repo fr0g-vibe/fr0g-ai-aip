@@ -21,20 +21,29 @@ This system provides specialized AI personas that can be instantiated as subject
 ## Technical Requirements
 
 - Go 1.21 or higher
-- No external dependencies (uses only Go standard library)
-- Optional: Protocol Buffers compiler (protoc) for full gRPC functionality
+- **Zero external dependencies** - uses only Go standard library
+- Optional: Protocol Buffers compiler (protoc) for full gRPC functionality (adds dependencies)
 
 ## Setup
 
 ```bash
-# Basic build (no external dependencies)
+# Basic build (zero external dependencies)
 make build
 
-# Optional: For full gRPC support
+# Optional: For full gRPC support (adds external dependencies)
 make install-proto-tools
 export PATH="$(go env GOPATH)/bin:$PATH"
 make build-with-grpc
 ```
+
+## Dependency Philosophy
+
+This project prioritizes minimal dependencies:
+- **Core functionality**: Uses only Go standard library
+- **HTTP REST API**: Built with `net/http` (standard library)
+- **JSON handling**: Built with `encoding/json` (standard library)
+- **File storage**: Built with `os` and `path/filepath` (standard library)
+- **gRPC support**: Optional feature that adds external dependencies when needed
 
 ## Documentation
 

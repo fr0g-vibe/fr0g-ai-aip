@@ -61,11 +61,13 @@ run-cli:
 deps:
 	go mod tidy
 
-# Install protobuf tools
+# Install protobuf tools (optional - only needed for full gRPC implementation)
 install-proto-tools:
+	@echo "Installing protobuf tools (this will add external dependencies)..."
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	@echo "Make sure $(shell go env GOPATH)/bin is in your PATH"
+	@echo "Note: You'll also need to add gRPC dependencies to go.mod for full gRPC support"
 
 # Format code
 fmt:
