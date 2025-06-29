@@ -4,12 +4,13 @@ import (
 	"testing"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
 func TestServiceCreatePersona(t *testing.T) {
 	service := NewService(storage.NewMemoryStorage())
 	
-	p := Persona{
+	p := types.Persona{
 		Name:   "Test Expert",
 		Topic:  "Testing",
 		Prompt: "You are a testing expert.",
@@ -29,7 +30,7 @@ func TestServiceGetPersona(t *testing.T) {
 	service := NewService(storage.NewMemoryStorage())
 	
 	// Create a persona first
-	p := Persona{
+	p := types.Persona{
 		Name:   "Get Test Expert",
 		Topic:  "Getting",
 		Prompt: "You are a getting expert.",
@@ -55,8 +56,8 @@ func TestServiceListPersonas(t *testing.T) {
 	service := NewService(storage.NewMemoryStorage())
 	
 	// Create test personas
-	p1 := Persona{Name: "Expert 1", Topic: "Topic 1", Prompt: "Prompt 1"}
-	p2 := Persona{Name: "Expert 2", Topic: "Topic 2", Prompt: "Prompt 2"}
+	p1 := types.Persona{Name: "Expert 1", Topic: "Topic 1", Prompt: "Prompt 1"}
+	p2 := types.Persona{Name: "Expert 2", Topic: "Topic 2", Prompt: "Prompt 2"}
 	
 	service.CreatePersona(&p1)
 	service.CreatePersona(&p2)
@@ -74,7 +75,7 @@ func TestServiceListPersonas(t *testing.T) {
 func TestServiceDeletePersona(t *testing.T) {
 	service := NewService(storage.NewMemoryStorage())
 	
-	p := Persona{
+	p := types.Persona{
 		Name:   "Delete Test Expert",
 		Topic:  "Deleting",
 		Prompt: "You are a deleting expert.",
@@ -100,7 +101,7 @@ func TestServiceDeletePersona(t *testing.T) {
 func TestServiceUpdatePersona(t *testing.T) {
 	service := NewService(storage.NewMemoryStorage())
 	
-	p := Persona{
+	p := types.Persona{
 		Name:   "Update Test Expert",
 		Topic:  "Updating",
 		Prompt: "You are an updating expert.",
@@ -131,7 +132,7 @@ func TestServiceUpdatePersona(t *testing.T) {
 
 // Legacy function tests for backward compatibility
 func TestCreatePersona(t *testing.T) {
-	p := Persona{
+	p := types.Persona{
 		Name:   "Test Expert",
 		Topic:  "Testing",
 		Prompt: "You are a testing expert.",
@@ -149,7 +150,7 @@ func TestCreatePersona(t *testing.T) {
 
 func TestGetPersona(t *testing.T) {
 	// Create a persona first
-	p := Persona{
+	p := types.Persona{
 		Name:   "Get Test Expert",
 		Topic:  "Getting",
 		Prompt: "You are a getting expert.",
@@ -176,8 +177,8 @@ func TestListPersonas(t *testing.T) {
 	defaultService = NewService(storage.NewMemoryStorage())
 	
 	// Create test personas
-	p1 := Persona{Name: "Expert 1", Topic: "Topic 1", Prompt: "Prompt 1"}
-	p2 := Persona{Name: "Expert 2", Topic: "Topic 2", Prompt: "Prompt 2"}
+	p1 := types.Persona{Name: "Expert 1", Topic: "Topic 1", Prompt: "Prompt 1"}
+	p2 := types.Persona{Name: "Expert 2", Topic: "Topic 2", Prompt: "Prompt 2"}
 	
 	CreatePersona(&p1)
 	CreatePersona(&p2)
@@ -192,7 +193,7 @@ func TestDeletePersona(t *testing.T) {
 	// Reset default service for clean test
 	defaultService = NewService(storage.NewMemoryStorage())
 	
-	p := Persona{
+	p := types.Persona{
 		Name:   "Delete Test Expert",
 		Topic:  "Deleting",
 		Prompt: "You are a deleting expert.",

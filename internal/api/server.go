@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
 // StartServer starts the HTTP API server
@@ -33,7 +34,7 @@ func personasHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(personas)
 	case http.MethodPost:
-		var p persona.Persona
+		var p types.Persona
 		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
@@ -67,7 +68,7 @@ func personaHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(p)
 	case http.MethodPut:
-		var p persona.Persona
+		var p types.Persona
 		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return

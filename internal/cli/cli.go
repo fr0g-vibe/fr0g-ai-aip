@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/client"
-	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
 // Config holds CLI configuration
@@ -149,7 +149,7 @@ func createPersona(c client.Client) error {
 		return fmt.Errorf("missing required parameters")
 	}
 	
-	p := persona.Persona{
+	p := types.Persona{
 		Name:   *name,
 		Topic:  *topic,
 		Prompt: *prompt,

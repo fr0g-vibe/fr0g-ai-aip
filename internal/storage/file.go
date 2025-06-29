@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
 // FileStorage implements file-based storage for personas
@@ -29,7 +29,7 @@ func NewFileStorage(dataDir string) (*FileStorage, error) {
 	}, nil
 }
 
-func (f *FileStorage) Create(p *persona.Persona) error {
+func (f *FileStorage) Create(p *types.Persona) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	
@@ -47,14 +47,14 @@ func (f *FileStorage) Create(p *persona.Persona) error {
 	return f.writePersona(*p)
 }
 
-func (f *FileStorage) Get(id string) (persona.Persona, error) {
+func (f *FileStorage) Get(id string) (types.Persona, error) {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	
 	return f.readPersona(id)
 }
 
-func (f *FileStorage) List() ([]persona.Persona, error) {
+func (f *FileStorage) List() ([]types.Persona, error) {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 	
@@ -63,7 +63,7 @@ func (f *FileStorage) List() ([]persona.Persona, error) {
 		return nil, fmt.Errorf("failed to read data directory: %v", err)
 	}
 	
-	var personas []persona.Persona
+	var personas []types.Persona
 	for _, file := range files {
 		if filepath.Ext(file.Name()) == ".json" {
 			id := file.Name()[:len(file.Name())-5] // Remove .json extension
@@ -76,7 +76,7 @@ func (f *FileStorage) List() ([]persona.Persona, error) {
 	return personas, nil
 }
 
-func (f *FileStorage) Update(id string, p persona.Persona) error {
+func (f *FileStorage) Update(id string, p types.Persona) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	
@@ -107,25 +107,25 @@ func (f *FileStorage) generateID() string {
 	return hex.EncodeToString(bytes)
 }
 
-func (f *FileStorage) readPersona(id string) (persona.Persona, error) {
+func (f *FileStorage) readPersona(id string) (types.Persona, error) {
 	filePath := filepath.Join(f.dataDir, id+".json")
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return persona.Persona{}, fmt.Errorf("persona not found: %s", id)
+			return types.Persona{}, fmt.Errorf("persona not found: %s", id)
 		}
-		return persona.Persona{}, fmt.Errorf("failed to read persona file: %v", err)
+		return types.Persona{}, fmt.Errorf("failed to read persona file: %v", err)
 	}
 	
-	var p persona.Persona
+	var p types.Persona
 	if err := json.Unmarshal(data, &p); err != nil {
-		return persona.Persona{}, fmt.Errorf("failed to parse persona data: %v", err)
+		return types.Persona{}, fmt.Errorf("failed to parse persona data: %v", err)
 	}
 	
 	return p, nil
 }
 
-func (f *FileStorage) writePersona(p persona.Persona) error {
+func (f *FileStorage) writePersona(p types.Persona) error {
 	filePath := filepath.Join(f.dataDir, p.ID+".json")
 	data, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {

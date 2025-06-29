@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
 // RESTClient implements REST API client for persona service
@@ -24,7 +24,7 @@ func NewRESTClient(baseURL string) *RESTClient {
 	}
 }
 
-func (r *RESTClient) Create(p *persona.Persona) error {
+func (r *RESTClient) Create(p *types.Persona) error {
 	data, err := json.Marshal(p)
 	if err != nil {
 		return fmt.Errorf("failed to marshal persona: %v", err)
@@ -44,26 +44,26 @@ func (r *RESTClient) Create(p *persona.Persona) error {
 	return json.NewDecoder(resp.Body).Decode(p)
 }
 
-func (r *RESTClient) Get(id string) (persona.Persona, error) {
+func (r *RESTClient) Get(id string) (types.Persona, error) {
 	resp, err := r.client.Get(r.baseURL + "/personas/" + id)
 	if err != nil {
-		return persona.Persona{}, fmt.Errorf("failed to get persona: %v", err)
+		return types.Persona{}, fmt.Errorf("failed to get persona: %v", err)
 	}
 	defer resp.Body.Close()
 	
 	if resp.StatusCode != http.StatusOK {
-		return persona.Persona{}, fmt.Errorf("persona not found: %s", id)
+		return types.Persona{}, fmt.Errorf("persona not found: %s", id)
 	}
 	
-	var p persona.Persona
+	var p types.Persona
 	if err := json.NewDecoder(resp.Body).Decode(&p); err != nil {
-		return persona.Persona{}, fmt.Errorf("failed to decode persona: %v", err)
+		return types.Persona{}, fmt.Errorf("failed to decode persona: %v", err)
 	}
 	
 	return p, nil
 }
 
-func (r *RESTClient) List() ([]persona.Persona, error) {
+func (r *RESTClient) List() ([]types.Persona, error) {
 	resp, err := r.client.Get(r.baseURL + "/personas")
 	if err != nil {
 		return nil, fmt.Errorf("failed to list personas: %v", err)
@@ -74,7 +74,7 @@ func (r *RESTClient) List() ([]persona.Persona, error) {
 		return nil, fmt.Errorf("failed to list personas")
 	}
 	
-	var personas []persona.Persona
+	var personas []types.Persona
 	if err := json.NewDecoder(resp.Body).Decode(&personas); err != nil {
 		return nil, fmt.Errorf("failed to decode personas: %v", err)
 	}
@@ -82,7 +82,7 @@ func (r *RESTClient) List() ([]persona.Persona, error) {
 	return personas, nil
 }
 
-func (r *RESTClient) Update(id string, p persona.Persona) error {
+func (r *RESTClient) Update(id string, p types.Persona) error {
 	data, err := json.Marshal(p)
 	if err != nil {
 		return fmt.Errorf("failed to marshal persona: %v", err)

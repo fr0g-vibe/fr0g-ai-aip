@@ -6,19 +6,19 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
 // MemoryStorage implements in-memory storage for personas
 type MemoryStorage struct {
-	personas map[string]persona.Persona
+	personas map[string]types.Persona
 	mu       sync.RWMutex
 }
 
 // NewMemoryStorage creates a new in-memory storage instance
 func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{
-		personas: make(map[string]persona.Persona),
+		personas: make(map[string]types.Persona),
 	}
 }
 
@@ -29,7 +29,7 @@ func generateID() string {
 	return hex.EncodeToString(bytes)
 }
 
-func (m *MemoryStorage) Create(p *persona.Persona) error {
+func (m *MemoryStorage) Create(p *types.Persona) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	
@@ -48,29 +48,29 @@ func (m *MemoryStorage) Create(p *persona.Persona) error {
 	return nil
 }
 
-func (m *MemoryStorage) Get(id string) (persona.Persona, error) {
+func (m *MemoryStorage) Get(id string) (types.Persona, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	
 	p, exists := m.personas[id]
 	if !exists {
-		return persona.Persona{}, fmt.Errorf("persona not found: %s", id)
+		return types.Persona{}, fmt.Errorf("persona not found: %s", id)
 	}
 	return p, nil
 }
 
-func (m *MemoryStorage) List() ([]persona.Persona, error) {
+func (m *MemoryStorage) List() ([]types.Persona, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	
-	result := make([]persona.Persona, 0, len(m.personas))
+	result := make([]types.Persona, 0, len(m.personas))
 	for _, p := range m.personas {
 		result = append(result, p)
 	}
 	return result, nil
 }
 
-func (m *MemoryStorage) Update(id string, p persona.Persona) error {
+func (m *MemoryStorage) Update(id string, p types.Persona) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	
