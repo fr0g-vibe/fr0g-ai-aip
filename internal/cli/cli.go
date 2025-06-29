@@ -66,14 +66,14 @@ func ExecuteWithConfig(config Config) error {
 func createClient(config Config) (client.Client, error) {
 	switch config.ClientType {
 	case "local":
-		var storage storage.Storage
+		var store storage.Storage
 		var err error
 		
 		switch config.StorageType {
 		case "memory":
-			storage = storage.NewMemoryStorage()
+			store = storage.NewMemoryStorage()
 		case "file":
-			storage, err = storage.NewFileStorage(config.DataDir)
+			store, err = storage.NewFileStorage(config.DataDir)
 			if err != nil {
 				return nil, err
 			}
@@ -81,7 +81,7 @@ func createClient(config Config) (client.Client, error) {
 			return nil, fmt.Errorf("unknown storage type: %s", config.StorageType)
 		}
 		
-		return client.NewLocalClient(storage), nil
+		return client.NewLocalClient(store), nil
 	case "rest":
 		return client.NewRESTClient(config.ServerURL), nil
 	case "grpc":

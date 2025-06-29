@@ -21,20 +21,19 @@ This system provides specialized AI personas that can be instantiated as subject
 ## Technical Requirements
 
 - Go 1.21 or higher
-- Protocol Buffers compiler (protoc) for gRPC functionality
-- API-driven architecture for integration flexibility
+- No external dependencies (uses only Go standard library)
+- Optional: Protocol Buffers compiler (protoc) for full gRPC functionality
 
 ## Setup
 
 ```bash
-# Install protobuf tools
-make install-proto-tools
-
-# Ensure GOPATH/bin is in your PATH
-export PATH="$(go env GOPATH)/bin:$PATH"
-
-# Generate protobuf files and build
+# Basic build (no external dependencies)
 make build
+
+# Optional: For full gRPC support
+make install-proto-tools
+export PATH="$(go env GOPATH)/bin:$PATH"
+make build-with-grpc
 ```
 
 ## Documentation
@@ -82,7 +81,7 @@ FR0G_CLIENT_TYPE=rest FR0G_SERVER_URL=http://localhost:8080 ./bin/fr0g-ai-aip li
 # Start HTTP REST API server on custom port
 ./bin/fr0g-ai-aip -server -port 9090
 
-# Start gRPC server
+# Start gRPC server (placeholder - requires full gRPC setup)
 ./bin/fr0g-ai-aip -grpc
 
 # Start both HTTP and gRPC servers
