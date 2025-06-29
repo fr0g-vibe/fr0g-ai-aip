@@ -1,5 +1,3 @@
-//go:build !no_grpc
-
 package main
 
 import (
