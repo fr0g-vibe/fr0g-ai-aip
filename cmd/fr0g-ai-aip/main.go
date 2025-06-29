@@ -42,7 +42,6 @@ func main() {
 
 		go func() {
 			defer wg.Done()
-			fmt.Printf("Starting fr0g-ai-aip gRPC server on port %s\n", *grpcPort)
 			if err := grpcserver.StartGRPCServer(*grpcPort); err != nil {
 				log.Fatalf("Failed to start gRPC server: %v", err)
 			}
@@ -55,7 +54,6 @@ func main() {
 			log.Fatalf("Failed to start HTTP server: %v", err)
 		}
 	} else if *grpcMode {
-		fmt.Printf("Starting fr0g-ai-aip gRPC server on port %s\n", *grpcPort)
 		if err := grpcserver.StartGRPCServer(*grpcPort); err != nil {
 			log.Fatalf("Failed to start gRPC server: %v", err)
 		}

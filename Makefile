@@ -9,14 +9,19 @@ proto:
 	@echo "Generating protobuf files..."
 	@mkdir -p internal/grpc/pb
 	@if command -v protoc >/dev/null 2>&1; then \
-		PATH="$(shell go env GOPATH)/bin:$(PATH)" protoc --go_out=. --go_opt=paths=source_relative \
-			--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-			proto/persona.proto && \
-		echo "Protobuf generation complete" && \
-		ls -la internal/grpc/pb/ || echo "No files generated"; \
+		if command -v protoc-gen-go >/dev/null 2>&1 && command -v protoc-gen-go-grpc >/dev/null 2>&1; then \
+			PATH="$(shell go env GOPATH)/bin:$(PATH)" protoc --go_out=. --go_opt=paths=source_relative \
+				--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+				proto/persona.proto && \
+			echo "Protobuf generation complete" && \
+			ls -la internal/grpc/pb/; \
+		else \
+			echo "protoc-gen-go or protoc-gen-go-grpc not found. Run 'make install-proto-tools' first."; \
+			exit 1; \
+		fi; \
 	else \
 		echo "protoc not found. Install Protocol Buffers compiler to enable gRPC support."; \
-		echo "Creating empty pb directory..."; \
+		exit 1; \
 	fi
 
 # Run tests
