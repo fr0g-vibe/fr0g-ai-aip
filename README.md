@@ -26,15 +26,6 @@ This system provides specialized AI personas that can be instantiated as subject
 
 ## Setup
 
-For quick setup, run the setup script:
-
-```bash
-chmod +x scripts/setup.sh
-./scripts/setup.sh
-```
-
-Or manually:
-
 ```bash
 # Install protobuf tools
 make install-proto-tools
