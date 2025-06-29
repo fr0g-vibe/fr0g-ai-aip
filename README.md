@@ -52,8 +52,14 @@ make build
 # Run the CLI help
 ./bin/fr0g-ai-aip -help
 
-# Create a persona via CLI
+# CLI with local storage (default: in-memory)
 ./bin/fr0g-ai-aip create -name "Go Expert" -topic "Golang Programming" -prompt "You are an expert Go programmer with deep knowledge of best practices, performance optimization, and modern Go development."
+
+# CLI with file storage
+FR0G_STORAGE_TYPE=file FR0G_DATA_DIR=./personas ./bin/fr0g-ai-aip create -name "Security Expert" -topic "Cybersecurity" -prompt "You are a cybersecurity expert."
+
+# CLI using REST API client (requires server running)
+FR0G_CLIENT_TYPE=rest FR0G_SERVER_URL=http://localhost:8080 ./bin/fr0g-ai-aip list
 
 # List all personas
 ./bin/fr0g-ai-aip list
@@ -61,11 +67,17 @@ make build
 # Get a specific persona
 ./bin/fr0g-ai-aip get <persona-id>
 
+# Update a persona
+./bin/fr0g-ai-aip update <persona-id> -name "Updated Name" -topic "Updated Topic"
+
 # Delete a persona
 ./bin/fr0g-ai-aip delete <persona-id>
 
-# Start HTTP REST API server
+# Start HTTP REST API server with in-memory storage
 ./bin/fr0g-ai-aip -server
+
+# Start HTTP REST API server with file storage
+./bin/fr0g-ai-aip -server -storage file -data-dir ./server-data
 
 # Start HTTP REST API server on custom port
 ./bin/fr0g-ai-aip -server -port 9090
@@ -74,8 +86,24 @@ make build
 ./bin/fr0g-ai-aip -grpc
 
 # Start both HTTP and gRPC servers
-./bin/fr0g-ai-aip -server -grpc
+./bin/fr0g-ai-aip -server -grpc -storage file -data-dir ./shared-data
 ```
+
+## Configuration
+
+The CLI can be configured via environment variables:
+
+- `FR0G_CLIENT_TYPE`: Client type (`local`, `rest`, `grpc`) - default: `local`
+- `FR0G_STORAGE_TYPE`: Storage type (`memory`, `file`) - default: `memory` (only for local client)
+- `FR0G_DATA_DIR`: Data directory for file storage - default: `./data`
+- `FR0G_SERVER_URL`: Server URL for REST client - default: `http://localhost:8080`
+
+Server mode supports command-line flags:
+
+- `-storage`: Storage type (`memory`, `file`) - default: `memory`
+- `-data-dir`: Data directory for file storage - default: `./data`
+- `-port`: HTTP server port - default: `8080`
+- `-grpc-port`: gRPC server port - default: `9090`
 
 ## API Usage
 

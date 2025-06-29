@@ -1,10 +1,7 @@
 package persona
 
 import (
-	"crypto/rand"
-	"encoding/hex"
-	"fmt"
-	"sync"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 )
 
 // Persona represents an AI persona with specific expertise
@@ -17,85 +14,84 @@ type Persona struct {
 	RAG     []string          `json:"rag,omitempty"`
 }
 
-// In-memory storage for personas (replace with persistent storage later)
-var (
-	personas = make(map[string]Persona)
-	mu       sync.RWMutex
-)
+// Service provides persona management operations
+type Service struct {
+	storage storage.Storage
+}
 
-// generateID creates a random ID for a persona
-func generateID() string {
-	bytes := make([]byte, 8)
-	rand.Read(bytes)
-	return hex.EncodeToString(bytes)
+// NewService creates a new persona service with the given storage backend
+func NewService(storage storage.Storage) *Service {
+	return &Service{
+		storage: storage,
+	}
 }
 
 // CreatePersona creates a new persona
-func CreatePersona(p *Persona) error {
-	mu.Lock()
-	defer mu.Unlock()
-	
-	if p.Name == "" {
-		return fmt.Errorf("persona name is required")
-	}
-	if p.Topic == "" {
-		return fmt.Errorf("persona topic is required")
-	}
-	if p.Prompt == "" {
-		return fmt.Errorf("persona prompt is required")
-	}
-	
-	p.ID = generateID()
-	personas[p.ID] = *p
-	return nil
+func (s *Service) CreatePersona(p *Persona) error {
+	return s.storage.Create(p)
 }
 
 // GetPersona retrieves a persona by ID
-func GetPersona(id string) (Persona, error) {
-	mu.RLock()
-	defer mu.RUnlock()
-	
-	p, exists := personas[id]
-	if !exists {
-		return Persona{}, fmt.Errorf("persona not found: %s", id)
-	}
-	return p, nil
+func (s *Service) GetPersona(id string) (Persona, error) {
+	return s.storage.Get(id)
 }
 
 // ListPersonas returns all personas
-func ListPersonas() []Persona {
-	mu.RLock()
-	defer mu.RUnlock()
-	
-	result := make([]Persona, 0, len(personas))
-	for _, p := range personas {
-		result = append(result, p)
-	}
-	return result
+func (s *Service) ListPersonas() ([]Persona, error) {
+	return s.storage.List()
 }
 
 // DeletePersona removes a persona by ID
-func DeletePersona(id string) error {
-	mu.Lock()
-	defer mu.Unlock()
-	
-	if _, exists := personas[id]; !exists {
-		return fmt.Errorf("persona not found: %s", id)
-	}
-	delete(personas, id)
-	return nil
+func (s *Service) DeletePersona(id string) error {
+	return s.storage.Delete(id)
 }
 
 // UpdatePersona updates an existing persona
-func UpdatePersona(id string, p Persona) error {
-	mu.Lock()
-	defer mu.Unlock()
-	
-	if _, exists := personas[id]; !exists {
-		return fmt.Errorf("persona not found: %s", id)
+func (s *Service) UpdatePersona(id string, p Persona) error {
+	return s.storage.Update(id, p)
+}
+
+// Global service instance for backward compatibility
+var defaultService *Service
+
+// SetDefaultService sets the default service instance
+func SetDefaultService(service *Service) {
+	defaultService = service
+}
+
+// Legacy functions for backward compatibility
+func CreatePersona(p *Persona) error {
+	if defaultService == nil {
+		defaultService = NewService(storage.NewMemoryStorage())
 	}
-	
-	p.ID = id
-	personas[id] = p
-	return nil
+	return defaultService.CreatePersona(p)
+}
+
+func GetPersona(id string) (Persona, error) {
+	if defaultService == nil {
+		defaultService = NewService(storage.NewMemoryStorage())
+	}
+	return defaultService.GetPersona(id)
+}
+
+func ListPersonas() []Persona {
+	if defaultService == nil {
+		defaultService = NewService(storage.NewMemoryStorage())
+	}
+	personas, _ := defaultService.ListPersonas()
+	return personas
+}
+
+func DeletePersona(id string) error {
+	if defaultService == nil {
+		defaultService = NewService(storage.NewMemoryStorage())
+	}
+	return defaultService.DeletePersona(id)
+}
+
+func UpdatePersona(id string, p Persona) error {
+	if defaultService == nil {
+		defaultService = NewService(storage.NewMemoryStorage())
+	}
+	return defaultService.UpdatePersona(id, p)
 }

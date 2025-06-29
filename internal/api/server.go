@@ -66,6 +66,18 @@ func personaHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(p)
+	case http.MethodPut:
+		var p persona.Persona
+		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		if err := persona.UpdatePersona(id, p); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(p)
 	case http.MethodDelete:
 		if err := persona.DeletePersona(id); err != nil {
 			http.Error(w, "Persona not found", http.StatusNotFound)
