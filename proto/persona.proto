@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package persona;
 
-option go_package = "github.com/fr0g-ai/fr0g-ai-aip/internal/grpc/pb";
+option go_package = "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb";
 
 // Persona represents an AI persona with specific expertise
 message Persona {

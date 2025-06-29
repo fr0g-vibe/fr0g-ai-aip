@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/fr0g-ai/fr0g-ai-aip/internal/grpc/pb"
-	"github.com/fr0g-ai/fr0g-ai-aip/internal/persona"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 )
 
 // Server implements the PersonaService gRPC server

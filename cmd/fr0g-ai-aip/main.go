@@ -7,9 +7,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/fr0g-ai/fr0g-ai-aip/internal/api"
-	"github.com/fr0g-ai/fr0g-ai-aip/internal/cli"
-	grpcserver "github.com/fr0g-ai/fr0g-ai-aip/internal/grpc"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/api"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/cli"
+	grpcserver "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc"
 )
 
 func main() {
