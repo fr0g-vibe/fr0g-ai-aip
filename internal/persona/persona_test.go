@@ -11,7 +11,7 @@ func TestCreatePersona(t *testing.T) {
 		Prompt: "You are a testing expert.",
 	}
 	
-	err := CreatePersona(p)
+	err := CreatePersona(&p)
 	if err != nil {
 		t.Fatalf("Failed to create persona: %v", err)
 	}
@@ -29,7 +29,7 @@ func TestGetPersona(t *testing.T) {
 		Prompt: "You are a getting expert.",
 	}
 	
-	err := CreatePersona(p)
+	err := CreatePersona(&p)
 	if err != nil {
 		t.Fatalf("Failed to create persona: %v", err)
 	}
@@ -53,8 +53,8 @@ func TestListPersonas(t *testing.T) {
 	p1 := Persona{Name: "Expert 1", Topic: "Topic 1", Prompt: "Prompt 1"}
 	p2 := Persona{Name: "Expert 2", Topic: "Topic 2", Prompt: "Prompt 2"}
 	
-	CreatePersona(p1)
-	CreatePersona(p2)
+	CreatePersona(&p1)
+	CreatePersona(&p2)
 	
 	list := ListPersonas()
 	if len(list) != 2 {
@@ -69,7 +69,7 @@ func TestDeletePersona(t *testing.T) {
 		Prompt: "You are a deleting expert.",
 	}
 	
-	err := CreatePersona(p)
+	err := CreatePersona(&p)
 	if err != nil {
 		t.Fatalf("Failed to create persona: %v", err)
 	}

@@ -82,7 +82,7 @@ func createPersona() error {
 		Prompt: *prompt,
 	}
 	
-	if err := persona.CreatePersona(p); err != nil {
+	if err := persona.CreatePersona(&p); err != nil {
 		return err
 	}
 	

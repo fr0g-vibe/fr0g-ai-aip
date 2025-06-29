@@ -31,7 +31,7 @@ func generateID() string {
 }
 
 // CreatePersona creates a new persona
-func CreatePersona(p Persona) error {
+func CreatePersona(p *Persona) error {
 	mu.Lock()
 	defer mu.Unlock()
 	
@@ -46,7 +46,7 @@ func CreatePersona(p Persona) error {
 	}
 	
 	p.ID = generateID()
-	personas[p.ID] = p
+	personas[p.ID] = *p
 	return nil
 }
 

@@ -34,10 +34,10 @@ This system provides specialized AI personas that can be instantiated as subject
 
 ```bash
 # Build the project
-go build ./cmd/fr0g-ai-aip
+make build
 
 # Run the CLI help
-./fr0g-ai-aip --help
+./bin/fr0g-ai-aip -help
 ```
 
 ## Contributing

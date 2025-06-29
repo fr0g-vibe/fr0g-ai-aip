@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/fr0g-ai/fr0g-ai-aip/internal/persona"
@@ -39,7 +38,7 @@ func personasHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
-		if err := persona.CreatePersona(p); err != nil {
+		if err := persona.CreatePersona(&p); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
