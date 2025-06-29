@@ -21,8 +21,30 @@ This system provides specialized AI personas that can be instantiated as subject
 ## Technical Requirements
 
 - Go 1.21 or higher
-- No external dependencies for core functionality
+- Protocol Buffers compiler (protoc) for gRPC functionality
 - API-driven architecture for integration flexibility
+
+## Setup
+
+For quick setup, run the setup script:
+
+```bash
+chmod +x scripts/setup.sh
+./scripts/setup.sh
+```
+
+Or manually:
+
+```bash
+# Install protobuf tools
+make install-proto-tools
+
+# Ensure GOPATH/bin is in your PATH
+export PATH="$(go env GOPATH)/bin:$PATH"
+
+# Generate protobuf files and build
+make build
+```
 
 ## Documentation
 

@@ -7,7 +7,7 @@ build: proto
 # Generate protobuf code
 proto:
 	mkdir -p internal/grpc/pb
-	protoc --go_out=. --go_opt=paths=source_relative \
+	PATH="$(shell go env GOPATH)/bin:$(PATH)" protoc --go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		proto/persona.proto
 
@@ -48,6 +48,7 @@ deps:
 install-proto-tools:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	@echo "Make sure $(shell go env GOPATH)/bin is in your PATH"
 
 # Format code
 fmt:
