@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package persona;
+
+option go_package = "github.com/fr0g-ai/fr0g-ai-aip/internal/grpc/pb";
+
+// Persona represents an AI persona with specific expertise
+message Persona {
+  string id = 1;
+  string name = 2;
+  string topic = 3;
+  string prompt = 4;
+  map<string, string> context = 5;
+  repeated string rag = 6;
+}
+
+// Request messages
+message CreatePersonaRequest {
+  Persona persona = 1;
+}
+
+message GetPersonaRequest {
+  string id = 1;
+}
+
+message DeletePersonaRequest {
+  string id = 1;
+}
+
+message ListPersonasRequest {}
+
+message UpdatePersonaRequest {
+  string id = 1;
+  Persona persona = 2;
+}
+
+// Response messages
+message CreatePersonaResponse {
+  Persona persona = 1;
+}
+
+message GetPersonaResponse {
+  Persona persona = 1;
+}
+
+message DeletePersonaResponse {}
+
+message ListPersonasResponse {
+  repeated Persona personas = 1;
+}
+
+message UpdatePersonaResponse {
+  Persona persona = 1;
+}
+
+// PersonaService provides CRUD operations for AI personas
+service PersonaService {
+  rpc CreatePersona(CreatePersonaRequest) returns (CreatePersonaResponse);
+  rpc GetPersona(GetPersonaRequest) returns (GetPersonaResponse);
+  rpc ListPersonas(ListPersonasRequest) returns (ListPersonasResponse);
+  rpc UpdatePersona(UpdatePersonaRequest) returns (UpdatePersonaResponse);
+  rpc DeletePersona(DeletePersonaRequest) returns (DeletePersonaResponse);
+}
