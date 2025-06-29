@@ -1,15 +1,22 @@
 .PHONY: build test clean run-server run-grpc run-both run-cli proto help
 
 # Build the application
-build: proto
+build: proto deps
 	go build -o bin/fr0g-ai-aip ./cmd/fr0g-ai-aip
+
+# Build without gRPC (for testing)
+build-no-grpc: deps
+	go build -tags no_grpc -o bin/fr0g-ai-aip-no-grpc ./cmd/fr0g-ai-aip
 
 # Generate protobuf code
 proto:
+	@echo "Generating protobuf files..."
 	mkdir -p internal/grpc/pb
 	PATH="$(shell go env GOPATH)/bin:$(PATH)" protoc --go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		proto/persona.proto
+	@echo "Protobuf generation complete"
+	@ls -la internal/grpc/pb/
 
 # Run tests
 test:
@@ -43,6 +50,7 @@ run-cli:
 # Install dependencies
 deps:
 	go mod tidy
+	go mod download
 
 # Install protobuf tools
 install-proto-tools:
