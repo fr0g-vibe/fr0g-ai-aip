@@ -5,28 +5,35 @@ build:
 	@echo "Building application..."
 	go build -o bin/fr0g-ai-aip ./cmd/fr0g-ai-aip
 
-# Generate protobuf code (optional)
+# Generate protobuf code
 proto:
 	@echo "Generating protobuf files..."
 	@mkdir -p internal/grpc/pb
 	@if command -v protoc >/dev/null 2>&1; then \
 		if PATH="$(shell go env GOPATH)/bin:$(PATH)" command -v protoc-gen-go >/dev/null 2>&1 && PATH="$(shell go env GOPATH)/bin:$(PATH)" command -v protoc-gen-go-grpc >/dev/null 2>&1; then \
-			PATH="$(shell go env GOPATH)/bin:$(PATH)" protoc --go_out=. --go_opt=paths=source_relative \
-				--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+			PATH="$(shell go env GOPATH)/bin:$(PATH)" protoc --go_out=internal/grpc/pb --go_opt=paths=source_relative \
+				--go-grpc_out=internal/grpc/pb --go-grpc_opt=paths=source_relative \
 				proto/persona.proto && \
 			echo "Protobuf generation complete" && \
+			echo "Updating imports..." && \
+			sed -i 's|package grpc|package pb|g' internal/grpc/pb/persona.pb.go internal/grpc/pb/persona_grpc.pb.go 2>/dev/null || true && \
+			echo "Generated files:" && \
 			ls -la internal/grpc/pb/; \
 		else \
 			echo "protoc-gen-go or protoc-gen-go-grpc not found. Run 'make install-proto-tools' first."; \
-			echo "Building without gRPC support..."; \
+			exit 1; \
 		fi; \
 	else \
-		echo "protoc not found. Install Protocol Buffers compiler to enable gRPC support."; \
-		echo "Building without gRPC support..."; \
+		echo "protoc not found. Install Protocol Buffers compiler first."; \
+		echo "On Ubuntu/Debian: sudo apt install protobuf-compiler"; \
+		echo "On macOS: brew install protobuf"; \
+		exit 1; \
 	fi
 
 # Build with protobuf support
-build-with-grpc: proto build
+build-with-grpc: proto
+	@echo "Building application with gRPC support..."
+	go build -o bin/fr0g-ai-aip ./cmd/fr0g-ai-aip
 
 # Run tests
 test:

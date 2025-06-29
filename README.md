@@ -21,29 +21,31 @@ This system provides specialized AI personas that can be instantiated as subject
 ## Technical Requirements
 
 - Go 1.21 or higher
-- **Zero external dependencies** - uses only Go standard library
-- Optional: Protocol Buffers compiler (protoc) for full gRPC functionality (adds dependencies)
+- Protocol Buffers compiler (protoc) for gRPC functionality
+- gRPC and protobuf dependencies (automatically managed)
 
 ## Setup
 
 ```bash
-# Basic build (zero external dependencies)
-make build
-
-# Optional: For full gRPC support (adds external dependencies)
+# Install protobuf tools
 make install-proto-tools
 export PATH="$(go env GOPATH)/bin:$PATH"
+
+# Build with full gRPC support
 make build-with-grpc
+
+# Or basic build (HTTP REST only)
+make build
 ```
 
 ## Dependency Philosophy
 
-This project prioritizes minimal dependencies:
-- **Core functionality**: Uses only Go standard library
+This project supports multiple client/server modes:
+- **Core functionality**: Uses Go standard library where possible
 - **HTTP REST API**: Built with `net/http` (standard library)
+- **gRPC API**: Uses google.golang.org/grpc and google.golang.org/protobuf
 - **JSON handling**: Built with `encoding/json` (standard library)
 - **File storage**: Built with `os` and `path/filepath` (standard library)
-- **gRPC support**: Optional feature that adds external dependencies when needed
 
 ## Documentation
 
@@ -69,6 +71,9 @@ FR0G_STORAGE_TYPE=file FR0G_DATA_DIR=./personas ./bin/fr0g-ai-aip create -name "
 # CLI using REST API client (requires server running)
 FR0G_CLIENT_TYPE=rest FR0G_SERVER_URL=http://localhost:8080 ./bin/fr0g-ai-aip list
 
+# CLI using gRPC client (requires gRPC server running)
+FR0G_CLIENT_TYPE=grpc FR0G_SERVER_URL=localhost:9090 ./bin/fr0g-ai-aip list
+
 # List all personas
 ./bin/fr0g-ai-aip list
 
@@ -90,8 +95,11 @@ FR0G_CLIENT_TYPE=rest FR0G_SERVER_URL=http://localhost:8080 ./bin/fr0g-ai-aip li
 # Start HTTP REST API server on custom port
 ./bin/fr0g-ai-aip -server -port 9090
 
-# Start gRPC server (placeholder - requires full gRPC setup)
+# Start gRPC server
 ./bin/fr0g-ai-aip -grpc
+
+# CLI using gRPC client
+FR0G_CLIENT_TYPE=grpc FR0G_SERVER_URL=localhost:9090 ./bin/fr0g-ai-aip list
 
 # Start both HTTP and gRPC servers
 ./bin/fr0g-ai-aip -server -grpc -storage file -data-dir ./shared-data
