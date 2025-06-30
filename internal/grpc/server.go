@@ -85,13 +85,11 @@ func (s *PersonaServer) CreatePersona(ctx context.Context, req *pb.CreatePersona
 		Rag:     req.Persona.Rag,
 	}
 
-	var err error
-	if s.service != nil {
-		err = s.service.CreatePersona(p)
-	} else {
-		// Fallback to legacy global service
-		err = persona.CreatePersona(p)
+	if s.service == nil {
+		return nil, status.Errorf(codes.Internal, "persona service not available")
 	}
+
+	err := s.service.CreatePersona(p)
 
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to create persona: %v", err)
@@ -115,15 +113,11 @@ func (s *PersonaServer) GetPersona(ctx context.Context, req *pb.GetPersonaReques
 		return nil, status.Errorf(codes.InvalidArgument, "persona ID is required")
 	}
 
-	var p types.Persona
-	var err error
-
-	if s.service != nil {
-		p, err = s.service.GetPersona(req.Id)
-	} else {
-		// Fallback to legacy global service
-		p, err = persona.GetPersona(req.Id)
+	if s.service == nil {
+		return nil, status.Errorf(codes.Internal, "persona service not available")
 	}
+
+	p, err := s.service.GetPersona(req.Id)
 
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "persona not found: %v", err)
@@ -143,15 +137,11 @@ func (s *PersonaServer) GetPersona(ctx context.Context, req *pb.GetPersonaReques
 
 // ListPersonas returns all personas
 func (s *PersonaServer) ListPersonas(ctx context.Context, req *pb.ListPersonasRequest) (*pb.ListPersonasResponse, error) {
-	var personas []types.Persona
-	var err error
-
-	if s.service != nil {
-		personas, err = s.service.ListPersonas()
-	} else {
-		// Fallback to legacy global service
-		personas = persona.ListPersonas()
+	if s.service == nil {
+		return nil, status.Errorf(codes.Internal, "persona service not available")
 	}
+
+	personas, err := s.service.ListPersonas()
 
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list personas: %v", err)
@@ -193,13 +183,11 @@ func (s *PersonaServer) UpdatePersona(ctx context.Context, req *pb.UpdatePersona
 		Rag:     req.Persona.Rag,
 	}
 
-	var err error
-	if s.service != nil {
-		err = s.service.UpdatePersona(req.Id, p)
-	} else {
-		// Fallback to legacy global service
-		err = persona.UpdatePersona(req.Id, p)
+	if s.service == nil {
+		return nil, status.Errorf(codes.Internal, "persona service not available")
 	}
+
+	err := s.service.UpdatePersona(req.Id, p)
 
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to update persona: %v", err)
@@ -223,13 +211,11 @@ func (s *PersonaServer) DeletePersona(ctx context.Context, req *pb.DeletePersona
 		return nil, status.Errorf(codes.InvalidArgument, "persona ID is required")
 	}
 
-	var err error
-	if s.service != nil {
-		err = s.service.DeletePersona(req.Id)
-	} else {
-		// Fallback to legacy global service
-		err = persona.DeletePersona(req.Id)
+	if s.service == nil {
+		return nil, status.Errorf(codes.Internal, "persona service not available")
 	}
+
+	err := s.service.DeletePersona(req.Id)
 
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "failed to delete persona: %v", err)
