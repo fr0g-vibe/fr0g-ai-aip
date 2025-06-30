@@ -1,92 +1,158 @@
 package main
 
 import (
-	"os"
 	"testing"
+	"time"
+
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/config"
 )
 
-func TestMainHelp(t *testing.T) {
-	// Save original args
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-	
-	// Test help flag
-	os.Args = []string{"fr0g-ai-aip", "-help"}
-	
-	// This would normally call os.Exit(0), but we can't test that easily
-	// Instead we test that the help flag is recognized
-	// The actual main() function would exit, so we just verify the flag parsing works
+func TestAppValidateConfig(t *testing.T) {
+	tests := []struct {
+		name        string
+		httpPort    string
+		grpcPort    string
+		expectError bool
+	}{
+		{
+			name:        "different ports should pass",
+			httpPort:    "8080",
+			grpcPort:    "9090",
+			expectError: false,
+		},
+		{
+			name:        "same ports should fail",
+			httpPort:    "8080",
+			grpcPort:    "8080",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := &App{
+				config: &config.Config{
+					HTTP: config.HTTPConfig{Port: tt.httpPort},
+					GRPC: config.GRPCConfig{Port: tt.grpcPort},
+				},
+			}
+
+			err := app.ValidateConfig()
+			if (err != nil) != tt.expectError {
+				t.Errorf("ValidateConfig() error = %v, expectError %v", err, tt.expectError)
+			}
+		})
+	}
 }
 
-func TestMainNoArgs(t *testing.T) {
-	// Save original args
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-	
-	// Test with no server flags - should enter CLI mode
-	os.Args = []string{"fr0g-ai-aip"}
-	
-	// We can't easily test main() directly since it may call os.Exit
-	// But we can verify the flag parsing logic
+func TestCreateStorage(t *testing.T) {
+	tests := []struct {
+		name        string
+		storageType string
+		dataDir     string
+		expectError bool
+	}{
+		{
+			name:        "memory storage should work",
+			storageType: "memory",
+			dataDir:     "",
+			expectError: false,
+		},
+		{
+			name:        "file storage without datadir should fail",
+			storageType: "file",
+			dataDir:     "",
+			expectError: true,
+		},
+		{
+			name:        "invalid storage type should fail",
+			storageType: "invalid",
+			dataDir:     "",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := config.StorageConfig{
+				Type:    tt.storageType,
+				DataDir: tt.dataDir,
+			}
+
+			_, err := createStorage(cfg)
+			if (err != nil) != tt.expectError {
+				t.Errorf("createStorage() error = %v, expectError %v", err, tt.expectError)
+			}
+		})
+	}
 }
 
-func TestMainFlagParsing(t *testing.T) {
-	// Save original args
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-	
-	// Test flag parsing without actually running main
-	os.Args = []string{"fr0g-ai-aip", "-server", "-port", "9999", "-storage", "memory"}
-	
-	// We can't test main() directly, but we can test that the flags would be parsed correctly
-	// This is more of a smoke test to ensure the flag definitions are correct
+func TestAppCreateServers(t *testing.T) {
+	// Create a minimal valid app
+	app := &App{
+		config: &config.Config{
+			HTTP: config.HTTPConfig{
+				Port:         "8080",
+				ReadTimeout:  30 * time.Second,
+				WriteTimeout: 30 * time.Second,
+			},
+			GRPC: config.GRPCConfig{
+				Port:           "9090",
+				MaxRecvMsgSize: 1024 * 1024,
+				MaxSendMsgSize: 1024 * 1024,
+			},
+			Security: config.SecurityConfig{
+				EnableAuth: false,
+			},
+		},
+	}
+
+	// Create storage and service
+	store, err := createStorage(config.StorageConfig{Type: "memory"})
+	if err != nil {
+		t.Fatalf("Failed to create storage: %v", err)
+	}
+	app.service = persona.NewService(store)
+
+	// Test server creation
+	httpServer, grpcServer, err := app.CreateServers()
+	if err != nil {
+		t.Errorf("CreateServers() error = %v", err)
+	}
+
+	if httpServer == nil {
+		t.Error("HTTP server should not be nil")
+	}
+
+	if grpcServer == nil {
+		t.Error("gRPC server should not be nil")
+	}
 }
 
-func TestMainServerModeValidation(t *testing.T) {
-	// Save original args
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-	
-	// Test server mode with invalid storage type
-	os.Args = []string{"fr0g-ai-aip", "-server", "-storage", "invalid"}
-	
-	// We can't easily test main() directly due to log.Fatalf calls
-	// But we can verify the logic would handle invalid storage types
-}
+func TestAppValidateConfigIntegration(t *testing.T) {
+	// Test with a complete config structure
+	cfg := &config.Config{
+		HTTP: config.HTTPConfig{
+			Port:         "8080",
+			ReadTimeout:  30 * time.Second,
+			WriteTimeout: 30 * time.Second,
+		},
+		GRPC: config.GRPCConfig{
+			Port:           "9090",
+			MaxRecvMsgSize: 1024 * 1024,
+			MaxSendMsgSize: 1024 * 1024,
+		},
+		Storage: config.StorageConfig{
+			Type: "memory",
+		},
+		Security: config.SecurityConfig{
+			EnableAuth: false,
+		},
+	}
 
-func TestMainCLIModeDefault(t *testing.T) {
-	// Save original args
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-	
-	// Test CLI mode (no server flags)
-	os.Args = []string{"fr0g-ai-aip", "help"}
-	
-	// This would enter CLI mode and show help
-	// We can't test main() directly but can verify the logic flow
-}
-
-
-func TestMainBothServerModes(t *testing.T) {
-	// Save original args
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-	
-	// Test both server modes together
-	os.Args = []string{"fr0g-ai-aip", "-server", "-grpc", "-storage", "memory"}
-	
-	// This would start both HTTP and gRPC servers concurrently
-	// We can't test main() directly but can verify the flag parsing
-}
-
-func TestMainInvalidStorageType(t *testing.T) {
-	// Save original args
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-	
-	// Test with invalid storage type
-	os.Args = []string{"fr0g-ai-aip", "-server", "-storage", "invalid"}
-	
-	// This would cause log.Fatalf in main()
-	// We can't test main() directly but can verify the logic would handle this
+	app := &App{config: cfg}
+	err := app.ValidateConfig()
+	if err != nil {
+		t.Errorf("ValidateConfig() with valid config should not error: %v", err)
+	}
 }

@@ -86,33 +86,20 @@ func (s *PersonaServer) CreatePersona(ctx context.Context, req *pb.CreatePersona
 		return nil, status.Errorf(codes.InvalidArgument, "persona is required")
 	}
 
-	p := &types.Persona{
-		Name:    req.Persona.Name,
-		Topic:   req.Persona.Topic,
-		Prompt:  req.Persona.Prompt,
-		Context: req.Persona.Context,
-		Rag:     req.Persona.Rag,
-	}
-
 	if s.service == nil {
 		return nil, status.Errorf(codes.Internal, "persona service not available")
 	}
 
+	// Convert proto to internal type
+	p := types.ProtoToPersona(req.Persona)
+	
 	err := s.service.CreatePersona(p)
-
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to create persona: %v", err)
 	}
 
 	return &pb.CreatePersonaResponse{
-		Persona: &pb.Persona{
-			Id:      p.Id,
-			Name:    p.Name,
-			Topic:   p.Topic,
-			Prompt:  p.Prompt,
-			Context: p.Context,
-			Rag:     p.Rag,
-		},
+		Persona: types.PersonaToProto(p),
 	}, nil
 }
 
@@ -127,20 +114,12 @@ func (s *PersonaServer) GetPersona(ctx context.Context, req *pb.GetPersonaReques
 	}
 
 	p, err := s.service.GetPersona(req.Id)
-
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "persona not found: %v", err)
 	}
 
 	return &pb.GetPersonaResponse{
-		Persona: &pb.Persona{
-			Id:      p.Id,
-			Name:    p.Name,
-			Topic:   p.Topic,
-			Prompt:  p.Prompt,
-			Context: p.Context,
-			Rag:     p.Rag,
-		},
+		Persona: types.PersonaToProto(&p),
 	}, nil
 }
 
@@ -151,21 +130,13 @@ func (s *PersonaServer) ListPersonas(ctx context.Context, req *pb.ListPersonasRe
 	}
 
 	personas, err := s.service.ListPersonas()
-
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list personas: %v", err)
 	}
 
 	var protoPersonas []*pb.Persona
 	for _, p := range personas {
-		protoPersonas = append(protoPersonas, &pb.Persona{
-			Id:      p.Id,
-			Name:    p.Name,
-			Topic:   p.Topic,
-			Prompt:  p.Prompt,
-			Context: p.Context,
-			Rag:     p.Rag,
-		})
+		protoPersonas = append(protoPersonas, types.PersonaToProto(&p))
 	}
 
 	return &pb.ListPersonasResponse{
@@ -183,34 +154,21 @@ func (s *PersonaServer) UpdatePersona(ctx context.Context, req *pb.UpdatePersona
 		return nil, status.Errorf(codes.InvalidArgument, "persona is required")
 	}
 
-	p := types.Persona{
-		Id:      req.Id,
-		Name:    req.Persona.Name,
-		Topic:   req.Persona.Topic,
-		Prompt:  req.Persona.Prompt,
-		Context: req.Persona.Context,
-		Rag:     req.Persona.Rag,
-	}
-
 	if s.service == nil {
 		return nil, status.Errorf(codes.Internal, "persona service not available")
 	}
 
-	err := s.service.UpdatePersona(req.Id, p)
+	// Convert proto to internal type
+	p := types.ProtoToPersona(req.Persona)
+	p.Id = req.Id
 
+	err := s.service.UpdatePersona(req.Id, *p)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to update persona: %v", err)
 	}
 
 	return &pb.UpdatePersonaResponse{
-		Persona: &pb.Persona{
-			Id:      p.Id,
-			Name:    p.Name,
-			Topic:   p.Topic,
-			Prompt:  p.Prompt,
-			Context: p.Context,
-			Rag:     p.Rag,
-		},
+		Persona: types.PersonaToProto(p),
 	}, nil
 }
 
@@ -239,20 +197,20 @@ func (s *PersonaServer) CreateIdentity(ctx context.Context, req *pb.CreateIdenti
 		return nil, status.Errorf(codes.InvalidArgument, "identity is required")
 	}
 
-	// Since types.Identity is already pb.Identity, we can use it directly
-	identity := req.Identity
+	if s.service == nil {
+		return nil, status.Errorf(codes.Internal, "persona service not available")
+	}
 
-	if s.service != nil {
-		err := s.service.CreateIdentity(identity)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "failed to create identity: %v", err)
-		}
-	} else {
-		return nil, status.Errorf(codes.Unimplemented, "identity service not available")
+	// Convert proto to internal type
+	identity := types.ProtoToIdentity(req.Identity)
+	
+	err := s.service.CreateIdentity(identity)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "failed to create identity: %v", err)
 	}
 
 	return &pb.CreateIdentityResponse{
-		Identity: identity,
+		Identity: types.IdentityToProto(identity),
 	}, nil
 }
 
@@ -262,18 +220,26 @@ func (s *PersonaServer) GetIdentity(ctx context.Context, req *pb.GetIdentityRequ
 		return nil, status.Errorf(codes.InvalidArgument, "identity ID is required")
 	}
 
+	if s.service == nil {
+		return nil, status.Errorf(codes.Internal, "persona service not available")
+	}
+
 	identity, err := s.service.GetIdentity(req.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "identity not found: %v", err)
 	}
 
 	return &pb.GetIdentityResponse{
-		Identity: &identity,
+		Identity: types.IdentityToProto(&identity),
 	}, nil
 }
 
 // ListIdentities returns identities with optional filtering
 func (s *PersonaServer) ListIdentities(ctx context.Context, req *pb.ListIdentitiesRequest) (*pb.ListIdentitiesResponse, error) {
+	if s.service == nil {
+		return nil, status.Errorf(codes.Internal, "persona service not available")
+	}
+
 	var filter *types.IdentityFilter
 	if req.Filter != nil {
 		filter = &types.IdentityFilter{
@@ -292,7 +258,7 @@ func (s *PersonaServer) ListIdentities(ctx context.Context, req *pb.ListIdentiti
 
 	var pbIdentities []*pb.Identity
 	for _, identity := range identities {
-		pbIdentities = append(pbIdentities, &identity)
+		pbIdentities = append(pbIdentities, types.IdentityToProto(&identity))
 	}
 
 	return &pb.ListIdentitiesResponse{
@@ -309,13 +275,21 @@ func (s *PersonaServer) UpdateIdentity(ctx context.Context, req *pb.UpdateIdenti
 		return nil, status.Errorf(codes.InvalidArgument, "identity is required")
 	}
 
-	err := s.service.UpdateIdentity(req.Id, *req.Identity)
+	if s.service == nil {
+		return nil, status.Errorf(codes.Internal, "persona service not available")
+	}
+
+	// Convert proto to internal type
+	identity := types.ProtoToIdentity(req.Identity)
+	identity.Id = req.Id
+
+	err := s.service.UpdateIdentity(req.Id, *identity)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to update identity: %v", err)
 	}
 
 	return &pb.UpdateIdentityResponse{
-		Identity: req.Identity,
+		Identity: types.IdentityToProto(identity),
 	}, nil
 }
 
@@ -323,6 +297,10 @@ func (s *PersonaServer) UpdateIdentity(ctx context.Context, req *pb.UpdateIdenti
 func (s *PersonaServer) DeleteIdentity(ctx context.Context, req *pb.DeleteIdentityRequest) (*pb.DeleteIdentityResponse, error) {
 	if req.Id == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "identity ID is required")
+	}
+
+	if s.service == nil {
+		return nil, status.Errorf(codes.Internal, "persona service not available")
 	}
 
 	err := s.service.DeleteIdentity(req.Id)

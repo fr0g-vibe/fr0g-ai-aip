@@ -16,16 +16,18 @@ import (
 
 // Server holds the HTTP server configuration and dependencies
 type Server struct {
-	config  *config.Config
-	service *persona.Service
-	server  *http.Server
+	config           *config.Config
+	service          *persona.Service
+	communityService *community.Service
+	server           *http.Server
 }
 
 // NewServer creates a new HTTP server instance
 func NewServer(cfg *config.Config, service *persona.Service) *Server {
 	return &Server{
-		config:  cfg,
-		service: service,
+		config:           cfg,
+		service:          service,
+		communityService: community.NewService(service.GetStorage()),
 	}
 }
 
@@ -80,6 +82,28 @@ func (s *Server) Shutdown(ctx context.Context) error {
 		return nil
 	}
 	return s.server.Shutdown(ctx)
+}
+
+// handleError provides consistent error response handling
+func (s *Server) handleError(w http.ResponseWriter, err error, defaultStatus int) {
+	if validationErr, ok := err.(middleware.ValidationErrors); ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"error":   "validation_failed",
+			"message": "Input validation failed",
+			"details": validationErr.Errors,
+		})
+		return
+	}
+	
+	// Handle other specific error types here
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(defaultStatus)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"error":   "request_failed",
+		"message": err.Error(),
+	})
 }
 
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
@@ -490,9 +514,9 @@ func StartServer(port string) error {
 	return server.Start()
 }
 
-// getCommunityService creates a community service instance
+// getCommunityService returns the community service instance
 func (s *Server) getCommunityService() *community.Service {
-	return community.NewService(s.service.GetStorage())
+	return s.communityService
 }
 
 // StartServerWithConfig starts the HTTP server with full configuration

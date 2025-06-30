@@ -30,9 +30,9 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("invalid configuration: %v", err)
 	}
 	
-	// Add port conflict validation
-	if cfg.HTTP.Port == cfg.GRPC.Port {
-		return nil, fmt.Errorf("HTTP and gRPC ports cannot be the same: %s", cfg.HTTP.Port)
+	app := &App{config: cfg}
+	if err := app.ValidateConfig(); err != nil {
+		return nil, err
 	}
 	
 	// Initialize storage
@@ -41,10 +41,23 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("failed to initialize storage: %v", err)
 	}
 	
-	return &App{
-		config:  cfg,
-		service: persona.NewService(store),
-	}, nil
+	app.service = persona.NewService(store)
+	return app, nil
+}
+
+// ValidateConfig validates application configuration
+func (app *App) ValidateConfig() error {
+	if app.config.HTTP.Port == app.config.GRPC.Port {
+		return fmt.Errorf("HTTP and gRPC ports cannot be the same: %s", app.config.HTTP.Port)
+	}
+	return nil
+}
+
+// CreateServers creates HTTP and gRPC server instances
+func (app *App) CreateServers() (*api.Server, *grpcserver.PersonaServer, error) {
+	httpServer := api.NewServer(app.config, app.service)
+	grpcServer := grpcserver.NewPersonaServer(app.config, app.service)
+	return httpServer, grpcServer, nil
 }
 
 // RunCLI runs the CLI interface

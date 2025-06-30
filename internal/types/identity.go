@@ -1,11 +1,28 @@
 package types
 
 import (
+	"time"
 	pb "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// Use protobuf types directly to eliminate duplication
-type Identity = pb.Identity
+// Identity represents a persona-based identity with rich attributes
+type Identity struct {
+	Id             string                 `json:"id"`
+	PersonaId      string                 `json:"persona_id"`
+	Name           string                 `json:"name"`
+	Description    string                 `json:"description"`
+	Attributes     map[string]string      `json:"attributes,omitempty"`     // Legacy
+	Preferences    map[string]string      `json:"preferences,omitempty"`    // Legacy
+	Background     string                 `json:"background"`
+	CreatedAt      time.Time              `json:"created_at"`
+	UpdatedAt      time.Time              `json:"updated_at"`
+	IsActive       bool                   `json:"is_active"`
+	Tags           []string               `json:"tags"`
+	RichAttributes *RichAttributes        `json:"rich_attributes,omitempty"`
+}
+
+// Use protobuf types for rich attributes
 type RichAttributes = pb.RichAttributes
 type Demographics = pb.Demographics
 type Psychographics = pb.Psychographics
@@ -45,11 +62,74 @@ type IdentityFilter struct {
 	Personality      *Personality `json:"personality,omitempty"`
 }
 
-// Helper function for creating new identities
+// ProtoToIdentity converts protobuf Identity to internal Identity
+func ProtoToIdentity(pb *pb.Identity) *Identity {
+	if pb == nil {
+		return nil
+	}
+	
+	var createdAt, updatedAt time.Time
+	if pb.CreatedAt != nil {
+		createdAt = pb.CreatedAt.AsTime()
+	}
+	if pb.UpdatedAt != nil {
+		updatedAt = pb.UpdatedAt.AsTime()
+	}
+	
+	return &Identity{
+		Id:             pb.Id,
+		PersonaId:      pb.PersonaId,
+		Name:           pb.Name,
+		Description:    pb.Description,
+		Attributes:     pb.Attributes,
+		Preferences:    pb.Preferences,
+		Background:     pb.Background,
+		CreatedAt:      createdAt,
+		UpdatedAt:      updatedAt,
+		IsActive:       pb.IsActive,
+		Tags:           pb.Tags,
+		RichAttributes: pb.RichAttributes,
+	}
+}
+
+// IdentityToProto converts internal Identity to protobuf Identity
+func IdentityToProto(i *Identity) *pb.Identity {
+	if i == nil {
+		return nil
+	}
+	
+	var createdAt, updatedAt *timestamppb.Timestamp
+	if !i.CreatedAt.IsZero() {
+		createdAt = timestamppb.New(i.CreatedAt)
+	}
+	if !i.UpdatedAt.IsZero() {
+		updatedAt = timestamppb.New(i.UpdatedAt)
+	}
+	
+	return &pb.Identity{
+		Id:             i.Id,
+		PersonaId:      i.PersonaId,
+		Name:           i.Name,
+		Description:    i.Description,
+		Attributes:     i.Attributes,
+		Preferences:    i.Preferences,
+		Background:     i.Background,
+		CreatedAt:      createdAt,
+		UpdatedAt:      updatedAt,
+		IsActive:       i.IsActive,
+		Tags:           i.Tags,
+		RichAttributes: i.RichAttributes,
+	}
+}
+
+// NewIdentity creates a new identity with default values
 func NewIdentity() *Identity {
+	now := time.Now()
 	return &Identity{
 		RichAttributes: &RichAttributes{},
 		Tags:           []string{},
 		IsActive:       true,
+		CreatedAt:      now,
+		UpdatedAt:      now,
 	}
 }
