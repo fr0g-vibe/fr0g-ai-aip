@@ -56,9 +56,6 @@ func (app *App) RunCLI() error {
 
 // RunServers runs the HTTP and/or gRPC servers
 func (app *App) RunServers(httpMode, grpcMode bool) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	
 	// Handle graceful shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
@@ -96,7 +93,6 @@ func (app *App) RunServers(httpMode, grpcMode bool) error {
 	select {
 	case sig := <-sigChan:
 		fmt.Printf("\nReceived signal %v, shutting down gracefully...\n", sig)
-		cancel()
 	case err := <-errChan:
 		return err
 	}

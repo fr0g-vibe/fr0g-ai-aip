@@ -30,6 +30,13 @@ func (ve ValidationErrors) Error() string {
 
 // ValidatePersona validates a persona struct
 func ValidatePersona(p *types.Persona) error {
+	if p == nil {
+		return ValidationErrors{Errors: []ValidationError{{
+			Field:   "persona",
+			Message: "persona cannot be nil",
+		}}}
+	}
+	
 	var errors []ValidationError
 	
 	if strings.TrimSpace(p.Name) == "" {

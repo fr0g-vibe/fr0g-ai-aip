@@ -1,6 +1,8 @@
 package persona
 
 import (
+	"fmt"
+	
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/middleware"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
@@ -23,6 +25,10 @@ func NewService(storage storage.Storage) *Service {
 
 // CreatePersona creates a new persona with validation
 func (s *Service) CreatePersona(p *types.Persona) error {
+	if p == nil {
+		return fmt.Errorf("persona cannot be nil")
+	}
+	
 	// Sanitize input
 	middleware.SanitizePersona(p)
 	
