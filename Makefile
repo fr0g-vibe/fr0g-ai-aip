@@ -1,12 +1,12 @@
 .PHONY: build test clean run-server run-grpc run-both run-cli proto help
 
 # Build the application
-build:
+build: proto
 	@echo "Building application..."
 	go build -o bin/fr0g-ai-aip ./cmd/fr0g-ai-aip
 
 # Build with local gRPC support (no external dependencies)
-build-with-grpc: build
+build-with-grpc: proto build
 	@echo "gRPC support built using local JSON-over-HTTP implementation"
 
 # Generate protobuf code
@@ -29,11 +29,11 @@ proto:
 	@echo "Protobuf code generated successfully in internal/grpc/pb/"
 
 # Run tests
-test:
+test: proto
 	go test ./...
 
 # Run tests with coverage
-test-coverage:
+test-coverage: proto
 	go test -cover ./...
 
 # Clean build artifacts
@@ -42,15 +42,15 @@ clean:
 	rm -rf internal/grpc/pb/
 
 # Run HTTP REST API server
-run-server:
+run-server: proto
 	go run ./cmd/fr0g-ai-aip -server
 
 # Run gRPC server
-run-grpc:
+run-grpc: proto
 	go run ./cmd/fr0g-ai-aip -grpc
 
 # Run both HTTP and gRPC servers
-run-both:
+run-both: proto
 	go run ./cmd/fr0g-ai-aip -server -grpc
 
 # Run CLI help
