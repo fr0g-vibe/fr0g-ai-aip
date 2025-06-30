@@ -115,7 +115,12 @@ lint:
 docs: proto-if-needed
 	@echo "Generating documentation..."
 	@mkdir -p docs/generated
-	go doc -all ./... > docs/generated/godoc.txt
+	@echo "Generating package documentation..."
+	@for pkg in $$(go list ./...); do \
+		echo "=== $$pkg ===" >> docs/generated/godoc.txt; \
+		go doc -all $$pkg >> docs/generated/godoc.txt 2>/dev/null || echo "Failed to generate docs for $$pkg" >> docs/generated/godoc.txt; \
+		echo "" >> docs/generated/godoc.txt; \
+	done
 	@echo "Documentation generated in docs/generated/"
 
 # Serve documentation locally
