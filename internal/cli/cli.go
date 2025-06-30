@@ -313,10 +313,8 @@ func generateSampleIdentities(personas []types.Persona) []types.Identity {
 					Education: data.education,
 				},
 				Psychographics: &types.Psychographics{
-					PoliticalLeaning: data.political,
-					Interests:        data.interests,
+					Values: data.interests, // Map interests to values for now
 				},
-				ActivityLevel: 0.7, // Default activity level
 			},
 			Tags:     []string{"generated", "sample", persona.Topic},
 			IsActive: true,
