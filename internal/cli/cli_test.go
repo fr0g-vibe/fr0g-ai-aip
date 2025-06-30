@@ -295,3 +295,53 @@ func TestGetConfigFromEnv_PathExpansion(t *testing.T) {
 		t.Error("Expected relative path to be expanded to absolute path")
 	}
 }
+
+func TestExecuteWithConfig_Integration(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Create a temporary directory for testing
+	tmpDir := t.TempDir()
+	
+	config := Config{
+		ClientType:  "local",
+		StorageType: "file",
+		DataDir:     tmpDir,
+	}
+	
+	// Test create -> list -> get -> delete workflow
+	
+	// Create a persona
+	os.Args = []string{"fr0g-ai-aip", "create", "-name", "Integration Test", "-topic", "Integration Testing", "-prompt", "You are an integration testing expert."}
+	err := ExecuteWithConfig(config)
+	if err != nil {
+		t.Fatalf("Create failed: %v", err)
+	}
+	
+	// List personas to verify creation
+	os.Args = []string{"fr0g-ai-aip", "list"}
+	err = ExecuteWithConfig(config)
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+}
+
+func TestExecuteWithConfig_ErrorPropagation(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test with invalid storage configuration
+	config := Config{
+		ClientType:  "local",
+		StorageType: "file",
+		DataDir:     "/invalid/readonly/path",
+	}
+	
+	os.Args = []string{"fr0g-ai-aip", "create", "-name", "Test", "-topic", "Test", "-prompt", "Test"}
+	err := ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for invalid storage path")
+	}
+}

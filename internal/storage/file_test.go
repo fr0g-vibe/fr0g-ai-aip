@@ -100,3 +100,83 @@ func TestFileStorage_DeleteFile(t *testing.T) {
 		t.Error("File should not exist after delete")
 	}
 }
+
+func TestFileStorage_CreateValidation(t *testing.T) {
+	tmpDir := t.TempDir()
+	storage, _ := NewFileStorage(tmpDir)
+	
+	tests := []struct {
+		name    string
+		persona *types.Persona
+		wantErr bool
+	}{
+		{"missing name", &types.Persona{Topic: "Test", Prompt: "Test"}, true},
+		{"missing topic", &types.Persona{Name: "Test", Prompt: "Test"}, true},
+		{"missing prompt", &types.Persona{Name: "Test", Topic: "Test"}, true},
+		{"valid persona", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}, false},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := storage.Create(tt.persona)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestFileStorage_GetNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	storage, _ := NewFileStorage(tmpDir)
+	
+	_, err := storage.Get("nonexistent")
+	if err == nil {
+		t.Error("Expected error for nonexistent persona")
+	}
+}
+
+func TestFileStorage_UpdateNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	storage, _ := NewFileStorage(tmpDir)
+	
+	p := types.Persona{
+		Name:   "Test",
+		Topic:  "Test",
+		Prompt: "Test",
+	}
+	
+	err := storage.Update("nonexistent", p)
+	if err == nil {
+		t.Error("Expected error for nonexistent persona")
+	}
+}
+
+func TestFileStorage_DeleteNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	storage, _ := NewFileStorage(tmpDir)
+	
+	err := storage.Delete("nonexistent")
+	if err == nil {
+		t.Error("Expected error for nonexistent persona")
+	}
+}
+
+func TestFileStorage_ListWithCorruptedFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	storage, _ := NewFileStorage(tmpDir)
+	
+	// Create a corrupted JSON file
+	corruptedFile := filepath.Join(tmpDir, "corrupted.json")
+	os.WriteFile(corruptedFile, []byte("invalid json"), 0644)
+	
+	// List should still work, just skip the corrupted file
+	personas, err := storage.List()
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+	
+	if len(personas) != 0 {
+		t.Errorf("Expected 0 personas (corrupted file should be skipped), got %d", len(personas))
+	}
+}

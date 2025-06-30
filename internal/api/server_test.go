@@ -209,3 +209,64 @@ func TestPersonaHandler_InvalidMethod(t *testing.T) {
 		t.Errorf("Expected status 405, got %d", w.Code)
 	}
 }
+
+func TestPersonaHandler_PUT_InvalidJSON(t *testing.T) {
+	// Setup test service
+	store := storage.NewMemoryStorage()
+	persona.SetDefaultService(persona.NewService(store))
+	
+	req := httptest.NewRequest(http.MethodPut, "/personas/test-id", bytes.NewBufferString("invalid json"))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	
+	personaHandler(w, req)
+	
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestPersonasHandler_POST_ValidationError(t *testing.T) {
+	// Setup test service
+	store := storage.NewMemoryStorage()
+	persona.SetDefaultService(persona.NewService(store))
+	
+	// Create persona with missing required fields
+	p := types.Persona{
+		Name: "Test", // Missing topic and prompt
+	}
+	
+	body, _ := json.Marshal(p)
+	req := httptest.NewRequest(http.MethodPost, "/personas", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	
+	personasHandler(w, req)
+	
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestPersonaHandler_PUT_NotFound(t *testing.T) {
+	// Setup test service
+	store := storage.NewMemoryStorage()
+	persona.SetDefaultService(persona.NewService(store))
+	
+	p := types.Persona{
+		Name:   "Updated Name",
+		Topic:  "Updated Topic",
+		Prompt: "Updated prompt",
+	}
+	
+	body, _ := json.Marshal(p)
+	req := httptest.NewRequest(http.MethodPut, "/personas/nonexistent", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	
+	personaHandler(w, req)
+	
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}

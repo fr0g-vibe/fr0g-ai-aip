@@ -97,3 +97,70 @@ func TestMemoryStorage_CRUD(t *testing.T) {
 		t.Error("Expected error after delete")
 	}
 }
+
+func BenchmarkMemoryStorage_Create(b *testing.B) {
+	storage := NewMemoryStorage()
+	
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		p := &types.Persona{
+			Name:   "Benchmark Test",
+			Topic:  "Benchmarking",
+			Prompt: "You are a benchmarking expert.",
+		}
+		storage.Create(p)
+	}
+}
+
+func BenchmarkMemoryStorage_Get(b *testing.B) {
+	storage := NewMemoryStorage()
+	
+	// Create test data
+	personas := make([]*types.Persona, 1000)
+	for i := 0; i < 1000; i++ {
+		p := &types.Persona{
+			Name:   "Test Expert",
+			Topic:  "Testing",
+			Prompt: "You are a testing expert.",
+		}
+		storage.Create(p)
+		personas[i] = p
+	}
+	
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		storage.Get(personas[i%1000].ID)
+	}
+}
+
+func TestMemoryStorage_ConcurrentAccess(t *testing.T) {
+	storage := NewMemoryStorage()
+	
+	// Test concurrent writes
+	done := make(chan bool, 10)
+	for i := 0; i < 10; i++ {
+		go func(id int) {
+			p := &types.Persona{
+				Name:   fmt.Sprintf("Concurrent Test %d", id),
+				Topic:  "Concurrency",
+				Prompt: "You are a concurrency expert.",
+			}
+			storage.Create(p)
+			done <- true
+		}(i)
+	}
+	
+	// Wait for all goroutines
+	for i := 0; i < 10; i++ {
+		<-done
+	}
+	
+	// Verify all personas were created
+	personas, err := storage.List()
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+	if len(personas) != 10 {
+		t.Errorf("Expected 10 personas, got %d", len(personas))
+	}
+}
