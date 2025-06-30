@@ -1,0 +1,1123 @@
+openapi: 3.0.3
+info:
+  title: fr0g-ai-aip API
+  description: |
+    AI Personas API for managing subject matter experts, identities, and communities.
+    
+    This API provides comprehensive functionality for:
+    - Creating and managing AI personas with specific expertise
+    - Generating identities with rich demographic attributes  
+    - Building diverse communities with configurable characteristics
+    - Analyzing community dynamics and statistics
+    
+    The system is designed for use with Model Context Protocol (MCP) and supports
+    both REST and gRPC interfaces.
+  version: 1.0.0
+  contact:
+    name: fr0g-ai-aip
+    url: https://github.com/fr0g-vibe/fr0g-ai-aip
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://api.fr0g-ai-aip.com
+    description: Production server
+
+security:
+  - ApiKeyAuth: []
+  - {}
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the API
+      operationId: healthCheck
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /personas:
+    get:
+      summary: List personas
+      description: Retrieve all AI personas
+      operationId: listPersonas
+      tags:
+        - Personas
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: List of personas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Persona'
+          headers:
+            X-Total-Count:
+              description: Total number of personas
+              schema:
+                type: integer
+            X-Page:
+              description: Current page number
+              schema:
+                type: integer
+            X-Per-Page:
+              description: Items per page
+              schema:
+                type: integer
+
+    post:
+      summary: Create persona
+      description: Create a new AI persona
+      operationId: createPersona
+      tags:
+        - Personas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePersonaRequest'
+      responses:
+        '201':
+          description: Persona created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Persona'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /personas/{id}:
+    get:
+      summary: Get persona
+      description: Retrieve a specific persona by ID
+      operationId: getPersona
+      tags:
+        - Personas
+      parameters:
+        - $ref: '#/components/parameters/PersonaId'
+      responses:
+        '200':
+          description: Persona details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Persona'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update persona
+      description: Update an existing persona
+      operationId: updatePersona
+      tags:
+        - Personas
+      parameters:
+        - $ref: '#/components/parameters/PersonaId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePersonaRequest'
+      responses:
+        '200':
+          description: Persona updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Persona'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    delete:
+      summary: Delete persona
+      description: Delete a persona
+      operationId: deletePersona
+      tags:
+        - Personas
+      parameters:
+        - $ref: '#/components/parameters/PersonaId'
+      responses:
+        '204':
+          description: Persona deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /identities:
+    get:
+      summary: List identities
+      description: Retrieve identities with optional filtering
+      operationId: listIdentities
+      tags:
+        - Identities
+      parameters:
+        - name: persona_id
+          in: query
+          description: Filter by persona ID
+          schema:
+            type: string
+        - name: tags
+          in: query
+          description: Filter by tags (comma-separated)
+          schema:
+            type: string
+        - name: is_active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          description: Search in name and description
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: List of identities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Identity'
+
+    post:
+      summary: Create identity
+      description: Create a new identity based on a persona
+      operationId: createIdentity
+      tags:
+        - Identities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIdentityRequest'
+      responses:
+        '201':
+          description: Identity created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /identities/{id}:
+    get:
+      summary: Get identity
+      description: Retrieve a specific identity by ID
+      operationId: getIdentity
+      tags:
+        - Identities
+      parameters:
+        - $ref: '#/components/parameters/IdentityId'
+      responses:
+        '200':
+          description: Identity details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update identity
+      description: Update an existing identity
+      operationId: updateIdentity
+      tags:
+        - Identities
+      parameters:
+        - $ref: '#/components/parameters/IdentityId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIdentityRequest'
+      responses:
+        '200':
+          description: Identity updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Identity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete identity
+      description: Delete an identity
+      operationId: deleteIdentity
+      tags:
+        - Identities
+      parameters:
+        - $ref: '#/components/parameters/IdentityId'
+      responses:
+        '204':
+          description: Identity deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /identities/{id}/with-persona:
+    get:
+      summary: Get identity with persona
+      description: Retrieve an identity along with its associated persona
+      operationId: getIdentityWithPersona
+      tags:
+        - Identities
+      parameters:
+        - $ref: '#/components/parameters/IdentityId'
+      responses:
+        '200':
+          description: Identity with persona details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityWithPersona'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /communities:
+    get:
+      summary: List communities
+      description: Retrieve communities with optional filtering
+      operationId: listCommunities
+      tags:
+        - Communities
+      parameters:
+        - name: type
+          in: query
+          description: Filter by community type
+          schema:
+            type: string
+            enum: [geographic, demographic, interest, political, professional]
+        - name: tags
+          in: query
+          description: Filter by tags (comma-separated)
+          schema:
+            type: string
+        - name: is_active
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+        - name: min_size
+          in: query
+          description: Minimum community size
+          schema:
+            type: integer
+            minimum: 1
+        - name: max_size
+          in: query
+          description: Maximum community size
+          schema:
+            type: integer
+            minimum: 1
+        - name: min_diversity
+          in: query
+          description: Minimum diversity score
+          schema:
+            type: number
+            minimum: 0
+            maximum: 1
+        - name: max_diversity
+          in: query
+          description: Maximum diversity score
+          schema:
+            type: number
+            minimum: 0
+            maximum: 1
+      responses:
+        '200':
+          description: List of communities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Community'
+
+  /communities/generate:
+    post:
+      summary: Generate community
+      description: Generate a new community with specified characteristics
+      operationId: generateCommunity
+      tags:
+        - Communities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateCommunityRequest'
+      responses:
+        '201':
+          description: Community generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Community'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /communities/{id}:
+    get:
+      summary: Get community
+      description: Retrieve a specific community by ID
+      operationId: getCommunity
+      tags:
+        - Communities
+      parameters:
+        - $ref: '#/components/parameters/CommunityId'
+      responses:
+        '200':
+          description: Community details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Community'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update community
+      description: Update community metadata
+      operationId: updateCommunity
+      tags:
+        - Communities
+      parameters:
+        - $ref: '#/components/parameters/CommunityId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommunityRequest'
+      responses:
+        '200':
+          description: Community updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Community'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete community
+      description: Delete a community (does not delete member identities)
+      operationId: deleteCommunity
+      tags:
+        - Communities
+      parameters:
+        - $ref: '#/components/parameters/CommunityId'
+      responses:
+        '204':
+          description: Community deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /communities/{id}/stats:
+    get:
+      summary: Get community statistics
+      description: Retrieve detailed analytics for a community
+      operationId: getCommunityStats
+      tags:
+        - Communities
+      parameters:
+        - $ref: '#/components/parameters/CommunityId'
+      responses:
+        '200':
+          description: Community statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityStats'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /communities/{id}/members:
+    post:
+      summary: Add member to community
+      description: Add an existing identity to a community
+      operationId: addCommunityMember
+      tags:
+        - Communities
+      parameters:
+        - $ref: '#/components/parameters/CommunityId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - identity_id
+              properties:
+                identity_id:
+                  type: string
+                  description: ID of the identity to add
+      responses:
+        '200':
+          description: Member added successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /communities/{id}/members/{identity_id}:
+    delete:
+      summary: Remove member from community
+      description: Remove a member from a community
+      operationId: removeCommunityMember
+      tags:
+        - Communities
+      parameters:
+        - $ref: '#/components/parameters/CommunityId'
+        - $ref: '#/components/parameters/IdentityId'
+      responses:
+        '204':
+          description: Member removed successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  parameters:
+    PersonaId:
+      name: id
+      in: path
+      required: true
+      description: Persona ID
+      schema:
+        type: string
+        pattern: '^[a-f0-9]+$'
+
+    IdentityId:
+      name: id
+      in: path
+      required: true
+      description: Identity ID
+      schema:
+        type: string
+        pattern: '^[a-f0-9]+$'
+
+    CommunityId:
+      name: id
+      in: path
+      required: true
+      description: Community ID
+      schema:
+        type: string
+        pattern: '^[a-f0-9]+$'
+
+  schemas:
+    Persona:
+      type: object
+      required:
+        - id
+        - name
+        - topic
+        - prompt
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+          example: "abc123def456"
+        name:
+          type: string
+          description: Display name for the persona
+          minLength: 1
+          maxLength: 100
+          example: "Security Expert"
+        topic:
+          type: string
+          description: Subject area or domain
+          minLength: 1
+          maxLength: 100
+          example: "Cybersecurity"
+        prompt:
+          type: string
+          description: System prompt for the AI
+          minLength: 1
+          maxLength: 10000
+          example: "You are a cybersecurity expert with extensive knowledge..."
+        context:
+          type: object
+          additionalProperties:
+            type: string
+          description: Additional key-value context
+          example:
+            domain: "enterprise security"
+            experience: "15 years"
+        rag:
+          type: array
+          items:
+            type: string
+          description: RAG document references
+          example: ["security-frameworks.md", "incident-response.pdf"]
+
+    CreatePersonaRequest:
+      type: object
+      required:
+        - name
+        - topic
+        - prompt
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        topic:
+          type: string
+          minLength: 1
+          maxLength: 100
+        prompt:
+          type: string
+          minLength: 1
+          maxLength: 10000
+        context:
+          type: object
+          additionalProperties:
+            type: string
+        rag:
+          type: array
+          items:
+            type: string
+
+    UpdatePersonaRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreatePersonaRequest'
+
+    Identity:
+      type: object
+      required:
+        - id
+        - persona_id
+        - name
+        - is_active
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        persona_id:
+          type: string
+          description: Associated persona ID
+        name:
+          type: string
+          description: Identity name
+          example: "Alice Johnson"
+        description:
+          type: string
+          description: Identity description
+          example: "Senior cybersecurity analyst"
+        background:
+          type: string
+          description: Background information
+        rich_attributes:
+          $ref: '#/components/schemas/RichAttributes'
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tags for categorization
+        is_active:
+          type: boolean
+          description: Whether the identity is active
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    CreateIdentityRequest:
+      type: object
+      required:
+        - persona_id
+        - name
+      properties:
+        persona_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        background:
+          type: string
+        rich_attributes:
+          $ref: '#/components/schemas/RichAttributes'
+        tags:
+          type: array
+          items:
+            type: string
+
+    UpdateIdentityRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateIdentityRequest'
+
+    RichAttributes:
+      type: object
+      description: Rich demographic and behavioral attributes
+      properties:
+        age:
+          type: integer
+          minimum: 0
+          maximum: 150
+          description: Age in years
+        gender:
+          type: string
+          enum: [male, female, non-binary, other]
+          description: Gender identity
+        political_leaning:
+          type: string
+          enum: [very_liberal, liberal, moderate, conservative, very_conservative]
+          description: Political orientation
+        education:
+          type: string
+          enum: [some_high_school, high_school, associate, bachelor, master, graduate]
+          description: Education level
+        socioeconomic_status:
+          type: string
+          enum: [low_income, lower_middle, middle, upper_middle, high_income]
+          description: Socioeconomic status
+        activity_level:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Activity level (0.0 to 1.0)
+        location:
+          $ref: '#/components/schemas/Location'
+        interests:
+          type: array
+          items:
+            type: string
+          description: List of interests
+
+    Location:
+      type: object
+      properties:
+        city:
+          type: string
+          description: City name
+        type:
+          type: string
+          enum: [city, region, country, global]
+          description: Location type
+        urban:
+          type: boolean
+          description: Whether location is urban
+        timezone:
+          type: string
+          description: Timezone identifier
+
+    IdentityWithPersona:
+      type: object
+      required:
+        - identity
+        - persona
+      properties:
+        identity:
+          $ref: '#/components/schemas/Identity'
+        persona:
+          $ref: '#/components/schemas/Persona'
+
+    Community:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - size
+        - member_ids
+        - is_active
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          description: Unique identifier
+        name:
+          type: string
+          description: Community name
+        description:
+          type: string
+          description: Community description
+        type:
+          type: string
+          enum: [geographic, demographic, interest, political, professional]
+          description: Community type
+        size:
+          type: integer
+          minimum: 0
+          description: Number of members
+        diversity:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Diversity score (0.0 to 1.0)
+        cohesion:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Cohesion score (0.0 to 1.0)
+        member_ids:
+          type: array
+          items:
+            type: string
+          description: List of member identity IDs
+        max_members:
+          type: integer
+          minimum: 1
+          description: Maximum number of members
+        min_members:
+          type: integer
+          minimum: 1
+          description: Minimum number of members
+        generation_config:
+          $ref: '#/components/schemas/CommunityGenerationConfig'
+        attributes:
+          type: object
+          additionalProperties: true
+          description: Community-specific attributes
+        tags:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    GenerateCommunityRequest:
+      type: object
+      required:
+        - name
+        - type
+        - target_size
+        - generation_config
+      properties:
+        name:
+          type: string
+          description: Community name
+        description:
+          type: string
+          description: Community description
+        type:
+          type: string
+          enum: [geographic, demographic, interest, political, professional]
+        target_size:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          description: Target number of members
+        generation_config:
+          $ref: '#/components/schemas/CommunityGenerationConfig'
+
+    UpdateCommunityRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    CommunityGenerationConfig:
+      type: object
+      properties:
+        persona_weights:
+          type: object
+          additionalProperties:
+            type: number
+            minimum: 0
+            maximum: 1
+          description: Persona ID to weight mapping
+        age_distribution:
+          $ref: '#/components/schemas/AgeDistribution'
+        location_constraint:
+          $ref: '#/components/schemas/LocationConstraint'
+        political_spread:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Political diversity (0.0 to 1.0)
+        interest_spread:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Interest diversity (0.0 to 1.0)
+        socioeconomic_range:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Socioeconomic diversity (0.0 to 1.0)
+        activity_level:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Base activity level (0.0 to 1.0)
+
+    AgeDistribution:
+      type: object
+      required:
+        - mean
+        - std_dev
+        - min_age
+        - max_age
+      properties:
+        mean:
+          type: number
+          minimum: 0
+          maximum: 150
+          description: Mean age
+        std_dev:
+          type: number
+          minimum: 0
+          description: Standard deviation
+        min_age:
+          type: integer
+          minimum: 0
+          maximum: 150
+          description: Minimum age
+        max_age:
+          type: integer
+          minimum: 0
+          maximum: 150
+          description: Maximum age
+        skewness:
+          type: number
+          minimum: -1
+          maximum: 1
+          description: Age distribution skewness
+
+    LocationConstraint:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [city, region, country, global]
+        locations:
+          type: array
+          items:
+            type: string
+          description: Specific locations to include
+        radius:
+          type: number
+          minimum: 0
+          description: Geographic radius in km
+        urban:
+          type: boolean
+          description: Urban vs rural preference
+        timezone:
+          type: string
+          description: Preferred timezone
+
+    CommunityStats:
+      type: object
+      required:
+        - community_id
+        - member_count
+        - generated_at
+      properties:
+        community_id:
+          type: string
+        member_count:
+          type: integer
+          minimum: 0
+        active_members:
+          type: integer
+          minimum: 0
+        average_age:
+          type: number
+          minimum: 0
+        gender_ratio:
+          type: object
+          additionalProperties:
+            type: number
+            minimum: 0
+            maximum: 1
+        location_spread:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 0
+        political_spread:
+          type: object
+          additionalProperties:
+            type: number
+            minimum: 0
+            maximum: 1
+        engagement_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        diversity_index:
+          type: number
+          minimum: 0
+          maximum: 1
+        cohesion_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        generated_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details
+
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            details:
+              type: object
+              properties:
+                errors:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      message:
+                        type: string
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "bad_request"
+            message: "Invalid request format"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "not_found"
+            message: "Resource not found"
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          example:
+            error: "validation_error"
+            message: "Input validation failed"
+            details:
+              errors:
+                - field: "name"
+                  message: "Name is required"
+
+tags:
+  - name: System
+    description: System health and status
+  - name: Personas
+    description: AI persona management
+  - name: Identities
+    description: Identity management with rich attributes
+  - name: Communities
+    description: Community generation and analytics

@@ -111,22 +111,66 @@ fmt:
 lint:
 	golangci-lint run
 
+# Generate documentation
+docs: proto-if-needed
+	@echo "Generating documentation..."
+	@mkdir -p docs/generated
+	go doc -all ./... > docs/generated/godoc.txt
+	@echo "Documentation generated in docs/generated/"
+
+# Serve documentation locally
+docs-serve: docs
+	@echo "Starting documentation server on http://localhost:6060"
+	@echo "Visit http://localhost:6060/pkg/github.com/fr0g-vibe/fr0g-ai-aip/ for package docs"
+	godoc -http=:6060
+
+# Generate OpenAPI documentation
+docs-openapi:
+	@echo "OpenAPI specification available at docs/OPENAPI_SPEC.yaml"
+	@echo "View with: swagger-ui-serve docs/OPENAPI_SPEC.yaml"
+
+# Generate MCP documentation
+docs-mcp:
+	@echo "MCP integration documentation available at docs/MCP_INTEGRATION.md"
+
 # Show help
 help:
 	@echo "Available targets:"
+	@echo ""
+	@echo "Building:"
 	@echo "  build              - Build the application (no external deps)"
 	@echo "  build-with-grpc    - Build with full gRPC support"
+	@echo "  clean              - Clean build artifacts"
+	@echo ""
+	@echo "Protocol Buffers:"
 	@echo "  proto              - Force generate protobuf code"
 	@echo "  proto-if-needed    - Generate protobuf code only if missing"
+	@echo ""
+	@echo "Testing:"
 	@echo "  test               - Run tests"
 	@echo "  test-coverage      - Run tests with coverage"
-	@echo "  clean              - Clean build artifacts"
+	@echo "  test-coverage-detailed - Generate HTML coverage report"
+	@echo "  test-verbose       - Run tests with verbose output"
+	@echo "  test-race          - Run tests with race detection"
+	@echo "  test-bench         - Run benchmarks"
+	@echo ""
+	@echo "Running:"
 	@echo "  run-server         - Run HTTP REST API server"
-	@echo "  run-grpc           - Run gRPC server placeholder"
+	@echo "  run-grpc           - Run gRPC server"
 	@echo "  run-both           - Run both HTTP and gRPC servers"
 	@echo "  run-cli            - Show CLI help"
+	@echo ""
+	@echo "Documentation:"
+	@echo "  docs               - Generate all documentation"
+	@echo "  docs-serve         - Serve documentation locally (port 6060)"
+	@echo "  docs-openapi       - Show OpenAPI documentation info"
+	@echo "  docs-mcp           - Show MCP integration documentation info"
+	@echo ""
+	@echo "Development:"
 	@echo "  deps               - Install/update dependencies"
 	@echo "  install-proto-tools - Install protobuf generation tools"
 	@echo "  fmt                - Format code"
-	@echo "  lint               - Lint code"
+	@echo "  lint               - Lint code (requires golangci-lint)"
+	@echo ""
+	@echo "Help:"
 	@echo "  help               - Show this help"
