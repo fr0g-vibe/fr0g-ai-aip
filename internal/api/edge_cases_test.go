@@ -72,7 +72,7 @@ func TestPersonaHandler_MalformedURL(t *testing.T) {
 		path       string
 		expectCode int
 	}{
-		{"/personas//", http.StatusBadRequest},
+		{"/personas//", http.StatusNotFound},         // Double slash should be treated as empty ID -> 404
 		{"/personas/invalid-id", http.StatusNotFound}, // Invalid ID that doesn't exist
 		{"/personas/123", http.StatusNotFound},        // Numeric ID that doesn't exist
 	}
@@ -194,16 +194,15 @@ func TestPersonaHandler_SpecialCharactersInID(t *testing.T) {
 	store := storage.NewMemoryStorage()
 	persona.SetDefaultService(persona.NewService(store))
 	
-	specialIDs := []string{
+	// Test safe special characters that don't break HTTP
+	safeSpecialIDs := []string{
 		"id-with-dashes",
 		"id_with_underscores",
 		"id.with.dots",
-		"id@with@symbols",
-		"id with spaces",
-		"id/with/slashes",
+		"id123numeric",
 	}
 	
-	for _, id := range specialIDs {
+	for _, id := range safeSpecialIDs {
 		req := httptest.NewRequest(http.MethodGet, "/personas/"+id, nil)
 		w := httptest.NewRecorder()
 		
@@ -228,4 +227,30 @@ func TestStartServer_PortValidation(t *testing.T) {
 	}()
 	
 	// Function should exist and be callable
+}
+
+func TestPersonaHandler_URLEncodingIssues(t *testing.T) {
+	// Setup test service
+	store := storage.NewMemoryStorage()
+	persona.SetDefaultService(persona.NewService(store))
+	
+	// Test URL-encoded special characters that are safe
+	urlEncodedIDs := []string{
+		"id%20with%20spaces",  // URL-encoded spaces
+		"id%40with%40symbols", // URL-encoded @ symbols
+		"id%2Fwith%2Fslashes", // URL-encoded slashes
+	}
+	
+	for _, id := range urlEncodedIDs {
+		// Create the request with pre-encoded URL
+		req := httptest.NewRequest(http.MethodGet, "/personas/"+id, nil)
+		w := httptest.NewRecorder()
+		
+		personaHandler(w, req)
+		
+		// Should handle gracefully (return 404 since ID doesn't exist)
+		if w.Code != http.StatusNotFound {
+			t.Errorf("URL-encoded ID %q: expected status 404, got %d", id, w.Code)
+		}
+	}
 }
