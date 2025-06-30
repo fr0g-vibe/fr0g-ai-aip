@@ -12,7 +12,10 @@ build-with-grpc: build
 # Generate protobuf code
 proto:
 	@echo "Generating protobuf code..."
-	protoc --go_out=. --go_opt=paths=source_relative \
+	@echo "Using protoc: $(shell which protoc)"
+	@echo "Using protoc-gen-go: $(shell which protoc-gen-go || echo "$(shell go env GOPATH)/bin/protoc-gen-go")"
+	@echo "Using protoc-gen-go-grpc: $(shell which protoc-gen-go-grpc || echo "$(shell go env GOPATH)/bin/protoc-gen-go-grpc")"
+	PATH="$(shell go env GOPATH)/bin:$$PATH" protoc --go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		proto/persona.proto
 	@echo "Protobuf code generated successfully"
