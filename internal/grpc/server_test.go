@@ -27,9 +27,13 @@ func setupTestServer(t *testing.T) (pb.PersonaServiceClient, func()) {
 	// Set up clean storage for each test
 	memStorage := storage.NewMemoryStorage()
 	service := persona.NewService(memStorage)
-	persona.SetDefaultService(service)
 	
-	pb.RegisterPersonaServiceServer(s, &PersonaServer{})
+	// Create PersonaServer with proper service instance
+	personaServer := &PersonaServer{
+		service: service,
+	}
+	
+	pb.RegisterPersonaServiceServer(s, personaServer)
 	
 	go func() {
 		if err := s.Serve(lis); err != nil {
@@ -1443,7 +1447,6 @@ func TestStartGRPCServer(t *testing.T) {
 	// Set up clean storage for the test
 	memStorage := storage.NewMemoryStorage()
 	service := persona.NewService(memStorage)
-	persona.SetDefaultService(service)
 	
 	// Use a random available port
 	listener, err := net.Listen("tcp", ":0")
