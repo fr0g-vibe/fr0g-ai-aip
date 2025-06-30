@@ -451,7 +451,31 @@ func (s *Service) calculateAttributeDiversity(members []types.Identity, attribut
 	values := make(map[interface{}]int)
 	
 	for _, member := range members {
-		if val, exists := member.RichAttributes[attribute]; exists {
+		if member.RichAttributes == nil {
+			continue
+		}
+		
+		var val interface{}
+		switch attribute {
+		case "age":
+			val = int(member.RichAttributes.Age)
+		case "political_leaning":
+			val = member.RichAttributes.PoliticalLeaning
+		case "gender":
+			val = member.RichAttributes.Gender
+		case "education":
+			val = member.RichAttributes.Education
+		case "socioeconomic_status":
+			val = member.RichAttributes.SocioeconomicStatus
+		case "location":
+			if member.RichAttributes.Location != nil {
+				val = member.RichAttributes.Location.City
+			}
+		default:
+			continue
+		}
+		
+		if val != nil && val != "" {
 			values[val]++
 		}
 	}
@@ -486,12 +510,10 @@ func (s *Service) calculateInterestDiversity(members []types.Identity) float64 {
 	totalInterests := 0
 
 	for _, member := range members {
-		if interests, exists := member.RichAttributes["interests"]; exists {
-			if interestList, ok := interests.([]string); ok {
-				for _, interest := range interestList {
-					allInterests[interest]++
-					totalInterests++
-				}
+		if member.RichAttributes != nil && len(member.RichAttributes.Interests) > 0 {
+			for _, interest := range member.RichAttributes.Interests {
+				allInterests[interest]++
+				totalInterests++
 			}
 		}
 	}

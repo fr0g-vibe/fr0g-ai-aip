@@ -622,6 +622,27 @@ func (e *errorStorage) GetIdentityWithPersona(id string) (types.IdentityWithPers
 	return types.IdentityWithPersona{}, fmt.Errorf("mock get identity with persona error")
 }
 
+// Community methods for errorStorage mock
+func (e *errorStorage) CreateCommunity(c *types.Community) error {
+	return fmt.Errorf("mock create community error")
+}
+
+func (e *errorStorage) GetCommunity(id string) (types.Community, error) {
+	return types.Community{}, fmt.Errorf("mock get community error")
+}
+
+func (e *errorStorage) ListCommunities(filter *types.CommunityFilter) ([]types.Community, error) {
+	return nil, fmt.Errorf("mock list communities error")
+}
+
+func (e *errorStorage) UpdateCommunity(id string, c types.Community) error {
+	return fmt.Errorf("mock update community error")
+}
+
+func (e *errorStorage) DeleteCommunity(id string) error {
+	return fmt.Errorf("mock delete community error")
+}
+
 func TestServiceNewService(t *testing.T) {
 	memStorage := storage.NewMemoryStorage()
 	service := NewService(memStorage)
