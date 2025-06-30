@@ -444,7 +444,7 @@ func TestGetConfigFromEnv_AllDefaults(t *testing.T) {
 		t.Errorf("Expected default storage type 'file', got %s", config.StorageType)
 	}
 	// DataDir should be expanded to absolute path, so just check it contains "data"
-	if !filepath.IsAbs(config.DataDir) || !filepath.Base(config.DataDir) == "data" {
+	if !filepath.IsAbs(config.DataDir) || filepath.Base(config.DataDir) != "data" {
 		t.Errorf("Expected data dir to be absolute path ending with 'data', got %s", config.DataDir)
 	}
 	if config.ServerURL != "localhost:9090" {
