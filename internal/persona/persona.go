@@ -1,6 +1,7 @@
 package persona
 
 import (
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/middleware"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
@@ -20,8 +21,17 @@ func NewService(storage storage.Storage) *Service {
 	}
 }
 
-// CreatePersona creates a new persona
+// CreatePersona creates a new persona with validation
 func (s *Service) CreatePersona(p *types.Persona) error {
+	// Sanitize input
+	middleware.SanitizePersona(p)
+	
+	// Validate input
+	if err := middleware.ValidatePersona(p); err != nil {
+		return err
+	}
+	
+	// Create persona
 	return s.storage.Create(p)
 }
 
@@ -40,8 +50,17 @@ func (s *Service) DeletePersona(id string) error {
 	return s.storage.Delete(id)
 }
 
-// UpdatePersona updates an existing persona
+// UpdatePersona updates an existing persona with validation
 func (s *Service) UpdatePersona(id string, p types.Persona) error {
+	// Sanitize input
+	middleware.SanitizePersona(&p)
+	
+	// Validate input
+	if err := middleware.ValidatePersona(&p); err != nil {
+		return err
+	}
+	
+	// Update persona
 	return s.storage.Update(id, p)
 }
 

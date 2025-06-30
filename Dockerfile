@@ -41,7 +41,7 @@ RUN mkdir -p /app/data && chown fr0g:fr0g /app/data
 USER fr0g
 
 # Expose ports
-EXPOSE 8080 9090 2112
+EXPOSE 8080 9090
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

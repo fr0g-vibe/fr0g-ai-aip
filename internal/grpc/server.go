@@ -35,6 +35,46 @@ func StartGRPCServer(port string) error {
 	return s.Serve(lis)
 }
 
+// PersonaServer implements the gRPC PersonaService
+type PersonaServer struct {
+	pb.UnimplementedPersonaServiceServer
+	service *persona.Service
+	config  *config.Config
+}
+
+// NewPersonaServer creates a new gRPC persona server
+func NewPersonaServer(cfg *config.Config, service *persona.Service) *PersonaServer {
+	return &PersonaServer{
+		service: service,
+		config:  cfg,
+	}
+}
+
+// StartGRPCServerWithConfig starts a gRPC server with full configuration
+func StartGRPCServerWithConfig(cfg *config.Config, service *persona.Service) error {
+	lis, err := net.Listen("tcp", ":"+cfg.GRPC.Port)
+	if err != nil {
+		return fmt.Errorf("failed to listen: %v", err)
+	}
+
+	// Configure gRPC server options
+	opts := []grpc.ServerOption{
+		grpc.MaxRecvMsgSize(cfg.GRPC.MaxRecvMsgSize),
+		grpc.MaxSendMsgSize(cfg.GRPC.MaxSendMsgSize),
+	}
+	
+	s := grpc.NewServer(opts...)
+	
+	// Register the persona service
+	personaServer := NewPersonaServer(cfg, service)
+	pb.RegisterPersonaServiceServer(s, personaServer)
+
+	fmt.Printf("gRPC server listening on port %s\n", cfg.GRPC.Port)
+	fmt.Println("Using real gRPC with protobuf")
+
+	return s.Serve(lis)
+}
+
 // CreatePersona creates a new persona
 func (s *PersonaServer) CreatePersona(ctx context.Context, req *pb.CreatePersonaRequest) (*pb.CreatePersonaResponse, error) {
 	if req.Persona == nil {
@@ -49,7 +89,15 @@ func (s *PersonaServer) CreatePersona(ctx context.Context, req *pb.CreatePersona
 		RAG:     req.Persona.Rag,
 	}
 
-	if err := persona.CreatePersona(p); err != nil {
+	var err error
+	if s.service != nil {
+		err = s.service.CreatePersona(p)
+	} else {
+		// Fallback to legacy global service
+		err = persona.CreatePersona(p)
+	}
+	
+	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
