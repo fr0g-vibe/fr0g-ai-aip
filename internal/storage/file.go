@@ -181,6 +181,10 @@ func (f *FileStorage) ListIdentities(filter *types.IdentityFilter) ([]types.Iden
 
 	files, err := os.ReadDir(f.identitiesDir)
 	if err != nil {
+		// If directory doesn't exist, return empty list instead of error
+		if os.IsNotExist(err) {
+			return []types.Identity{}, nil
+		}
 		return nil, fmt.Errorf("failed to read identities directory: %v", err)
 	}
 
