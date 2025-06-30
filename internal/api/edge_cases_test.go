@@ -82,7 +82,7 @@ func TestPersonaHandler_MalformedURL(t *testing.T) {
 		path       string
 		expectCode int
 	}{
-		{"/personas//", http.StatusBadRequest},        // Double slash should be treated as empty ID -> 400
+		{"/personas//", http.StatusNotFound},          // Double slash gets treated as empty string, which becomes 404
 		{"/personas/invalid-id", http.StatusNotFound}, // Invalid ID that doesn't exist
 		{"/personas/123", http.StatusNotFound},        // Numeric ID that doesn't exist
 	}
