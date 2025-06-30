@@ -7,22 +7,35 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/config"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
+func createTestServer() *Server {
+	store := storage.NewMemoryStorage()
+	service := persona.NewService(store)
+	cfg := &config.Config{
+		Security: config.SecurityConfig{
+			EnableAuth: false,
+		},
+	}
+	return NewServer(cfg, service)
+}
+
 func TestHealthHandler(t *testing.T) {
+	server := createTestServer()
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
 	
-	healthHandler(w, req)
+	server.healthHandler(w, req)
 	
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
 	}
 	
-	var response map[string]string
+	var response map[string]interface{}
 	json.NewDecoder(w.Body).Decode(&response)
 	if response["status"] != "ok" {
 		t.Errorf("Expected status 'ok', got %s", response["status"])
@@ -30,14 +43,11 @@ func TestHealthHandler(t *testing.T) {
 }
 
 func TestPersonasHandler_GET(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
-	
+	server := createTestServer()
 	req := httptest.NewRequest(http.MethodGet, "/personas", nil)
 	w := httptest.NewRecorder()
 	
-	personasHandler(w, req)
+	server.personasHandler(w, req)
 	
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -45,9 +55,7 @@ func TestPersonasHandler_GET(t *testing.T) {
 }
 
 func TestPersonasHandler_POST(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	p := types.Persona{
 		Name:   "API Test",
@@ -60,7 +68,7 @@ func TestPersonasHandler_POST(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	
-	personasHandler(w, req)
+	server.personasHandler(w, req)
 	
 	if w.Code != http.StatusCreated {
 		t.Errorf("Expected status 201, got %d", w.Code)
@@ -68,10 +76,11 @@ func TestPersonasHandler_POST(t *testing.T) {
 }
 
 func TestPersonasHandler_InvalidMethod(t *testing.T) {
+	server := createTestServer()
 	req := httptest.NewRequest(http.MethodPatch, "/personas", nil)
 	w := httptest.NewRecorder()
 	
-	personasHandler(w, req)
+	server.personasHandler(w, req)
 	
 	if w.Code != http.StatusMethodNotAllowed {
 		t.Errorf("Expected status 405, got %d", w.Code)
@@ -79,15 +88,13 @@ func TestPersonasHandler_InvalidMethod(t *testing.T) {
 }
 
 func TestPersonasHandler_POST_InvalidJSON(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	req := httptest.NewRequest(http.MethodPost, "/personas", bytes.NewBufferString("invalid json"))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	
-	personasHandler(w, req)
+	server.personasHandler(w, req)
 	
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("Expected status 400, got %d", w.Code)
@@ -95,9 +102,7 @@ func TestPersonasHandler_POST_InvalidJSON(t *testing.T) {
 }
 
 func TestPersonaHandler_GET(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	// Create a persona first
 	p := &types.Persona{
@@ -105,12 +110,12 @@ func TestPersonaHandler_GET(t *testing.T) {
 		Topic:  "Testing",
 		Prompt: "Test prompt",
 	}
-	persona.CreatePersona(p)
+	server.service.CreatePersona(p)
 	
 	req := httptest.NewRequest(http.MethodGet, "/personas/"+p.ID, nil)
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -124,14 +129,12 @@ func TestPersonaHandler_GET(t *testing.T) {
 }
 
 func TestPersonaHandler_GET_NotFound(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	req := httptest.NewRequest(http.MethodGet, "/personas/nonexistent", nil)
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusNotFound {
 		t.Errorf("Expected status 404, got %d", w.Code)
@@ -139,9 +142,7 @@ func TestPersonaHandler_GET_NotFound(t *testing.T) {
 }
 
 func TestPersonaHandler_PUT(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	// Create a persona first
 	p := &types.Persona{
@@ -149,7 +150,7 @@ func TestPersonaHandler_PUT(t *testing.T) {
 		Topic:  "Testing",
 		Prompt: "Test prompt",
 	}
-	persona.CreatePersona(p)
+	server.service.CreatePersona(p)
 	
 	// Update the persona
 	p.Name = "Updated Name"
@@ -158,7 +159,7 @@ func TestPersonaHandler_PUT(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -166,9 +167,7 @@ func TestPersonaHandler_PUT(t *testing.T) {
 }
 
 func TestPersonaHandler_DELETE(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	// Create a persona first
 	p := &types.Persona{
@@ -176,12 +175,12 @@ func TestPersonaHandler_DELETE(t *testing.T) {
 		Topic:  "Testing",
 		Prompt: "Test prompt",
 	}
-	persona.CreatePersona(p)
+	server.service.CreatePersona(p)
 	
 	req := httptest.NewRequest(http.MethodDelete, "/personas/"+p.ID, nil)
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusNoContent {
 		t.Errorf("Expected status 204, got %d", w.Code)
@@ -189,10 +188,11 @@ func TestPersonaHandler_DELETE(t *testing.T) {
 }
 
 func TestPersonaHandler_EmptyID(t *testing.T) {
+	server := createTestServer()
 	req := httptest.NewRequest(http.MethodGet, "/personas/", nil)
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("Expected status 400, got %d", w.Code)
@@ -200,10 +200,11 @@ func TestPersonaHandler_EmptyID(t *testing.T) {
 }
 
 func TestPersonaHandler_InvalidMethod(t *testing.T) {
+	server := createTestServer()
 	req := httptest.NewRequest(http.MethodPatch, "/personas/test-id", nil)
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusMethodNotAllowed {
 		t.Errorf("Expected status 405, got %d", w.Code)
@@ -211,15 +212,13 @@ func TestPersonaHandler_InvalidMethod(t *testing.T) {
 }
 
 func TestPersonaHandler_PUT_InvalidJSON(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	req := httptest.NewRequest(http.MethodPut, "/personas/test-id", bytes.NewBufferString("invalid json"))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("Expected status 400, got %d", w.Code)
@@ -227,9 +226,7 @@ func TestPersonaHandler_PUT_InvalidJSON(t *testing.T) {
 }
 
 func TestPersonasHandler_POST_ValidationError(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	// Create persona with missing required fields
 	p := types.Persona{
@@ -241,7 +238,7 @@ func TestPersonasHandler_POST_ValidationError(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	
-	personasHandler(w, req)
+	server.personasHandler(w, req)
 	
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("Expected status 400, got %d", w.Code)
@@ -249,9 +246,7 @@ func TestPersonasHandler_POST_ValidationError(t *testing.T) {
 }
 
 func TestPersonaHandler_PUT_NotFound(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	p := types.Persona{
 		Name:   "Updated Name",
@@ -264,7 +259,7 @@ func TestPersonaHandler_PUT_NotFound(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("Expected status 400, got %d", w.Code)
@@ -284,6 +279,8 @@ func TestStartServer(t *testing.T) {
 }
 
 func TestPersonaHandler_URLParsing(t *testing.T) {
+	server := createTestServer()
+	
 	// Test URL parsing edge cases
 	tests := []struct {
 		path       string
@@ -294,15 +291,11 @@ func TestPersonaHandler_URLParsing(t *testing.T) {
 		{"/personas/123", http.StatusNotFound},      // ID doesn't exist
 	}
 	
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
-	
 	for _, tt := range tests {
 		req := httptest.NewRequest(http.MethodGet, tt.path, nil)
 		w := httptest.NewRecorder()
 		
-		personaHandler(w, req)
+		server.personaHandler(w, req)
 		
 		if w.Code != tt.expectCode {
 			t.Errorf("Path %s: expected status %d, got %d", tt.path, tt.expectCode, w.Code)
@@ -311,14 +304,12 @@ func TestPersonaHandler_URLParsing(t *testing.T) {
 }
 
 func TestPersonasHandler_EmptyList(t *testing.T) {
-	// Setup test service with empty storage
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	req := httptest.NewRequest(http.MethodGet, "/personas", nil)
 	w := httptest.NewRecorder()
 	
-	personasHandler(w, req)
+	server.personasHandler(w, req)
 	
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -333,9 +324,7 @@ func TestPersonasHandler_EmptyList(t *testing.T) {
 
 
 func TestPersonaHandler_ComplexPersona(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	// Create a persona with context and RAG
 	p := &types.Persona{
@@ -351,12 +340,12 @@ func TestPersonaHandler_ComplexPersona(t *testing.T) {
 			"test automation",
 		},
 	}
-	persona.CreatePersona(p)
+	server.service.CreatePersona(p)
 	
 	req := httptest.NewRequest(http.MethodGet, "/personas/"+p.ID, nil)
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -373,14 +362,12 @@ func TestPersonaHandler_ComplexPersona(t *testing.T) {
 }
 
 func TestPersonaHandler_DELETE_NotFound(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	req := httptest.NewRequest(http.MethodDelete, "/personas/nonexistent", nil)
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusNotFound {
 		t.Errorf("Expected status 404, got %d", w.Code)

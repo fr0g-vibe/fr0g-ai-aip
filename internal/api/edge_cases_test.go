@@ -8,15 +8,25 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/config"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
-func TestPersonasHandler_LargePayload(t *testing.T) {
-	// Setup test service
+func createTestServer() *Server {
 	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	service := persona.NewService(store)
+	cfg := &config.Config{
+		Security: config.SecurityConfig{
+			EnableAuth: false,
+		},
+	}
+	return NewServer(cfg, service)
+}
+
+func TestPersonasHandler_LargePayload(t *testing.T) {
+	server := createTestServer()
 	
 	// Create persona with very large content
 	largeContent := strings.Repeat("x", 1024*1024) // 1MB
@@ -31,17 +41,15 @@ func TestPersonasHandler_LargePayload(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	
-	personasHandler(w, req)
+	server.personasHandler(w, req)
 	
-	if w.Code != http.StatusCreated {
-		t.Errorf("Expected status 201 for large payload, got %d", w.Code)
+	if w.Code != http.StatusBadRequest { // Should fail validation due to size limit
+		t.Errorf("Expected status 400 for large payload, got %d", w.Code)
 	}
 }
 
 func TestPersonasHandler_UnicodeContent(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	p := types.Persona{
 		Name:   "Unicode Test 测试",
@@ -54,7 +62,7 @@ func TestPersonasHandler_UnicodeContent(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	
-	personasHandler(w, req)
+	server.personasHandler(w, req)
 	
 	if w.Code != http.StatusCreated {
 		t.Errorf("Expected status 201 for Unicode content, got %d", w.Code)
@@ -68,24 +76,22 @@ func TestPersonasHandler_UnicodeContent(t *testing.T) {
 }
 
 func TestPersonaHandler_MalformedURL(t *testing.T) {
+	server := createTestServer()
+	
 	tests := []struct {
 		path       string
 		expectCode int
 	}{
-		{"/personas//", http.StatusNotFound},         // Double slash should be treated as empty ID -> 404
+		{"/personas//", http.StatusBadRequest},        // Double slash should be treated as empty ID -> 400
 		{"/personas/invalid-id", http.StatusNotFound}, // Invalid ID that doesn't exist
 		{"/personas/123", http.StatusNotFound},        // Numeric ID that doesn't exist
 	}
-	
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
 	
 	for _, tt := range tests {
 		req := httptest.NewRequest(http.MethodGet, tt.path, nil)
 		w := httptest.NewRecorder()
 		
-		personaHandler(w, req)
+		server.personaHandler(w, req)
 		
 		if w.Code != tt.expectCode {
 			t.Errorf("Path %q: expected status %d, got %d", tt.path, tt.expectCode, w.Code)
@@ -94,9 +100,7 @@ func TestPersonaHandler_MalformedURL(t *testing.T) {
 }
 
 func TestPersonasHandler_ContentTypeValidation(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	p := types.Persona{
 		Name:   "Content Type Test",
@@ -123,7 +127,7 @@ func TestPersonasHandler_ContentTypeValidation(t *testing.T) {
 		}
 		w := httptest.NewRecorder()
 		
-		personasHandler(w, req)
+		server.personasHandler(w, req)
 		
 		if w.Code != tt.expectCode {
 			t.Errorf("Content-Type %q: expected status %d, got %d", tt.contentType, tt.expectCode, w.Code)
@@ -132,6 +136,8 @@ func TestPersonasHandler_ContentTypeValidation(t *testing.T) {
 }
 
 func TestHealthHandler_Methods(t *testing.T) {
+	server := createTestServer()
+	
 	methods := []string{
 		http.MethodGet,
 		http.MethodPost,
@@ -146,7 +152,7 @@ func TestHealthHandler_Methods(t *testing.T) {
 		req := httptest.NewRequest(method, "/health", nil)
 		w := httptest.NewRecorder()
 		
-		healthHandler(w, req)
+		server.healthHandler(w, req)
 		
 		// Health handler should respond to all methods
 		if w.Code != http.StatusOK {
@@ -156,15 +162,13 @@ func TestHealthHandler_Methods(t *testing.T) {
 }
 
 func TestPersonasHandler_EmptyBody(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	req := httptest.NewRequest(http.MethodPost, "/personas", bytes.NewBuffer([]byte{}))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	
-	personasHandler(w, req)
+	server.personasHandler(w, req)
 	
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("Expected status 400 for empty body, got %d", w.Code)
@@ -172,9 +176,7 @@ func TestPersonasHandler_EmptyBody(t *testing.T) {
 }
 
 func TestPersonaHandler_VeryLongID(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	// Create very long ID
 	longID := strings.Repeat("a", 1000)
@@ -182,7 +184,7 @@ func TestPersonaHandler_VeryLongID(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/personas/"+longID, nil)
 	w := httptest.NewRecorder()
 	
-	personaHandler(w, req)
+	server.personaHandler(w, req)
 	
 	if w.Code != http.StatusNotFound {
 		t.Errorf("Expected status 404 for very long ID, got %d", w.Code)
@@ -190,9 +192,7 @@ func TestPersonaHandler_VeryLongID(t *testing.T) {
 }
 
 func TestPersonaHandler_SpecialCharactersInID(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	// Test safe special characters that don't break HTTP
 	safeSpecialIDs := []string{
@@ -206,7 +206,7 @@ func TestPersonaHandler_SpecialCharactersInID(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/personas/"+id, nil)
 		w := httptest.NewRecorder()
 		
-		personaHandler(w, req)
+		server.personaHandler(w, req)
 		
 		// Should handle gracefully (return 404 since ID doesn't exist)
 		if w.Code != http.StatusNotFound {
@@ -230,9 +230,7 @@ func TestStartServer_PortValidation(t *testing.T) {
 }
 
 func TestPersonaHandler_URLEncodingIssues(t *testing.T) {
-	// Setup test service
-	store := storage.NewMemoryStorage()
-	persona.SetDefaultService(persona.NewService(store))
+	server := createTestServer()
 	
 	// Test URL-encoded special characters that are safe
 	urlEncodedIDs := []string{
@@ -246,7 +244,7 @@ func TestPersonaHandler_URLEncodingIssues(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/personas/"+id, nil)
 		w := httptest.NewRecorder()
 		
-		personaHandler(w, req)
+		server.personaHandler(w, req)
 		
 		// Should handle gracefully (return 404 since ID doesn't exist)
 		if w.Code != http.StatusNotFound {
