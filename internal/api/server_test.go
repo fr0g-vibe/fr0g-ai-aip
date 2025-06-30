@@ -330,3 +330,58 @@ func TestPersonasHandler_EmptyList(t *testing.T) {
 		t.Errorf("Expected empty list, got %d personas", len(personas))
 	}
 }
+
+func TestPersonaHandler_DELETE_NotFound(t *testing.T) {
+	// Setup test service
+	store := storage.NewMemoryStorage()
+	persona.SetDefaultService(persona.NewService(store))
+	
+	req := httptest.NewRequest(http.MethodDelete, "/personas/nonexistent", nil)
+	w := httptest.NewRecorder()
+	
+	personaHandler(w, req)
+	
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404, got %d", w.Code)
+	}
+}
+
+func TestPersonaHandler_ComplexPersona(t *testing.T) {
+	// Setup test service
+	store := storage.NewMemoryStorage()
+	persona.SetDefaultService(persona.NewService(store))
+	
+	// Create a persona with context and RAG
+	p := &types.Persona{
+		Name:   "Complex Test",
+		Topic:  "Complex Testing",
+		Prompt: "Test prompt",
+		Context: map[string]string{
+			"domain": "testing",
+			"level":  "expert",
+		},
+		RAG: []string{
+			"testing best practices",
+			"test automation",
+		},
+	}
+	persona.CreatePersona(p)
+	
+	req := httptest.NewRequest(http.MethodGet, "/personas/"+p.ID, nil)
+	w := httptest.NewRecorder()
+	
+	personaHandler(w, req)
+	
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+	
+	var retrieved types.Persona
+	json.NewDecoder(w.Body).Decode(&retrieved)
+	if len(retrieved.Context) != 2 {
+		t.Errorf("Expected 2 context items, got %d", len(retrieved.Context))
+	}
+	if len(retrieved.RAG) != 2 {
+		t.Errorf("Expected 2 RAG items, got %d", len(retrieved.RAG))
+	}
+}

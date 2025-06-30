@@ -370,3 +370,73 @@ func TestServiceWithComplexPersona(t *testing.T) {
 		t.Errorf("Expected 3 RAG items, got %d", len(retrieved.RAG))
 	}
 }
+
+func TestServiceConcurrentOperations(t *testing.T) {
+	service := NewService(storage.NewMemoryStorage())
+	
+	// Test concurrent persona creation
+	done := make(chan bool, 5)
+	for i := 0; i < 5; i++ {
+		go func(id int) {
+			p := types.Persona{
+				Name:   fmt.Sprintf("Concurrent Expert %d", id),
+				Topic:  "Concurrency",
+				Prompt: "You are a concurrency expert.",
+			}
+			service.CreatePersona(&p)
+			done <- true
+		}(i)
+	}
+	
+	// Wait for all goroutines
+	for i := 0; i < 5; i++ {
+		<-done
+	}
+	
+	// Verify all personas were created
+	personas, err := service.ListPersonas()
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+	if len(personas) != 5 {
+		t.Errorf("Expected 5 personas, got %d", len(personas))
+	}
+}
+
+func TestLegacyFunctionsCoverage(t *testing.T) {
+	// Reset default service
+	defaultService = NewService(storage.NewMemoryStorage())
+	
+	// Test all legacy functions for complete coverage
+	p1 := types.Persona{Name: "Legacy 1", Topic: "Testing", Prompt: "Test"}
+	p2 := types.Persona{Name: "Legacy 2", Topic: "Testing", Prompt: "Test"}
+	
+	// Create multiple personas
+	CreatePersona(&p1)
+	CreatePersona(&p2)
+	
+	// List all
+	list := ListPersonas()
+	if len(list) != 2 {
+		t.Errorf("Expected 2 personas, got %d", len(list))
+	}
+	
+	// Update one
+	p1.Name = "Updated Legacy 1"
+	UpdatePersona(p1.ID, p1)
+	
+	// Get updated
+	retrieved, _ := GetPersona(p1.ID)
+	if retrieved.Name != "Updated Legacy 1" {
+		t.Errorf("Expected updated name, got %s", retrieved.Name)
+	}
+	
+	// Delete one
+	DeletePersona(p2.ID)
+	
+	// Verify final count
+	finalList := ListPersonas()
+	if len(finalList) != 1 {
+		t.Errorf("Expected 1 persona after delete, got %d", len(finalList))
+	}
+}

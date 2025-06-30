@@ -574,3 +574,79 @@ func TestCreateClient_EdgeCases(t *testing.T) {
 		})
 	}
 }
+
+func TestExecuteWithConfig_CompleteWorkflow(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	
+	// Create a persona
+	os.Args = []string{"fr0g-ai-aip", "create", "-name", "Workflow Test", "-topic", "Testing", "-prompt", "Test prompt"}
+	err := ExecuteWithConfig(config)
+	if err != nil {
+		t.Fatalf("Create failed: %v", err)
+	}
+	
+	// List to verify creation
+	os.Args = []string{"fr0g-ai-aip", "list"}
+	err = ExecuteWithConfig(config)
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+}
+
+func TestExecuteWithConfig_FlagParsing(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	
+	// Test create with missing flags
+	os.Args = []string{"fr0g-ai-aip", "create", "-name", "Test"}
+	err := ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for incomplete create command")
+	}
+	
+	// Test update with missing flags
+	os.Args = []string{"fr0g-ai-aip", "update", "test-id"}
+	err = ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for update without changes")
+	}
+}
+
+func TestCreateClient_RESTWithDefaultURL(t *testing.T) {
+	config := Config{
+		ClientType: "rest",
+		ServerURL:  "http://localhost:8080", // Explicit default
+	}
+	
+	client, err := createClient(config)
+	if err != nil {
+		t.Fatalf("Failed to create REST client with default URL: %v", err)
+	}
+	
+	if client == nil {
+		t.Error("Expected client to be created")
+	}
+}
+
+func TestCreateClient_GRPCWithHTTPURL(t *testing.T) {
+	config := Config{
+		ClientType: "grpc",
+		ServerURL:  "http://localhost:8080", // HTTP URL should be converted
+	}
+	
+	client, err := createClient(config)
+	if err != nil {
+		t.Fatalf("Failed to create gRPC client: %v", err)
+	}
+	
+	if client == nil {
+		t.Error("Expected client to be created")
+	}
+}
