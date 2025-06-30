@@ -1,0 +1,14 @@
+{
+  "id": "000c1c82b3af8b25",
+  "persona_id": "5ec9c52ea4322659",
+  "name": "Alex White",
+  "description": "Community member based on Child Welfare Worker persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.787549005-06:00",
+  "updated_at": "2025-06-30T01:22:15.787549005-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

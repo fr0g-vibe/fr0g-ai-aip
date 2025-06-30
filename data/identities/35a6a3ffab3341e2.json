@@ -1,0 +1,14 @@
+{
+  "id": "35a6a3ffab3341e2",
+  "persona_id": "6377fa5c68e13ade",
+  "name": "Jordan Jackson",
+  "description": "Community member based on Public Health Expert persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.122982228-06:00",
+  "updated_at": "2025-06-30T01:15:13.122982228-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

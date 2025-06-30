@@ -1,0 +1,14 @@
+{
+  "id": "694cfb8fbc33bbf2",
+  "persona_id": "3c313923f7758d37",
+  "name": "Alex Wilson",
+  "description": "Community member based on Real Estate Agent persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649450822-06:00",
+  "updated_at": "2025-06-30T01:21:32.649450822-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

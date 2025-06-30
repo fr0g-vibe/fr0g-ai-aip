@@ -1,0 +1,14 @@
+{
+  "id": "dfef5611d3194659",
+  "persona_id": "975e78e70ca7c00b",
+  "name": "Alex Taylor",
+  "description": "Community member based on Conservation Biologist persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649524438-06:00",
+  "updated_at": "2025-06-30T01:21:32.649524438-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

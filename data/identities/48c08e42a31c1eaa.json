@@ -1,0 +1,14 @@
+{
+  "id": "48c08e42a31c1eaa",
+  "persona_id": "ea30fe17220bb326",
+  "name": "Sam Perez",
+  "description": "Community member based on Master Chef persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.709586425-06:00",
+  "updated_at": "2025-06-30T01:21:31.709586425-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

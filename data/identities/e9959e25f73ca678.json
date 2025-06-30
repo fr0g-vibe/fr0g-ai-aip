@@ -1,0 +1,14 @@
+{
+  "id": "e9959e25f73ca678",
+  "persona_id": "e689d69e112919f2",
+  "name": "Kendall Taylor",
+  "description": "Community member based on Anesthesia Technician persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.648939733-06:00",
+  "updated_at": "2025-06-30T01:21:32.648939733-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

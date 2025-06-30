@@ -1,0 +1,14 @@
+{
+  "id": "8ec1882269a1c4f3",
+  "persona_id": "80df7aa4239d1656",
+  "name": "Reese Martin",
+  "description": "Community member based on Cheese Maker persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.468194438-06:00",
+  "updated_at": "2025-06-30T01:21:30.468194438-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

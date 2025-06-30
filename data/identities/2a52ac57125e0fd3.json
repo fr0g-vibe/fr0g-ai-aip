@@ -1,0 +1,14 @@
+{
+  "id": "2a52ac57125e0fd3",
+  "persona_id": "242c8dbbaa5302e6",
+  "name": "Drew Brown",
+  "description": "Community member based on Bounty Hunter persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.787889268-06:00",
+  "updated_at": "2025-06-30T01:22:15.787889268-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

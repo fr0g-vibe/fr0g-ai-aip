@@ -1,0 +1,14 @@
+{
+  "id": "3745c0d5746c421f",
+  "persona_id": "fb59f9e8bae4e2d8",
+  "name": "Jamie Taylor",
+  "description": "Community member based on Honey Producer persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.786587715-06:00",
+  "updated_at": "2025-06-30T01:22:15.786587715-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

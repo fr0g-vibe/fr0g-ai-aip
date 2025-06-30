@@ -1,0 +1,14 @@
+{
+  "id": "a62de0924b895ade",
+  "persona_id": "c9b88d7204f4253c",
+  "name": "Harper Rodriguez",
+  "description": "Community member based on Insurance Adjuster persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.123249931-06:00",
+  "updated_at": "2025-06-30T01:15:13.123249931-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

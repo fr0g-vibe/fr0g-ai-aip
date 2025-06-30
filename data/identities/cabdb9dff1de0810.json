@@ -1,0 +1,14 @@
+{
+  "id": "cabdb9dff1de0810",
+  "persona_id": "7f93a154db3e83c0",
+  "name": "Finley Williams",
+  "description": "Community member based on Dog Groomer persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.648840722-06:00",
+  "updated_at": "2025-06-30T01:21:32.648840722-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

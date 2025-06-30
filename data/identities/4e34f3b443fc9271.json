@@ -1,0 +1,14 @@
+{
+  "id": "4e34f3b443fc9271",
+  "persona_id": "557d777cbb61b826",
+  "name": "Casey Hernandez",
+  "description": "Community member based on Military Veteran Officer persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.788317445-06:00",
+  "updated_at": "2025-06-30T01:22:15.788317445-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

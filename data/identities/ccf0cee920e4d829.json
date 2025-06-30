@@ -1,0 +1,14 @@
+{
+  "id": "ccf0cee920e4d829",
+  "persona_id": "fa55eba33bd72158",
+  "name": "Cameron Anderson",
+  "description": "Community member based on Feng Shui Master persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.786876885-06:00",
+  "updated_at": "2025-06-30T01:22:15.786876885-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

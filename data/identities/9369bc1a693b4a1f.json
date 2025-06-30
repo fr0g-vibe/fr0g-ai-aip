@@ -1,0 +1,14 @@
+{
+  "id": "9369bc1a693b4a1f",
+  "persona_id": "6a5edfba4de52517",
+  "name": "Parker White",
+  "description": "Community member based on Customs Broker persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.709320484-06:00",
+  "updated_at": "2025-06-30T01:21:31.709320484-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

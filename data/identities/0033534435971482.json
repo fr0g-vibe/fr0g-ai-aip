@@ -1,0 +1,14 @@
+{
+  "id": "0033534435971482",
+  "persona_id": "3a3ca474de500304",
+  "name": "Quinn Lopez",
+  "description": "Community member based on Feng Shui Practitioner persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649720941-06:00",
+  "updated_at": "2025-06-30T01:21:32.649720941-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

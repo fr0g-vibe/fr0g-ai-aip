@@ -1,0 +1,14 @@
+{
+  "id": "d75400041738b15f",
+  "persona_id": "130be2f20a020500",
+  "name": "Parker Hernandez",
+  "description": "Community member based on Handwriting Analyst persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.709914187-06:00",
+  "updated_at": "2025-06-30T01:21:31.709914187-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "b76ac95c191bc559",
+  "persona_id": "1e73c878675a2965",
+  "name": "Logan Smith",
+  "description": "Community member based on Blacksmith persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.787035479-06:00",
+  "updated_at": "2025-06-30T01:22:15.787035479-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

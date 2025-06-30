@@ -1,0 +1,14 @@
+{
+  "id": "fe4a99d37cdb7f57",
+  "persona_id": "96cfbe3366602ddc",
+  "name": "Taylor Wilson",
+  "description": "Community member based on Marine Engineer persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.786533278-06:00",
+  "updated_at": "2025-06-30T01:22:15.786533278-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

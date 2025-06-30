@@ -1,0 +1,14 @@
+{
+  "id": "2bf428d89e789e85",
+  "persona_id": "782c417ea88dbd33",
+  "name": "Sage Williams",
+  "description": "Community member based on Water Treatment Operator persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649772838-06:00",
+  "updated_at": "2025-06-30T01:21:32.649772838-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

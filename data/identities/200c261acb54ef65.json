@@ -1,0 +1,14 @@
+{
+  "id": "200c261acb54ef65",
+  "persona_id": "79c14aeed7fd39d7",
+  "name": "Harper Wilson",
+  "description": "Community member based on Museum Curator persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.468452392-06:00",
+  "updated_at": "2025-06-30T01:21:30.468452392-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

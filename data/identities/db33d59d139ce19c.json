@@ -1,0 +1,14 @@
+{
+  "id": "db33d59d139ce19c",
+  "persona_id": "183b84ce447d687e",
+  "name": "Casey Williams",
+  "description": "Community member based on Flight Attendant persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.650123802-06:00",
+  "updated_at": "2025-06-30T01:21:32.650123802-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

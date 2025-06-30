@@ -1,0 +1,14 @@
+{
+  "id": "5bd4df1c7a99570d",
+  "persona_id": "ed18d2a0f3da2d36",
+  "name": "Cameron Davis",
+  "description": "Community member based on House Painter persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.122764585-06:00",
+  "updated_at": "2025-06-30T01:15:13.122764585-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

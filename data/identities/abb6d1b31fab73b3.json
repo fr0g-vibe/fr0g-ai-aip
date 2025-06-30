@@ -1,0 +1,33 @@
+{
+  "id": "abb6d1b31fab73b3",
+  "persona_id": "054c0339d3f91c3a",
+  "name": "Maria Rodriguez",
+  "description": "Nurse practitioner focused on community health",
+  "background": "Generated identity based on Supreme Court Justice persona",
+  "created_at": "2025-06-30T01:15:12.947820205-06:00",
+  "updated_at": "2025-06-30T01:15:12.947820205-06:00",
+  "is_active": true,
+  "tags": [
+    "generated",
+    "sample",
+    "Constitutional Law \u0026 Judicial Decision-Making"
+  ],
+  "rich_attributes": {
+    "demographics": {
+      "age": 35,
+      "gender": "female",
+      "education": "master",
+      "location": {
+        "city": "Austin",
+        "urban_rural": "urban"
+      }
+    },
+    "psychographics": {
+      "values": [
+        "healthcare",
+        "fitness",
+        "cooking"
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "ce8a6b423f3a5f32",
+  "persona_id": "454cdc33e1aad1a2",
+  "name": "Alex Lopez",
+  "description": "Community member based on Millwright persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.787940257-06:00",
+  "updated_at": "2025-06-30T01:22:15.787940257-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

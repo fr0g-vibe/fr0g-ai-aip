@@ -1,0 +1,14 @@
+{
+  "id": "5bbf5f78f954d0a3",
+  "persona_id": "90b352a6199aa83c",
+  "name": "Emery White",
+  "description": "Community member based on Home Health Aide persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.788203743-06:00",
+  "updated_at": "2025-06-30T01:22:15.788203743-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

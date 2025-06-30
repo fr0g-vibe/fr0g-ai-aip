@@ -1,0 +1,14 @@
+{
+  "id": "5170b67798ea50b3",
+  "persona_id": "4e63f2941d91b0d3",
+  "name": "Jamie Smith",
+  "description": "Community member based on Marriage Counselor persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.788593577-06:00",
+  "updated_at": "2025-06-30T01:22:15.788593577-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

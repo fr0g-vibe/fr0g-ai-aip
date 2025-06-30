@@ -1,0 +1,14 @@
+{
+  "id": "12befae6ed4842bf",
+  "persona_id": "0a7d905c46ed4170",
+  "name": "Morgan Jones",
+  "description": "Community member based on Security Awareness Expert persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.787670219-06:00",
+  "updated_at": "2025-06-30T01:22:15.787670219-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

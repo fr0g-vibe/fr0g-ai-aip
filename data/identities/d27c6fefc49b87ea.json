@@ -1,0 +1,14 @@
+{
+  "id": "d27c6fefc49b87ea",
+  "persona_id": "4f61156fac569b6a",
+  "name": "Hayden Williams",
+  "description": "Community member based on Clinical Social Worker persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.122808563-06:00",
+  "updated_at": "2025-06-30T01:15:13.122808563-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

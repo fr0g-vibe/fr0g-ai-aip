@@ -1,0 +1,14 @@
+{
+  "id": "c7e2864234a798be",
+  "persona_id": "ff6c0f39fccac82d",
+  "name": "Drew Davis",
+  "description": "Community member based on HR Director persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.786472849-06:00",
+  "updated_at": "2025-06-30T01:22:15.786472849-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

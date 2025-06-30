@@ -1,0 +1,14 @@
+{
+  "id": "8e288500701b6553",
+  "persona_id": "5001044d292fe4ac",
+  "name": "Logan Brown",
+  "description": "Community member based on Medical Laboratory Technician persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649598942-06:00",
+  "updated_at": "2025-06-30T01:21:32.649598942-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "20f1c4c1fba44ca7",
+  "persona_id": "e310460503ff6192",
+  "name": "Sage Moore",
+  "description": "Community member based on Sleep Technologist persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.64997417-06:00",
+  "updated_at": "2025-06-30T01:21:32.64997417-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

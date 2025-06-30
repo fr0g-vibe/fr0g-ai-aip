@@ -1,0 +1,33 @@
+{
+  "id": "cfa84b224f19cbc9",
+  "persona_id": "08735b4436879a50",
+  "name": "David Wilson",
+  "description": "Marketing director for tech startups",
+  "background": "Generated identity based on Patent Attorney persona",
+  "created_at": "2025-06-30T01:21:24.395360272-06:00",
+  "updated_at": "2025-06-30T01:21:24.395360272-06:00",
+  "is_active": true,
+  "tags": [
+    "generated",
+    "sample",
+    "Intellectual Property Law \u0026 Patent Prosecution"
+  ],
+  "rich_attributes": {
+    "demographics": {
+      "age": 33,
+      "gender": "male",
+      "education": "bachelor",
+      "location": {
+        "city": "Miami",
+        "urban_rural": "urban"
+      }
+    },
+    "psychographics": {
+      "values": [
+        "marketing",
+        "business",
+        "fitness"
+      ]
+    }
+  }
+}

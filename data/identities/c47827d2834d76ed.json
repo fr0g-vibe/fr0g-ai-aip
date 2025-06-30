@@ -1,0 +1,14 @@
+{
+  "id": "c47827d2834d76ed",
+  "persona_id": "41cc7a5e8fe589a0",
+  "name": "Cameron Brown",
+  "description": "Community member based on Small Engine Repair Technician persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.467792381-06:00",
+  "updated_at": "2025-06-30T01:21:30.467792381-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "8dd1919472babb01",
+  "persona_id": "496e3daecf4322fd",
+  "name": "Emery Rodriguez",
+  "description": "Community member based on Professional Organizer persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.468090117-06:00",
+  "updated_at": "2025-06-30T01:21:30.468090117-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

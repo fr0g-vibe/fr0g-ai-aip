@@ -1,0 +1,14 @@
+{
+  "id": "cea36815ceadeff0",
+  "persona_id": "a2d6959a56afce98",
+  "name": "Logan Perez",
+  "description": "Community member based on Award-Winning Novelist persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.709410466-06:00",
+  "updated_at": "2025-06-30T01:21:31.709410466-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

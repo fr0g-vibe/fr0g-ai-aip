@@ -1,0 +1,14 @@
+{
+  "id": "c5a350628324a1c7",
+  "persona_id": "c6314d8302aa8f01",
+  "name": "Finley Gonzalez",
+  "description": "Community member based on Documentary Filmmaker persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.122852531-06:00",
+  "updated_at": "2025-06-30T01:15:13.122852531-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

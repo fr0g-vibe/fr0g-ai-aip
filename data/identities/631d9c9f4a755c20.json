@@ -1,0 +1,14 @@
+{
+  "id": "631d9c9f4a755c20",
+  "persona_id": "6fb20d110fc7f939",
+  "name": "Skyler Jackson",
+  "description": "Community member based on Test persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.787353325-06:00",
+  "updated_at": "2025-06-30T01:22:15.787353325-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

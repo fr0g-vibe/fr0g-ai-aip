@@ -1,0 +1,14 @@
+{
+  "id": "7a4316b8ef45ce56",
+  "persona_id": "8cca5eb96395c7ac",
+  "name": "Skyler Wilson",
+  "description": "Community member based on Concrete Finisher persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.12219676-06:00",
+  "updated_at": "2025-06-30T01:15:13.12219676-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

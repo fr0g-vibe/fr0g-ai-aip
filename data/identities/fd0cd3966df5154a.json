@@ -1,0 +1,14 @@
+{
+  "id": "fd0cd3966df5154a",
+  "persona_id": "c177b55b7674922a",
+  "name": "Morgan Garcia",
+  "description": "Community member based on Translator persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.123206921-06:00",
+  "updated_at": "2025-06-30T01:15:13.123206921-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

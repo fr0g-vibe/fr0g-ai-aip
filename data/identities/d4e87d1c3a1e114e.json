@@ -1,0 +1,14 @@
+{
+  "id": "d4e87d1c3a1e114e",
+  "persona_id": "13ade9c2ae13ac12",
+  "name": "Sage Jackson",
+  "description": "Community member based on Automotive Mechanic persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.710159116-06:00",
+  "updated_at": "2025-06-30T01:21:31.710159116-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "1dea6ed9e2227387",
+  "persona_id": "5b1a07ead0c040cc",
+  "name": "Kendall Lopez",
+  "description": "Community member based on Process Server persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.709151659-06:00",
+  "updated_at": "2025-06-30T01:21:31.709151659-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

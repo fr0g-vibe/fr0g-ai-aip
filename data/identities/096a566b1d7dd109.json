@@ -1,0 +1,14 @@
+{
+  "id": "096a566b1d7dd109",
+  "persona_id": "1d7f528bb1bbb462",
+  "name": "Riley Williams",
+  "description": "Community member based on Dental Hygienist persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.710078371-06:00",
+  "updated_at": "2025-06-30T01:21:31.710078371-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

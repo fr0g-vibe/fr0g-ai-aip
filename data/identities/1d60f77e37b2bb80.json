@@ -1,0 +1,14 @@
+{
+  "id": "1d60f77e37b2bb80",
+  "persona_id": "a59e22f8bdc73397",
+  "name": "Jamie Johnson",
+  "description": "Community member based on Butcher persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.122676308-06:00",
+  "updated_at": "2025-06-30T01:15:13.122676308-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "893c28c21021caee",
+  "persona_id": "ed18d2a0f3da2d36",
+  "name": "Avery Thomas",
+  "description": "Community member based on House Painter persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649298962-06:00",
+  "updated_at": "2025-06-30T01:21:32.649298962-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

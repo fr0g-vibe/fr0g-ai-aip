@@ -1,0 +1,14 @@
+{
+  "id": "ef21261e2389eb60",
+  "persona_id": "53636ad58fc6950f",
+  "name": "Skyler Lee",
+  "description": "Community member based on Humanitarian Aid Worker persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.709668613-06:00",
+  "updated_at": "2025-06-30T01:21:31.709668613-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

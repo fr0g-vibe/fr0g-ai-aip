@@ -1,0 +1,33 @@
+{
+  "id": "a508370ac12a0fc8",
+  "persona_id": "08256b0fefd41a41",
+  "name": "Emily Davis",
+  "description": "Elementary school principal",
+  "background": "Generated identity based on Bartender persona",
+  "created_at": "2025-06-30T01:21:24.395256897-06:00",
+  "updated_at": "2025-06-30T01:21:24.395256897-06:00",
+  "is_active": true,
+  "tags": [
+    "generated",
+    "sample",
+    "Mixology \u0026 Beverage Service"
+  ],
+  "rich_attributes": {
+    "demographics": {
+      "age": 45,
+      "gender": "female",
+      "education": "master",
+      "location": {
+        "city": "Denver",
+        "urban_rural": "urban"
+      }
+    },
+    "psychographics": {
+      "values": [
+        "education",
+        "gardening",
+        "community"
+      ]
+    }
+  }
+}

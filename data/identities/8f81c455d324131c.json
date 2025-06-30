@@ -1,0 +1,14 @@
+{
+  "id": "8f81c455d324131c",
+  "persona_id": "c6314d8302aa8f01",
+  "name": "Cameron White",
+  "description": "Community member based on Documentary Filmmaker persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.650174222-06:00",
+  "updated_at": "2025-06-30T01:21:32.650174222-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

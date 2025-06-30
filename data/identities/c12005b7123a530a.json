@@ -1,0 +1,14 @@
+{
+  "id": "c12005b7123a530a",
+  "persona_id": "5361f724dfa9377e",
+  "name": "Blake Thompson",
+  "description": "Community member based on Cybercrime Research Analyst persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.788870383-06:00",
+  "updated_at": "2025-06-30T01:22:15.788870383-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

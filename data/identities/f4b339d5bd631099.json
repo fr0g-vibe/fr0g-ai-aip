@@ -1,0 +1,14 @@
+{
+  "id": "f4b339d5bd631099",
+  "persona_id": "16142416542215d6",
+  "name": "Harper Taylor",
+  "description": "Community member based on Master Carpenter persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.709995278-06:00",
+  "updated_at": "2025-06-30T01:21:31.709995278-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

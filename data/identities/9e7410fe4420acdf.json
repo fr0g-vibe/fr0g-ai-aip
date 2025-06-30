@@ -1,0 +1,14 @@
+{
+  "id": "9e7410fe4420acdf",
+  "persona_id": "075f1dff2131aa81",
+  "name": "Peyton Taylor",
+  "description": "Community member based on Investment Banker persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649247559-06:00",
+  "updated_at": "2025-06-30T01:21:32.649247559-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

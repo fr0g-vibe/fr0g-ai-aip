@@ -1,0 +1,14 @@
+{
+  "id": "1245aad4fa2074af",
+  "persona_id": "135f7250d6e50209",
+  "name": "Logan Gonzalez",
+  "description": "Community member based on Customs Officer persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.709503254-06:00",
+  "updated_at": "2025-06-30T01:21:31.709503254-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

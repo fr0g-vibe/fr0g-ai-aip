@@ -1,0 +1,14 @@
+{
+  "id": "101e1b28abd3fe0d",
+  "persona_id": "4ae2e473cc9e08a5",
+  "name": "Finley Garcia",
+  "description": "Community member based on Pile Driver Operator persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.648257047-06:00",
+  "updated_at": "2025-06-30T01:21:32.648257047-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

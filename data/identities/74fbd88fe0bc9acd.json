@@ -1,0 +1,14 @@
+{
+  "id": "74fbd88fe0bc9acd",
+  "persona_id": "c01f955819e6e772",
+  "name": "Emery Martin",
+  "description": "Community member based on Pharmacy Technician persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.467632509-06:00",
+  "updated_at": "2025-06-30T01:21:30.467632509-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

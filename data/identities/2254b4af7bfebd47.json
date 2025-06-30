@@ -1,0 +1,14 @@
+{
+  "id": "2254b4af7bfebd47",
+  "persona_id": "2d5667dcb2085510",
+  "name": "Blake Rodriguez",
+  "description": "Community member based on Professional Farmer persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.787412286-06:00",
+  "updated_at": "2025-06-30T01:22:15.787412286-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

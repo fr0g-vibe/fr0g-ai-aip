@@ -1,0 +1,14 @@
+{
+  "id": "10a72e8dad3a4879",
+  "persona_id": "d5aff3d85cab06ba",
+  "name": "Blake Anderson",
+  "description": "Community member based on Court Reporter persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.78804518-06:00",
+  "updated_at": "2025-06-30T01:22:15.78804518-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

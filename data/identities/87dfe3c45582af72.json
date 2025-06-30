@@ -1,0 +1,14 @@
+{
+  "id": "87dfe3c45582af72",
+  "persona_id": "054c0339d3f91c3a",
+  "name": "Jordan Thompson",
+  "description": "Community member based on Supreme Court Justice persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.788924104-06:00",
+  "updated_at": "2025-06-30T01:22:15.788924104-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

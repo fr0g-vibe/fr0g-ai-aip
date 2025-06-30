@@ -1,0 +1,14 @@
+{
+  "id": "7fd38980e689841e",
+  "persona_id": "f74502680d857a19",
+  "name": "Logan Davis",
+  "description": "Community member based on Comic Book Store Owner persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.122620488-06:00",
+  "updated_at": "2025-06-30T01:15:13.122620488-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

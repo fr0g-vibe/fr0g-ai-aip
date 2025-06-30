@@ -1,0 +1,14 @@
+{
+  "id": "a0e8fe81adbf31f2",
+  "persona_id": "23dd58d9c215ddf1",
+  "name": "Cameron Lee",
+  "description": "Community member based on Land Surveyor persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.122940097-06:00",
+  "updated_at": "2025-06-30T01:15:13.122940097-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

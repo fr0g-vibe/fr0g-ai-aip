@@ -1,0 +1,14 @@
+{
+  "id": "7cfab5fee819de43",
+  "persona_id": "9777444a5a0a376c",
+  "name": "Parker Miller",
+  "description": "Community member based on Radiologic Technologist persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.7871979-06:00",
+  "updated_at": "2025-06-30T01:22:15.7871979-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

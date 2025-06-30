@@ -1,0 +1,14 @@
+{
+  "id": "1031334af33fa366",
+  "persona_id": "194d8c5bef1240df",
+  "name": "Logan Thomas",
+  "description": "Community member based on Furniture Maker persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649349881-06:00",
+  "updated_at": "2025-06-30T01:21:32.649349881-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

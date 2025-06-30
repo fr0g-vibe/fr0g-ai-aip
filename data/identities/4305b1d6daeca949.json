@@ -1,0 +1,14 @@
+{
+  "id": "4305b1d6daeca949",
+  "persona_id": "3be22511749cd7bd",
+  "name": "Harper Lee",
+  "description": "Community member based on Agricultural Extension Agent persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.468400092-06:00",
+  "updated_at": "2025-06-30T01:21:30.468400092-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

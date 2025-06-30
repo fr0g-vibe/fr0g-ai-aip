@@ -1,0 +1,14 @@
+{
+  "id": "d87e40e358da5b79",
+  "persona_id": "c7862bae43bf9f65",
+  "name": "Blake Brown",
+  "description": "Community member based on Test persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.648674986-06:00",
+  "updated_at": "2025-06-30T01:21:32.648674986-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

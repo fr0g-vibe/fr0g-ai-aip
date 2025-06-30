@@ -1,0 +1,33 @@
+{
+  "id": "18099af5b3ac8531",
+  "persona_id": "0813d4b7399745a5",
+  "name": "Michael Brown",
+  "description": "Emergency room physician",
+  "background": "Generated identity based on Disability Rights Advocate persona",
+  "created_at": "2025-06-30T01:21:24.395163602-06:00",
+  "updated_at": "2025-06-30T01:21:24.395163602-06:00",
+  "is_active": true,
+  "tags": [
+    "generated",
+    "sample",
+    "Disability Rights \u0026 Accessibility"
+  ],
+  "rich_attributes": {
+    "demographics": {
+      "age": 38,
+      "gender": "male",
+      "education": "graduate",
+      "location": {
+        "city": "Chicago",
+        "urban_rural": "urban"
+      }
+    },
+    "psychographics": {
+      "values": [
+        "medicine",
+        "sports",
+        "photography"
+      ]
+    }
+  }
+}

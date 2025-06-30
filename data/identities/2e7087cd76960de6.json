@@ -1,0 +1,14 @@
+{
+  "id": "2e7087cd76960de6",
+  "persona_id": "31a1d7b1d0fbb623",
+  "name": "Cameron Johnson",
+  "description": "Community member based on Prosthetist persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.123346586-06:00",
+  "updated_at": "2025-06-30T01:15:13.123346586-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

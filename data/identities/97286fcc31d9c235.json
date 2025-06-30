@@ -1,0 +1,14 @@
+{
+  "id": "97286fcc31d9c235",
+  "persona_id": "3b2bdfc6442a2f14",
+  "name": "Kendall Rodriguez",
+  "description": "Community member based on Astrophysicist persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.12311981-06:00",
+  "updated_at": "2025-06-30T01:15:13.12311981-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

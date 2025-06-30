@@ -1,0 +1,14 @@
+{
+  "id": "7ad50ecbc729dbdf",
+  "persona_id": "4db8a95a9c497b5f",
+  "name": "Taylor Gonzalez",
+  "description": "Community member based on Pharmacy Technician Supervisor persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.788978458-06:00",
+  "updated_at": "2025-06-30T01:22:15.788978458-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

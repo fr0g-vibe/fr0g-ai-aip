@@ -1,0 +1,14 @@
+{
+  "id": "e5442bacd4f4286d",
+  "persona_id": "23dd58d9c215ddf1",
+  "name": "Taylor Moore",
+  "description": "Community member based on Land Surveyor persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.786409017-06:00",
+  "updated_at": "2025-06-30T01:22:15.786409017-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

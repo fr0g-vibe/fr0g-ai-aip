@@ -1,0 +1,14 @@
+{
+  "id": "83ff24f4af523429",
+  "persona_id": "6da8f0d4441a21b3",
+  "name": "Casey Martinez",
+  "description": "Community member based on Podcast Host persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.467738857-06:00",
+  "updated_at": "2025-06-30T01:21:30.467738857-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

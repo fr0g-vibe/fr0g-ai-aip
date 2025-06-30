@@ -1,0 +1,14 @@
+{
+  "id": "25bdc02947adbede",
+  "persona_id": "4a2340a7c0b1b1e1",
+  "name": "Skyler Miller",
+  "description": "Community member based on Appliance Repair Technician persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.123301051-06:00",
+  "updated_at": "2025-06-30T01:15:13.123301051-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

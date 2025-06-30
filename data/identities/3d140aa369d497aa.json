@@ -1,0 +1,14 @@
+{
+  "id": "3d140aa369d497aa",
+  "persona_id": "dbd497454eb46745",
+  "name": "Drew Thomas",
+  "description": "Community member based on Manufacturing Engineer persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649197645-06:00",
+  "updated_at": "2025-06-30T01:21:32.649197645-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

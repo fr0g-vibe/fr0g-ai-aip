@@ -1,0 +1,14 @@
+{
+  "id": "1d0b7f51c82afbbf",
+  "persona_id": "3fd2408985cde2b5",
+  "name": "Emery Lee",
+  "description": "Community member based on Gun Shop Owner persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.788763591-06:00",
+  "updated_at": "2025-06-30T01:22:15.788763591-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

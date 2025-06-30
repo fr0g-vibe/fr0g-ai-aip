@@ -1,0 +1,14 @@
+{
+  "id": "45dcf758ddf51a98",
+  "persona_id": "09108de0f6dfcea5",
+  "name": "Emery Jones",
+  "description": "Community member based on Veterinarian persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:31.709749896-06:00",
+  "updated_at": "2025-06-30T01:21:31.709749896-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

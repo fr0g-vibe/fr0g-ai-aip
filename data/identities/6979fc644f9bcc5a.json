@@ -1,0 +1,14 @@
+{
+  "id": "6979fc644f9bcc5a",
+  "persona_id": "ebefde1f80fe6a04",
+  "name": "Cameron Brown",
+  "description": "Community member based on Sommelier persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.786982518-06:00",
+  "updated_at": "2025-06-30T01:22:15.786982518-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

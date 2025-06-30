@@ -1,0 +1,14 @@
+{
+  "id": "e27b73e9b6a9ae7e",
+  "persona_id": "bca3ec0a4de81458",
+  "name": "Quinn Williams",
+  "description": "Community member based on Emergency Management Director persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.788703847-06:00",
+  "updated_at": "2025-06-30T01:22:15.788703847-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

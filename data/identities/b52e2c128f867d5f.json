@@ -1,0 +1,14 @@
+{
+  "id": "b52e2c128f867d5f",
+  "persona_id": "73014d0f254f5010",
+  "name": "Taylor Anderson",
+  "description": "Community member based on Construction Manager persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.467572114-06:00",
+  "updated_at": "2025-06-30T01:21:30.467572114-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "6b8ddfae435e1d97",
+  "persona_id": "b6658a8b76f1ef3b",
+  "name": "Kendall Rodriguez",
+  "description": "Community member based on Optometrist persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649097918-06:00",
+  "updated_at": "2025-06-30T01:21:32.649097918-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "d88ee2e1fc240815",
+  "persona_id": "d6ee4c1b376fa2a3",
+  "name": "Finley Martinez",
+  "description": "Community member based on Glass Blower persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.648789459-06:00",
+  "updated_at": "2025-06-30T01:21:32.648789459-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

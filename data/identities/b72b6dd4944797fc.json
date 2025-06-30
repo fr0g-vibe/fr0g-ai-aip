@@ -1,0 +1,14 @@
+{
+  "id": "b72b6dd4944797fc",
+  "persona_id": "d1dd9a2a52ffa480",
+  "name": "Morgan Smith",
+  "description": "Community member based on Mediator persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.468037019-06:00",
+  "updated_at": "2025-06-30T01:21:30.468037019-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "f9535ac65b857c2c",
+  "persona_id": "83d91b6a50118d8e",
+  "name": "Cameron Williams",
+  "description": "Community member based on Architect persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649147481-06:00",
+  "updated_at": "2025-06-30T01:21:32.649147481-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

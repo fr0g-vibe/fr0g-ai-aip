@@ -1,0 +1,14 @@
+{
+  "id": "8a9e6248fc78ce6d",
+  "persona_id": "6da8f0d4441a21b3",
+  "name": "Morgan Miller",
+  "description": "Community member based on Podcast Host persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.46824582-06:00",
+  "updated_at": "2025-06-30T01:21:30.46824582-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

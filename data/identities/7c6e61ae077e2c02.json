@@ -1,0 +1,33 @@
+{
+  "id": "7c6e61ae077e2c02",
+  "persona_id": "06c8f4353771f6af",
+  "name": "Jordan Smith",
+  "description": "High school teacher specializing in STEM education",
+  "background": "Generated identity based on Voice Coach persona",
+  "created_at": "2025-06-30T01:21:24.394902477-06:00",
+  "updated_at": "2025-06-30T01:21:24.394902477-06:00",
+  "is_active": true,
+  "tags": [
+    "generated",
+    "sample",
+    "Vocal Training \u0026 Speech Development"
+  ],
+  "rich_attributes": {
+    "demographics": {
+      "age": 42,
+      "gender": "non-binary",
+      "education": "master",
+      "location": {
+        "city": "Portland",
+        "urban_rural": "urban"
+      }
+    },
+    "psychographics": {
+      "values": [
+        "education",
+        "science",
+        "reading"
+      ]
+    }
+  }
+}

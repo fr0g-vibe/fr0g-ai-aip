@@ -1,0 +1,14 @@
+{
+  "id": "61d0dcf153dfe3ce",
+  "persona_id": "8fcc900fc8948efb",
+  "name": "Blake Thomas",
+  "description": "Community member based on Ultrasound Technician persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649922005-06:00",
+  "updated_at": "2025-06-30T01:21:32.649922005-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

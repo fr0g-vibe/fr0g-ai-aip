@@ -1,0 +1,14 @@
+{
+  "id": "8bff89d449b5cf00",
+  "persona_id": "454cdc33e1aad1a2",
+  "name": "Peyton Anderson",
+  "description": "Community member based on Millwright persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.787837731-06:00",
+  "updated_at": "2025-06-30T01:22:15.787837731-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

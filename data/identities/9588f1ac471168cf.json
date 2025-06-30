@@ -1,0 +1,14 @@
+{
+  "id": "9588f1ac471168cf",
+  "persona_id": "6ca7c8e3ec9b7bd2",
+  "name": "Avery Johnson",
+  "description": "Community member based on Executive Chef persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:32.649038437-06:00",
+  "updated_at": "2025-06-30T01:21:32.649038437-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

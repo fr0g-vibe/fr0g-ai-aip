@@ -1,0 +1,33 @@
+{
+  "id": "b7125481450fdc58",
+  "persona_id": "07b38fa7eb6d7867",
+  "name": "Sarah Kim",
+  "description": "UX designer focused on accessible technology",
+  "background": "Generated identity based on Bank Manager persona",
+  "created_at": "2025-06-30T01:21:24.395078611-06:00",
+  "updated_at": "2025-06-30T01:21:24.395078611-06:00",
+  "is_active": true,
+  "tags": [
+    "generated",
+    "sample",
+    "Banking Operations \u0026 Financial Services"
+  ],
+  "rich_attributes": {
+    "demographics": {
+      "age": 29,
+      "gender": "female",
+      "education": "bachelor",
+      "location": {
+        "city": "Seattle",
+        "urban_rural": "urban"
+      }
+    },
+    "psychographics": {
+      "values": [
+        "design",
+        "technology",
+        "art"
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "4efb6b51ebb84546",
+  "persona_id": "92714762f2f49bce",
+  "name": "Casey Johnson",
+  "description": "Community member based on Spice Merchant persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.467124083-06:00",
+  "updated_at": "2025-06-30T01:21:30.467124083-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

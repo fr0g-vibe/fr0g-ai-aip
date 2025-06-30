@@ -1,0 +1,14 @@
+{
+  "id": "cc0f3f73b7623628",
+  "persona_id": "7ce4ccfd6a4d0ce8",
+  "name": "Blake Brown",
+  "description": "Community member based on Sound Engineer persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.467845098-06:00",
+  "updated_at": "2025-06-30T01:21:30.467845098-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

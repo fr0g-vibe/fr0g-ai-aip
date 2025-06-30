@@ -1,0 +1,14 @@
+{
+  "id": "961f388516364bb3",
+  "persona_id": "d6ee4c1b376fa2a3",
+  "name": "Blake Lee",
+  "description": "Community member based on Glass Blower persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.467903243-06:00",
+  "updated_at": "2025-06-30T01:21:30.467903243-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "3b32c07d05355449",
+  "persona_id": "c7862bae43bf9f65",
+  "name": "Drew Martinez",
+  "description": "Community member based on Test persona",
+  "background": "",
+  "created_at": "2025-06-30T01:21:30.468294569-06:00",
+  "updated_at": "2025-06-30T01:21:30.468294569-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

@@ -1,0 +1,14 @@
+{
+  "id": "7031bedb68672944",
+  "persona_id": "d780570098081455",
+  "name": "Skyler Taylor",
+  "description": "Community member based on Baker persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.787606469-06:00",
+  "updated_at": "2025-06-30T01:22:15.787606469-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

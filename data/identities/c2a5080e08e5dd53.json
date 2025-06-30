@@ -1,0 +1,14 @@
+{
+  "id": "c2a5080e08e5dd53",
+  "persona_id": "6fddbda1d23d3f52",
+  "name": "Jordan Jones",
+  "description": "Community member based on Insulation Installer persona",
+  "background": "",
+  "created_at": "2025-06-30T01:15:13.123068125-06:00",
+  "updated_at": "2025-06-30T01:15:13.123068125-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

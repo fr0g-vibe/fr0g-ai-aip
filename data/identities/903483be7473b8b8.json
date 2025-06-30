@@ -1,0 +1,14 @@
+{
+  "id": "903483be7473b8b8",
+  "persona_id": "08735b4436879a50",
+  "name": "Drew Perez",
+  "description": "Community member based on Patent Attorney persona",
+  "background": "",
+  "created_at": "2025-06-30T01:22:15.78826005-06:00",
+  "updated_at": "2025-06-30T01:22:15.78826005-06:00",
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}
