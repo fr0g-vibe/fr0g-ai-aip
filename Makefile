@@ -9,10 +9,13 @@ build:
 build-with-grpc: build
 	@echo "gRPC support built using local JSON-over-HTTP implementation"
 
-# Generate protobuf code (optional - for reference only)
+# Generate protobuf code
 proto:
-	@echo "Protobuf generation is optional with local gRPC implementation"
-	@echo "Current implementation uses JSON-over-HTTP with Go standard library"
+	@echo "Generating protobuf code..."
+	protoc --go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		proto/persona.proto
+	@echo "Protobuf code generated successfully"
 
 # Run tests
 test:

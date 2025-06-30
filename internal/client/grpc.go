@@ -1,84 +1,55 @@
 package client
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"net/http"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb/proto"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
-// Local gRPC-compatible types (using only standard library)
-type Persona struct {
-	Id      string            `json:"id"`
-	Name    string            `json:"name"`
-	Topic   string            `json:"topic"`
-	Prompt  string            `json:"prompt"`
-	Context map[string]string `json:"context,omitempty"`
-	Rag     []string          `json:"rag,omitempty"`
-}
-
-type CreatePersonaRequest struct {
-	Persona *Persona `json:"persona"`
-}
-
-type CreatePersonaResponse struct {
-	Persona *Persona `json:"persona"`
-}
-
-type GetPersonaRequest struct {
-	Id string `json:"id"`
-}
-
-type GetPersonaResponse struct {
-	Persona *Persona `json:"persona"`
-}
-
-type ListPersonasRequest struct{}
-
-type ListPersonasResponse struct {
-	Personas []*Persona `json:"personas"`
-}
-
-type UpdatePersonaRequest struct {
-	Id      string   `json:"id"`
-	Persona *Persona `json:"persona"`
-}
-
-type UpdatePersonaResponse struct {
-	Persona *Persona `json:"persona"`
-}
-
-type DeletePersonaRequest struct {
-	Id string `json:"id"`
-}
-
-type DeletePersonaResponse struct{}
-
-// GRPCClient implements a gRPC-like client using standard library HTTP
+// GRPCClient implements a real gRPC client using protobuf
 type GRPCClient struct {
-	baseURL string
-	client  *http.Client
+	conn   *grpc.ClientConn
+	client proto.PersonaServiceClient
 }
 
-// NewGRPCClient creates a new local gRPC-compatible client
+// NewGRPCClient creates a new gRPC client
 func NewGRPCClient(address string) (*GRPCClient, error) {
-	// Convert gRPC address to HTTP URL
-	baseURL := fmt.Sprintf("http://%s", address)
-	
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	conn, err := grpc.DialContext(ctx, address, 
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to gRPC server: %v", err)
+	}
+
+	client := proto.NewPersonaServiceClient(conn)
+
 	return &GRPCClient{
-		baseURL: baseURL,
-		client: &http.Client{
-			Timeout: 5 * time.Second,
-		},
+		conn:   conn,
+		client: client,
 	}, nil
 }
 
+// Close closes the gRPC connection
+func (g *GRPCClient) Close() error {
+	return g.conn.Close()
+}
+
 func (g *GRPCClient) Create(p *types.Persona) error {
-	req := CreatePersonaRequest{
-		Persona: &Persona{
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	req := &proto.CreatePersonaRequest{
+		Persona: &proto.Persona{
 			Name:    p.Name,
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
@@ -86,25 +57,28 @@ func (g *GRPCClient) Create(p *types.Persona) error {
 			Rag:     p.RAG,
 		},
 	}
-	
-	var resp CreatePersonaResponse
-	if err := g.makeRequest("/PersonaService/CreatePersona", req, &resp); err != nil {
+
+	resp, err := g.client.CreatePersona(ctx, req)
+	if err != nil {
 		return fmt.Errorf("failed to create persona: %v", err)
 	}
-	
+
 	// Update the persona with the returned ID
 	p.ID = resp.Persona.Id
 	return nil
 }
 
 func (g *GRPCClient) Get(id string) (types.Persona, error) {
-	req := GetPersonaRequest{Id: id}
-	
-	var resp GetPersonaResponse
-	if err := g.makeRequest("/PersonaService/GetPersona", req, &resp); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	req := &proto.GetPersonaRequest{Id: id}
+
+	resp, err := g.client.GetPersona(ctx, req)
+	if err != nil {
 		return types.Persona{}, fmt.Errorf("failed to get persona: %v", err)
 	}
-	
+
 	return types.Persona{
 		ID:      resp.Persona.Id,
 		Name:    resp.Persona.Name,
@@ -116,13 +90,16 @@ func (g *GRPCClient) Get(id string) (types.Persona, error) {
 }
 
 func (g *GRPCClient) List() ([]types.Persona, error) {
-	req := ListPersonasRequest{}
-	
-	var resp ListPersonasResponse
-	if err := g.makeRequest("/PersonaService/ListPersonas", req, &resp); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	req := &proto.ListPersonasRequest{}
+
+	resp, err := g.client.ListPersonas(ctx, req)
+	if err != nil {
 		return nil, fmt.Errorf("failed to list personas: %v", err)
 	}
-	
+
 	var personas []types.Persona
 	for _, p := range resp.Personas {
 		personas = append(personas, types.Persona{
@@ -134,14 +111,17 @@ func (g *GRPCClient) List() ([]types.Persona, error) {
 			RAG:     p.Rag,
 		})
 	}
-	
+
 	return personas, nil
 }
 
 func (g *GRPCClient) Update(id string, p types.Persona) error {
-	req := UpdatePersonaRequest{
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	req := &proto.UpdatePersonaRequest{
 		Id: id,
-		Persona: &Persona{
+		Persona: &proto.Persona{
 			Name:    p.Name,
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
@@ -149,45 +129,25 @@ func (g *GRPCClient) Update(id string, p types.Persona) error {
 			Rag:     p.RAG,
 		},
 	}
-	
-	var resp UpdatePersonaResponse
-	if err := g.makeRequest("/PersonaService/UpdatePersona", req, &resp); err != nil {
+
+	_, err := g.client.UpdatePersona(ctx, req)
+	if err != nil {
 		return fmt.Errorf("failed to update persona: %v", err)
 	}
-	
+
 	return nil
 }
 
 func (g *GRPCClient) Delete(id string) error {
-	req := DeletePersonaRequest{Id: id}
-	
-	var resp DeletePersonaResponse
-	if err := g.makeRequest("/PersonaService/DeletePersona", req, &resp); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	req := &proto.DeletePersonaRequest{Id: id}
+
+	_, err := g.client.DeletePersona(ctx, req)
+	if err != nil {
 		return fmt.Errorf("failed to delete persona: %v", err)
 	}
-	
-	return nil
-}
 
-func (g *GRPCClient) makeRequest(endpoint string, req interface{}, resp interface{}) error {
-	data, err := json.Marshal(req)
-	if err != nil {
-		return fmt.Errorf("failed to marshal request: %v", err)
-	}
-	
-	httpResp, err := g.client.Post(g.baseURL+endpoint, "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		return fmt.Errorf("failed to make request: %v", err)
-	}
-	defer httpResp.Body.Close()
-	
-	if httpResp.StatusCode != http.StatusOK {
-		return fmt.Errorf("request failed with status: %d", httpResp.StatusCode)
-	}
-	
-	if err := json.NewDecoder(httpResp.Body).Decode(resp); err != nil {
-		return fmt.Errorf("failed to decode response: %v", err)
-	}
-	
 	return nil
 }

@@ -99,7 +99,11 @@ func createClient(config Config) (client.Client, error) {
 			// If a custom server URL is provided and it's not the REST default, use it
 			address = config.ServerURL
 		}
-		return client.NewGRPCClient(address)
+		grpcClient, err := client.NewGRPCClient(address)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create gRPC client: %v", err)
+		}
+		return grpcClient, nil
 	default:
 		return nil, fmt.Errorf("unknown client type: %s", config.ClientType)
 	}

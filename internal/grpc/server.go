@@ -1,96 +1,46 @@
 package grpc
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
-	"net/http"
+	"net"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb/proto"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
-// Local gRPC-compatible types (using only standard library)
-type Persona struct {
-	Id      string            `json:"id"`
-	Name    string            `json:"name"`
-	Topic   string            `json:"topic"`
-	Prompt  string            `json:"prompt"`
-	Context map[string]string `json:"context,omitempty"`
-	Rag     []string          `json:"rag,omitempty"`
+// PersonaServer implements the gRPC PersonaService
+type PersonaServer struct {
+	proto.UnimplementedPersonaServiceServer
 }
 
-type CreatePersonaRequest struct {
-	Persona *Persona `json:"persona"`
-}
-
-type CreatePersonaResponse struct {
-	Persona *Persona `json:"persona"`
-}
-
-type GetPersonaRequest struct {
-	Id string `json:"id"`
-}
-
-type GetPersonaResponse struct {
-	Persona *Persona `json:"persona"`
-}
-
-type ListPersonasRequest struct{}
-
-type ListPersonasResponse struct {
-	Personas []*Persona `json:"personas"`
-}
-
-type UpdatePersonaRequest struct {
-	Id      string   `json:"id"`
-	Persona *Persona `json:"persona"`
-}
-
-type UpdatePersonaResponse struct {
-	Persona *Persona `json:"persona"`
-}
-
-type DeletePersonaRequest struct {
-	Id string `json:"id"`
-}
-
-type DeletePersonaResponse struct{}
-
-// StartGRPCServer starts a JSON-over-HTTP server that mimics gRPC functionality
-// This uses only Go standard library to avoid third-party dependency issues
+// StartGRPCServer starts a real gRPC server using protobuf
 func StartGRPCServer(port string) error {
-	mux := http.NewServeMux()
-	
-	// gRPC-style endpoints using JSON over HTTP
-	mux.HandleFunc("/PersonaService/CreatePersona", handleCreatePersona)
-	mux.HandleFunc("/PersonaService/GetPersona", handleGetPersona)
-	mux.HandleFunc("/PersonaService/ListPersonas", handleListPersonas)
-	mux.HandleFunc("/PersonaService/UpdatePersona", handleUpdatePersona)
-	mux.HandleFunc("/PersonaService/DeletePersona", handleDeletePersona)
-	
-	fmt.Printf("Local gRPC-compatible server listening on port %s\n", port)
-	fmt.Println("Using JSON-over-HTTP protocol (standard library implementation)")
-	
-	return http.ListenAndServe(":"+port, mux)
+	lis, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		return fmt.Errorf("failed to listen: %v", err)
+	}
+
+	s := grpc.NewServer()
+	proto.RegisterPersonaServiceServer(s, &PersonaServer{})
+
+	fmt.Printf("gRPC server listening on port %s\n", port)
+	fmt.Println("Using real gRPC with protobuf")
+
+	return s.Serve(lis)
 }
 
-func handleCreatePersona(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	
-	var req CreatePersonaRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
-	
+// CreatePersona creates a new persona
+func (s *PersonaServer) CreatePersona(ctx context.Context, req *proto.CreatePersonaRequest) (*proto.CreatePersonaResponse, error) {
 	if req.Persona == nil {
-		http.Error(w, "persona is required", http.StatusBadRequest)
-		return
+		return nil, status.Errorf(codes.InvalidArgument, "persona is required")
 	}
-	
+
 	p := &types.Persona{
 		Name:    req.Persona.Name,
 		Topic:   req.Persona.Topic,
@@ -98,14 +48,13 @@ func handleCreatePersona(w http.ResponseWriter, r *http.Request) {
 		Context: req.Persona.Context,
 		RAG:     req.Persona.Rag,
 	}
-	
+
 	if err := persona.CreatePersona(p); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
-	
-	resp := CreatePersonaResponse{
-		Persona: &Persona{
+
+	return &proto.CreatePersonaResponse{
+		Persona: &proto.Persona{
 			Id:      p.ID,
 			Name:    p.Name,
 			Topic:   p.Topic,
@@ -113,32 +62,18 @@ func handleCreatePersona(w http.ResponseWriter, r *http.Request) {
 			Context: p.Context,
 			Rag:     p.RAG,
 		},
-	}
-	
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	}, nil
 }
 
-func handleGetPersona(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	
-	var req GetPersonaRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
-	
+// GetPersona retrieves a persona by ID
+func (s *PersonaServer) GetPersona(ctx context.Context, req *proto.GetPersonaRequest) (*proto.GetPersonaResponse, error) {
 	p, err := persona.GetPersona(req.Id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
-	
-	resp := GetPersonaResponse{
-		Persona: &Persona{
+
+	return &proto.GetPersonaResponse{
+		Persona: &proto.Persona{
 			Id:      p.ID,
 			Name:    p.Name,
 			Topic:   p.Topic,
@@ -146,23 +81,16 @@ func handleGetPersona(w http.ResponseWriter, r *http.Request) {
 			Context: p.Context,
 			Rag:     p.RAG,
 		},
-	}
-	
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	}, nil
 }
 
-func handleListPersonas(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	
+// ListPersonas returns all personas
+func (s *PersonaServer) ListPersonas(ctx context.Context, req *proto.ListPersonasRequest) (*proto.ListPersonasResponse, error) {
 	personas := persona.ListPersonas()
-	
-	var grpcPersonas []*Persona
+
+	var protoPersonas []*proto.Persona
 	for _, p := range personas {
-		grpcPersonas = append(grpcPersonas, &Persona{
+		protoPersonas = append(protoPersonas, &proto.Persona{
 			Id:      p.ID,
 			Name:    p.Name,
 			Topic:   p.Topic,
@@ -171,32 +99,18 @@ func handleListPersonas(w http.ResponseWriter, r *http.Request) {
 			Rag:     p.RAG,
 		})
 	}
-	
-	resp := ListPersonasResponse{
-		Personas: grpcPersonas,
-	}
-	
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+
+	return &proto.ListPersonasResponse{
+		Personas: protoPersonas,
+	}, nil
 }
 
-func handleUpdatePersona(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	
-	var req UpdatePersonaRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
-	
+// UpdatePersona updates an existing persona
+func (s *PersonaServer) UpdatePersona(ctx context.Context, req *proto.UpdatePersonaRequest) (*proto.UpdatePersonaResponse, error) {
 	if req.Persona == nil {
-		http.Error(w, "persona is required", http.StatusBadRequest)
-		return
+		return nil, status.Errorf(codes.InvalidArgument, "persona is required")
 	}
-	
+
 	p := types.Persona{
 		ID:      req.Id,
 		Name:    req.Persona.Name,
@@ -205,14 +119,13 @@ func handleUpdatePersona(w http.ResponseWriter, r *http.Request) {
 		Context: req.Persona.Context,
 		RAG:     req.Persona.Rag,
 	}
-	
+
 	if err := persona.UpdatePersona(req.Id, p); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
-	
-	resp := UpdatePersonaResponse{
-		Persona: &Persona{
+
+	return &proto.UpdatePersonaResponse{
+		Persona: &proto.Persona{
 			Id:      p.ID,
 			Name:    p.Name,
 			Topic:   p.Topic,
@@ -220,31 +133,14 @@ func handleUpdatePersona(w http.ResponseWriter, r *http.Request) {
 			Context: p.Context,
 			Rag:     p.RAG,
 		},
-	}
-	
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	}, nil
 }
 
-func handleDeletePersona(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	
-	var req DeletePersonaRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
-	
+// DeletePersona removes a persona by ID
+func (s *PersonaServer) DeletePersona(ctx context.Context, req *proto.DeletePersonaRequest) (*proto.DeletePersonaResponse, error) {
 	if err := persona.DeletePersona(req.Id); err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
-	
-	resp := DeletePersonaResponse{}
-	
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+
+	return &proto.DeletePersonaResponse{}, nil
 }
