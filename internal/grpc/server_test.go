@@ -191,3 +191,86 @@ func TestHandleDeletePersona(t *testing.T) {
 		t.Error("Expected error when getting deleted persona")
 	}
 }
+
+func TestHandleGetPersona_NotFound(t *testing.T) {
+	setupTestService()
+	
+	req := GetPersonaRequest{Id: "nonexistent"}
+	body, _ := json.Marshal(req)
+	httpReq := httptest.NewRequest(http.MethodPost, "/PersonaService/GetPersona", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+	
+	handleGetPersona(w, httpReq)
+	
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404, got %d", w.Code)
+	}
+}
+
+func TestHandleUpdatePersona_NotFound(t *testing.T) {
+	setupTestService()
+	
+	req := UpdatePersonaRequest{
+		Id: "nonexistent",
+		Persona: &Persona{
+			Name:   "Updated Name",
+			Topic:  "Updated Topic",
+			Prompt: "Updated prompt",
+		},
+	}
+	
+	body, _ := json.Marshal(req)
+	httpReq := httptest.NewRequest(http.MethodPost, "/PersonaService/UpdatePersona", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+	
+	handleUpdatePersona(w, httpReq)
+	
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandleDeletePersona_NotFound(t *testing.T) {
+	setupTestService()
+	
+	req := DeletePersonaRequest{Id: "nonexistent"}
+	body, _ := json.Marshal(req)
+	httpReq := httptest.NewRequest(http.MethodPost, "/PersonaService/DeletePersona", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+	
+	handleDeletePersona(w, httpReq)
+	
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404, got %d", w.Code)
+	}
+}
+
+func TestHandleCreatePersona_MissingPersona(t *testing.T) {
+	req := CreatePersonaRequest{Persona: nil}
+	body, _ := json.Marshal(req)
+	httpReq := httptest.NewRequest(http.MethodPost, "/PersonaService/CreatePersona", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+	
+	handleCreatePersona(w, httpReq)
+	
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHandleUpdatePersona_MissingPersona(t *testing.T) {
+	req := UpdatePersonaRequest{
+		Id:      "test-id",
+		Persona: nil,
+	}
+	
+	body, _ := json.Marshal(req)
+	httpReq := httptest.NewRequest(http.MethodPost, "/PersonaService/UpdatePersona", bytes.NewBuffer(body))
+	w := httptest.NewRecorder()
+	
+	handleUpdatePersona(w, httpReq)
+	
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}

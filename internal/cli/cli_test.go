@@ -236,3 +236,62 @@ func TestServeCommand(t *testing.T) {
 		t.Error("Expected error for serve command (not implemented)")
 	}
 }
+
+func TestExecuteWithConfig_CreateSuccess(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test create command with valid arguments
+	os.Args = []string{"fr0g-ai-aip", "create", "-name", "Test Expert", "-topic", "Testing", "-prompt", "You are a test expert"}
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	err := ExecuteWithConfig(config)
+	if err != nil {
+		t.Errorf("Expected no error for valid create command, got %v", err)
+	}
+}
+
+func TestExecuteWithConfig_ListSuccess(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test list command
+	os.Args = []string{"fr0g-ai-aip", "list"}
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	err := ExecuteWithConfig(config)
+	if err != nil {
+		t.Errorf("Expected no error for list command, got %v", err)
+	}
+}
+
+func TestCreateClient_FileStorageError(t *testing.T) {
+	config := Config{
+		ClientType:  "local",
+		StorageType: "file",
+		DataDir:     "/invalid/path/that/cannot/be/created",
+	}
+	
+	_, err := createClient(config)
+	if err == nil {
+		t.Error("Expected error for invalid file storage path")
+	}
+}
+
+func TestGetConfigFromEnv_PathExpansion(t *testing.T) {
+	// Save original env vars
+	originalDataDir := os.Getenv("FR0G_DATA_DIR")
+	defer func() {
+		os.Setenv("FR0G_DATA_DIR", originalDataDir)
+	}()
+	
+	// Test relative path expansion
+	os.Setenv("FR0G_DATA_DIR", "./test-data")
+	
+	config := GetConfigFromEnv()
+	if config.DataDir == "./test-data" {
+		t.Error("Expected relative path to be expanded to absolute path")
+	}
+}
