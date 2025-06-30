@@ -268,7 +268,7 @@ func TestServiceValidation(t *testing.T) {
 		{"empty prompt", &types.Persona{Name: "Test", Topic: "Test", Prompt: ""}, true},
 		{"valid persona", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}, false},
 		{"valid with context", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", Context: map[string]string{"key": "value"}}, false},
-		{"valid with RAG", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", RAG: []string{"doc1"}}, false},
+		{"valid with RAG", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", Rag: []string{"doc1"}}, false},
 	}
 
 	for _, tt := range tests {
@@ -352,7 +352,7 @@ func TestServiceWithComplexPersona(t *testing.T) {
 			"domain":     "systems engineering",
 			"experience": "20 years",
 		},
-		RAG: []string{
+		Rag: []string{
 			"systems thinking principles",
 			"complexity theory",
 			"emergent behavior patterns",
@@ -373,8 +373,8 @@ func TestServiceWithComplexPersona(t *testing.T) {
 	if len(retrieved.Context) != 2 {
 		t.Errorf("Expected 2 context items, got %d", len(retrieved.Context))
 	}
-	if len(retrieved.RAG) != 3 {
-		t.Errorf("Expected 3 RAG items, got %d", len(retrieved.RAG))
+	if len(retrieved.Rag) != 3 {
+		t.Errorf("Expected 3 RAG items, got %d", len(retrieved.Rag))
 	}
 }
 
@@ -480,7 +480,7 @@ func TestServiceWithFileStorage(t *testing.T) {
 		Context: map[string]string{
 			"backend": "file",
 		},
-		RAG: []string{"file-doc1", "file-doc2"},
+		Rag: []string{"file-doc1", "file-doc2"},
 	}
 
 	err = service.CreatePersona(&p)
@@ -489,7 +489,7 @@ func TestServiceWithFileStorage(t *testing.T) {
 	}
 
 	// Verify persistence
-	retrieved, err := service.GetPersona(p.ID)
+	retrieved, err := service.GetPersona(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get persona from file storage: %v", err)
 	}
@@ -517,7 +517,7 @@ func TestServiceEdgeCases(t *testing.T) {
 		Context: map[string]string{
 			"long_key": longString,
 		},
-		RAG: []string{ragString},
+		Rag: []string{ragString},
 	}
 
 	err := service.CreatePersona(&p)
@@ -526,7 +526,7 @@ func TestServiceEdgeCases(t *testing.T) {
 	}
 
 	// Verify long strings are preserved
-	retrieved, err := service.GetPersona(p.ID)
+	retrieved, err := service.GetPersona(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get persona with long strings: %v", err)
 	}
