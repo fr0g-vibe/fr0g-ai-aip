@@ -286,9 +286,8 @@ func (s *PersonaServer) ListIdentities(ctx context.Context, req *pb.ListIdentiti
 			Tags:      req.Filter.Tags,
 			Search:    req.Filter.Search,
 		}
-		if req.Filter.IsActive != nil {
-			filter.IsActive = req.Filter.IsActive
-		}
+		isActive := req.Filter.IsActive
+		filter.IsActive = &isActive
 	}
 
 	identities, err := s.service.ListIdentities(filter)
