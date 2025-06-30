@@ -330,15 +330,15 @@ func TestRESTClient_StatusCodes(t *testing.T) {
 
 func TestRESTClient_ComplexPersona(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusCreated)
-		
 		var p types.Persona
-		if r.Method == "POST" {
+		if r.Method == "POST" && r.URL.Path == "/personas" {
+			w.WriteHeader(http.StatusCreated)
 			json.NewDecoder(r.Body).Decode(&p)
 			p.ID = "complex-id"
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(p)
-		} else if r.Method == "GET" {
+		} else if r.Method == "GET" && r.URL.Path == "/personas/complex-id" {
+			w.WriteHeader(http.StatusOK)
 			p = types.Persona{
 				ID:     "complex-id",
 				Name:   "Complex Expert 🚀",
@@ -357,6 +357,9 @@ func TestRESTClient_ComplexPersona(t *testing.T) {
 			}
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(p)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Not Found"))
 		}
 	}))
 	defer server.Close()
