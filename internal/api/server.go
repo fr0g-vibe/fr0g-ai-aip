@@ -38,6 +38,15 @@ func (s *Server) Start() error {
 	mux.HandleFunc("/personas", s.personasHandler)
 	mux.HandleFunc("/personas/", s.personaHandler)
 	
+	// Identity endpoints
+	mux.HandleFunc("/identities", s.identitiesHandler)
+	mux.HandleFunc("/identities/", s.identityHandler)
+	
+	// Community endpoints
+	mux.HandleFunc("/communities", s.communitiesHandler)
+	mux.HandleFunc("/communities/", s.communityHandler)
+	mux.HandleFunc("/communities/generate", s.generateCommunityHandler)
+	
 	// Apply middleware
 	var handler http.Handler = mux
 	
@@ -190,6 +199,172 @@ func (s *Server) personaHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
+}
+
+func (s *Server) identitiesHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		// Parse query parameters for filtering
+		filter := &types.IdentityFilter{}
+		if personaID := r.URL.Query().Get("persona_id"); personaID != "" {
+			filter.PersonaID = personaID
+		}
+		if search := r.URL.Query().Get("search"); search != "" {
+			filter.Search = search
+		}
+		if isActiveStr := r.URL.Query().Get("is_active"); isActiveStr != "" {
+			if isActive := isActiveStr == "true"; isActiveStr == "true" || isActiveStr == "false" {
+				filter.IsActive = &isActive
+			}
+		}
+		
+		// TODO: Implement identity service methods
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]types.Identity{})
+		
+	case http.MethodPost:
+		var req struct {
+			PersonaID   string                 `json:"persona_id"`
+			Name        string                 `json:"name"`
+			Description string                 `json:"description"`
+			Background  string                 `json:"background"`
+			Tags        []string               `json:"tags"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		
+		// TODO: Implement identity creation
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Identity creation not yet implemented"})
+		
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (s *Server) identityHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract identity ID from URL path
+	path := r.URL.Path[len("/identities/"):]
+	if path == "" {
+		http.Error(w, "Identity ID required", http.StatusBadRequest)
+		return
+	}
+	
+	// Handle special endpoints
+	if path == "with-persona" {
+		// TODO: Implement get identity with persona
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"message": "Identity with persona not yet implemented"})
+		return
+	}
+	
+	id := path
+	
+	switch r.Method {
+	case http.MethodGet:
+		// TODO: Implement get identity
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"message": "Get identity not yet implemented"})
+		
+	case http.MethodPut:
+		// TODO: Implement update identity
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"message": "Update identity not yet implemented"})
+		
+	case http.MethodDelete:
+		// TODO: Implement delete identity
+		w.WriteHeader(http.StatusNoContent)
+		
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (s *Server) communitiesHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		// Parse query parameters for filtering
+		filter := &types.CommunityFilter{}
+		if communityType := r.URL.Query().Get("type"); communityType != "" {
+			filter.Type = communityType
+		}
+		if search := r.URL.Query().Get("search"); search != "" {
+			filter.Search = search
+		}
+		
+		// TODO: Implement community service methods
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]types.Community{})
+		
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (s *Server) communityHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract community ID from URL path
+	path := r.URL.Path[len("/communities/"):]
+	if path == "" {
+		http.Error(w, "Community ID required", http.StatusBadRequest)
+		return
+	}
+	
+	// Handle special endpoints
+	if path == "stats" {
+		// TODO: Implement get community stats
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"message": "Community stats not yet implemented"})
+		return
+	}
+	
+	id := path
+	
+	switch r.Method {
+	case http.MethodGet:
+		// TODO: Implement get community
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"message": "Get community not yet implemented"})
+		
+	case http.MethodPut:
+		// TODO: Implement update community
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"message": "Update community not yet implemented"})
+		
+	case http.MethodDelete:
+		// TODO: Implement delete community
+		w.WriteHeader(http.StatusNoContent)
+		
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (s *Server) generateCommunityHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	
+	var req struct {
+		Name             string                              `json:"name"`
+		Description      string                              `json:"description"`
+		Type             string                              `json:"type"`
+		TargetSize       int                                 `json:"target_size"`
+		GenerationConfig types.CommunityGenerationConfig    `json:"generation_config"`
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	
+	// TODO: Implement community generation
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Community generation not yet implemented"})
 }
 
 // StartServer starts the HTTP API server (legacy function for backward compatibility)
