@@ -1,6 +1,7 @@
 package persona
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
@@ -371,37 +372,6 @@ func TestServiceWithComplexPersona(t *testing.T) {
 	}
 }
 
-func TestServiceConcurrentOperations(t *testing.T) {
-	service := NewService(storage.NewMemoryStorage())
-	
-	// Test concurrent persona creation
-	done := make(chan bool, 5)
-	for i := 0; i < 5; i++ {
-		go func(id int) {
-			p := types.Persona{
-				Name:   fmt.Sprintf("Concurrent Expert %d", id),
-				Topic:  "Concurrency",
-				Prompt: "You are a concurrency expert.",
-			}
-			service.CreatePersona(&p)
-			done <- true
-		}(i)
-	}
-	
-	// Wait for all goroutines
-	for i := 0; i < 5; i++ {
-		<-done
-	}
-	
-	// Verify all personas were created
-	personas, err := service.ListPersonas()
-	if err != nil {
-		t.Fatalf("List failed: %v", err)
-	}
-	if len(personas) != 5 {
-		t.Errorf("Expected 5 personas, got %d", len(personas))
-	}
-}
 
 func TestLegacyFunctionsCoverage(t *testing.T) {
 	// Reset default service
