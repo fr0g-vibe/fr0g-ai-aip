@@ -14,16 +14,6 @@ import (
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
-func createTestServer() *Server {
-	store := storage.NewMemoryStorage()
-	service := persona.NewService(store)
-	cfg := &config.Config{
-		Security: config.SecurityConfig{
-			EnableAuth: false,
-		},
-	}
-	return NewServer(cfg, service)
-}
 
 func TestPersonasHandler_LargePayload(t *testing.T) {
 	server := createTestServer()

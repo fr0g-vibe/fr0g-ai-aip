@@ -11,7 +11,7 @@ import (
 )
 
 
-func TestHealthHandler(t *testing.T) {
+func TestHealthHandlerMethods(t *testing.T) {
 	server := createTestServer()
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	w := httptest.NewRecorder()
