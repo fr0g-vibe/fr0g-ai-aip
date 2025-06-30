@@ -479,7 +479,6 @@ func createIdentity(c client.Client) error {
 	name := fs.String("name", "", "Identity name (required)")
 	description := fs.String("description", "", "Identity description")
 	tags := fs.String("tags", "", "Comma-separated tags")
-	background := fs.String("background", "", "Personal background story")
 
 	if err := fs.Parse(os.Args[2:]); err != nil {
 		return err
@@ -778,7 +777,7 @@ func generateCommunity(c client.Client) error {
 			min, err1 := strconv.Atoi(strings.TrimSpace(parts[0]))
 			max, err2 := strconv.Atoi(strings.TrimSpace(parts[1]))
 			if err1 == nil && err2 == nil && min <= max {
-				ageRangeStruct = &types.AgeRange{Min: min, Max: max}
+				ageRangeStruct = &types.AgeRange{Min: int32(min), Max: int32(max)}
 			}
 		}
 	}
@@ -821,7 +820,8 @@ func generateCommunity(c client.Client) error {
 
 		// Apply age range if specified
 		if ageRangeStruct != nil {
-			identity.RichAttributes.Demographics.Age = int32(ageRangeStruct.Min + (i % (ageRangeStruct.Max - ageRangeStruct.Min + 1)))
+			ageSpread := int(ageRangeStruct.Max - ageRangeStruct.Min + 1)
+			identity.RichAttributes.Demographics.Age = ageRangeStruct.Min + int32(i%ageSpread)
 		}
 
 		if err := c.CreateIdentity(&identity); err != nil {
