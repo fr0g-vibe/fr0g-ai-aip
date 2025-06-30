@@ -212,7 +212,8 @@ func (g *GRPCClient) ListIdentities(filter *types.IdentityFilter) ([]types.Ident
 			Search:    filter.Search,
 		}
 		if filter.IsActive != nil {
-			pbFilter.IsActive = filter.IsActive
+			isActive := *filter.IsActive
+			pbFilter.IsActive = &isActive
 		}
 	}
 

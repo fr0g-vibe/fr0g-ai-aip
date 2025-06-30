@@ -83,7 +83,7 @@ func (s *PersonaServer) CreatePersona(ctx context.Context, req *pb.CreatePersona
 		Topic:   req.Persona.Topic,
 		Prompt:  req.Persona.Prompt,
 		Context: req.Persona.Context,
-		RAG:     req.Persona.Rag,
+		Rag:     req.Persona.Rag,
 	}
 
 	var err error
@@ -100,12 +100,12 @@ func (s *PersonaServer) CreatePersona(ctx context.Context, req *pb.CreatePersona
 
 	return &pb.CreatePersonaResponse{
 		Persona: &pb.Persona{
-			Id:      p.ID,
+			Id:      p.Id,
 			Name:    p.Name,
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
 			Context: p.Context,
-			Rag:     p.RAG,
+			Rag:     p.Rag,
 		},
 	}, nil
 }
@@ -132,12 +132,12 @@ func (s *PersonaServer) GetPersona(ctx context.Context, req *pb.GetPersonaReques
 
 	return &pb.GetPersonaResponse{
 		Persona: &pb.Persona{
-			Id:      p.ID,
+			Id:      p.Id,
 			Name:    p.Name,
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
 			Context: p.Context,
-			Rag:     p.RAG,
+			Rag:     p.Rag,
 		},
 	}, nil
 }
@@ -161,12 +161,12 @@ func (s *PersonaServer) ListPersonas(ctx context.Context, req *pb.ListPersonasRe
 	var protoPersonas []*pb.Persona
 	for _, p := range personas {
 		protoPersonas = append(protoPersonas, &pb.Persona{
-			Id:      p.ID,
+			Id:      p.Id,
 			Name:    p.Name,
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
 			Context: p.Context,
-			Rag:     p.RAG,
+			Rag:     p.Rag,
 		})
 	}
 
@@ -186,12 +186,12 @@ func (s *PersonaServer) UpdatePersona(ctx context.Context, req *pb.UpdatePersona
 	}
 
 	p := types.Persona{
-		ID:      req.Id,
+		Id:      req.Id,
 		Name:    req.Persona.Name,
 		Topic:   req.Persona.Topic,
 		Prompt:  req.Persona.Prompt,
 		Context: req.Persona.Context,
-		RAG:     req.Persona.Rag,
+		Rag:     req.Persona.Rag,
 	}
 
 	var err error
@@ -208,12 +208,12 @@ func (s *PersonaServer) UpdatePersona(ctx context.Context, req *pb.UpdatePersona
 
 	return &pb.UpdatePersonaResponse{
 		Persona: &pb.Persona{
-			Id:      p.ID,
+			Id:      p.Id,
 			Name:    p.Name,
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
 			Context: p.Context,
-			Rag:     p.RAG,
+			Rag:     p.Rag,
 		},
 	}, nil
 }
