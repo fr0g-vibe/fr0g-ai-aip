@@ -118,18 +118,42 @@ func LoadConfig() *Config {
 	return config
 }
 
-// Validate validates the configuration
+// Validate validates the entire configuration
 func (c *Config) Validate() error {
-	if c.Storage.Type != "memory" && c.Storage.Type != "file" {
-		return fmt.Errorf("invalid storage type: %s", c.Storage.Type)
+	var errors ValidationErrors
+	
+	// Validate HTTP config
+	if httpErrors := c.validateHTTPConfig(); len(httpErrors) > 0 {
+		errors = append(errors, httpErrors...)
 	}
 	
-	if c.Client.Type != "local" && c.Client.Type != "rest" && c.Client.Type != "grpc" {
-		return fmt.Errorf("invalid client type: %s", c.Client.Type)
+	// Validate gRPC config
+	if grpcErrors := c.validateGRPCConfig(); len(grpcErrors) > 0 {
+		errors = append(errors, grpcErrors...)
 	}
 	
-	if c.Security.EnableAuth && c.Security.APIKey == "" {
-		return fmt.Errorf("API key is required when authentication is enabled")
+	// Validate storage config
+	if storageErrors := c.validateStorageConfig(); len(storageErrors) > 0 {
+		errors = append(errors, storageErrors...)
+	}
+	
+	// Validate client config
+	if clientErrors := c.validateClientConfig(); len(clientErrors) > 0 {
+		errors = append(errors, clientErrors...)
+	}
+	
+	// Validate security config
+	if securityErrors := c.validateSecurityConfig(); len(securityErrors) > 0 {
+		errors = append(errors, securityErrors...)
+	}
+	
+	// Cross-validation
+	if crossErrors := c.validateCrossConfig(); len(crossErrors) > 0 {
+		errors = append(errors, crossErrors...)
+	}
+	
+	if len(errors) > 0 {
+		return errors
 	}
 	
 	return nil
