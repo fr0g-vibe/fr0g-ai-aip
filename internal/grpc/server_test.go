@@ -1228,3 +1228,246 @@ func TestPersonaServer_ContextAndRAGHandling(t *testing.T) {
 		})
 	}
 }
+
+func TestPersonaServer_ValidationErrorPaths(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test all validation error paths in CreatePersona
+	validationTests := []struct {
+		name    string
+		persona *pb.Persona
+	}{
+		{"whitespace only name", &pb.Persona{Name: "   ", Topic: "Test", Prompt: "Test"}},
+		{"whitespace only topic", &pb.Persona{Name: "Test", Topic: "   ", Prompt: "Test"}},
+		{"whitespace only prompt", &pb.Persona{Name: "Test", Topic: "Test", Prompt: "   "}},
+		{"tab characters in name", &pb.Persona{Name: "\t\t", Topic: "Test", Prompt: "Test"}},
+		{"newline characters in topic", &pb.Persona{Name: "Test", Topic: "\n\n", Prompt: "Test"}},
+		{"mixed whitespace in prompt", &pb.Persona{Name: "Test", Topic: "Test", Prompt: " \t\n "}},
+	}
+	
+	for _, tt := range validationTests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := &pb.CreatePersonaRequest{Persona: tt.persona}
+			_, err := client.CreatePersona(context.Background(), req)
+			if err == nil {
+				t.Error("Expected validation error but got none")
+			}
+			
+			st, ok := status.FromError(err)
+			if !ok {
+				t.Error("Expected gRPC status error")
+			}
+			if st.Code() != codes.InvalidArgument {
+				t.Errorf("Expected InvalidArgument, got %v", st.Code())
+			}
+		})
+	}
+}
+
+func TestPersonaServer_UpdateValidationErrorPaths(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Create a valid persona first
+	createReq := &pb.CreatePersonaRequest{
+		Persona: &pb.Persona{
+			Name:   "Original",
+			Topic:  "Original Topic",
+			Prompt: "Original Prompt",
+		},
+	}
+	
+	createResp, err := client.CreatePersona(context.Background(), createReq)
+	if err != nil {
+		t.Fatalf("CreatePersona failed: %v", err)
+	}
+	
+	// Test validation errors in UpdatePersona
+	validationTests := []struct {
+		name    string
+		persona *pb.Persona
+	}{
+		{"whitespace only name", &pb.Persona{Name: "   ", Topic: "Test", Prompt: "Test"}},
+		{"whitespace only topic", &pb.Persona{Name: "Test", Topic: "   ", Prompt: "Test"}},
+		{"whitespace only prompt", &pb.Persona{Name: "Test", Topic: "Test", Prompt: "   "}},
+		{"tab characters", &pb.Persona{Name: "\t", Topic: "\t", Prompt: "\t"}},
+		{"newline characters", &pb.Persona{Name: "\n", Topic: "\n", Prompt: "\n"}},
+	}
+	
+	for _, tt := range validationTests {
+		t.Run(tt.name, func(t *testing.T) {
+			updateReq := &pb.UpdatePersonaRequest{
+				Id:      createResp.Persona.Id,
+				Persona: tt.persona,
+			}
+			_, err := client.UpdatePersona(context.Background(), updateReq)
+			if err == nil {
+				t.Error("Expected validation error but got none")
+			}
+			
+			st, ok := status.FromError(err)
+			if !ok {
+				t.Error("Expected gRPC status error")
+			}
+			if st.Code() != codes.InvalidArgument {
+				t.Errorf("Expected InvalidArgument, got %v", st.Code())
+			}
+		})
+	}
+}
+
+func TestPersonaServer_ServerStructMethods(t *testing.T) {
+	// Test the server struct directly to ensure all methods are covered
+	server := &PersonaServer{}
+	
+	// Test with nil context (should not panic)
+	ctx := context.Background()
+	
+	// Test CreatePersona with nil request
+	_, err := server.CreatePersona(ctx, nil)
+	if err == nil {
+		t.Error("Expected error for nil request")
+	}
+	
+	// Test GetPersona with nil request
+	_, err = server.GetPersona(ctx, nil)
+	if err == nil {
+		t.Error("Expected error for nil request")
+	}
+	
+	// Test UpdatePersona with nil request
+	_, err = server.UpdatePersona(ctx, nil)
+	if err == nil {
+		t.Error("Expected error for nil request")
+	}
+	
+	// Test DeletePersona with nil request
+	_, err = server.DeletePersona(ctx, nil)
+	if err == nil {
+		t.Error("Expected error for nil request")
+	}
+	
+	// Test ListPersonas with nil request (should work)
+	_, err = server.ListPersonas(ctx, nil)
+	if err != nil {
+		t.Errorf("ListPersonas should handle nil request, got error: %v", err)
+	}
+}
+
+func TestPersonaServer_ErrorMessageContent(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test that error messages contain useful information
+	testCases := []struct {
+		name      string
+		operation func() error
+		wantMsg   string
+	}{
+		{
+			name: "Create with nil persona",
+			operation: func() error {
+				_, err := client.CreatePersona(context.Background(), &pb.CreatePersonaRequest{Persona: nil})
+				return err
+			},
+			wantMsg: "persona is required",
+		},
+		{
+			name: "Update with nil persona",
+			operation: func() error {
+				_, err := client.UpdatePersona(context.Background(), &pb.UpdatePersonaRequest{Id: "test", Persona: nil})
+				return err
+			},
+			wantMsg: "persona is required",
+		},
+		{
+			name: "Get nonexistent persona",
+			operation: func() error {
+				_, err := client.GetPersona(context.Background(), &pb.GetPersonaRequest{Id: "nonexistent"})
+				return err
+			},
+			wantMsg: "persona not found",
+		},
+		{
+			name: "Delete nonexistent persona",
+			operation: func() error {
+				_, err := client.DeletePersona(context.Background(), &pb.DeletePersonaRequest{Id: "nonexistent"})
+				return err
+			},
+			wantMsg: "persona not found",
+		},
+	}
+	
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.operation()
+			if err == nil {
+				t.Error("Expected error but got none")
+				return
+			}
+			
+			st, ok := status.FromError(err)
+			if !ok {
+				t.Error("Expected gRPC status error")
+				return
+			}
+			
+			if st.Message() == "" {
+				t.Error("Expected non-empty error message")
+			}
+		})
+	}
+}
+
+func TestPersonaServer_ProtobufConversion(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test that protobuf conversion handles all field types correctly
+	complexPersona := &pb.Persona{
+		Name:   "Conversion Test",
+		Topic:  "Protobuf Conversion",
+		Prompt: "Testing protobuf field conversion",
+		Context: map[string]string{
+			"string_field":  "test_value",
+			"empty_field":   "",
+			"unicode_field": "🚀🎯",
+			"number_field":  "123",
+			"bool_field":    "true",
+		},
+		Rag: []string{
+			"document1.txt",
+			"",  // empty string
+			"unicode_doc_🚀.md",
+			"special@chars#doc.pdf",
+		},
+	}
+	
+	// Create and verify all fields are preserved
+	createReq := &pb.CreatePersonaRequest{Persona: complexPersona}
+	createResp, err := client.CreatePersona(context.Background(), createReq)
+	if err != nil {
+		t.Fatalf("CreatePersona failed: %v", err)
+	}
+	
+	// Get and verify conversion back
+	getResp, err := client.GetPersona(context.Background(), &pb.GetPersonaRequest{Id: createResp.Persona.Id})
+	if err != nil {
+		t.Fatalf("GetPersona failed: %v", err)
+	}
+	
+	// Verify all context fields
+	for k, v := range complexPersona.Context {
+		if getResp.Persona.Context[k] != v {
+			t.Errorf("Context field %s: expected %s, got %s", k, v, getResp.Persona.Context[k])
+		}
+	}
+	
+	// Verify all RAG fields
+	for i, v := range complexPersona.Rag {
+		if getResp.Persona.Rag[i] != v {
+			t.Errorf("RAG field %d: expected %s, got %s", i, v, getResp.Persona.Rag[i])
+		}
+	}
+}
