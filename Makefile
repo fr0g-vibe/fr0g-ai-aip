@@ -12,13 +12,21 @@ build-with-grpc: build
 # Generate protobuf code
 proto:
 	@echo "Generating protobuf code..."
+	@if [ ! -f "proto/persona.proto" ]; then \
+		echo "Error: proto/persona.proto not found"; \
+		echo "Please create the proto file first"; \
+		exit 1; \
+	fi
 	@echo "Using protoc: $(shell which protoc)"
 	@echo "Using protoc-gen-go: $(shell which protoc-gen-go || echo "$(shell go env GOPATH)/bin/protoc-gen-go")"
 	@echo "Using protoc-gen-go-grpc: $(shell which protoc-gen-go-grpc || echo "$(shell go env GOPATH)/bin/protoc-gen-go-grpc")"
-	PATH="$(shell go env GOPATH)/bin:$$PATH" protoc --go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+	@mkdir -p internal/grpc/pb
+	PATH="$(shell go env GOPATH)/bin:$$PATH" protoc \
+		--proto_path=proto \
+		--go_out=internal/grpc/pb --go_opt=paths=source_relative \
+		--go-grpc_out=internal/grpc/pb --go-grpc_opt=paths=source_relative \
 		proto/persona.proto
-	@echo "Protobuf code generated successfully"
+	@echo "Protobuf code generated successfully in internal/grpc/pb/"
 
 # Run tests
 test:
