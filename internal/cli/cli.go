@@ -153,6 +153,184 @@ func handleGenerateIdentities(config Config) error {
 	return nil
 }
 
+func handleGenerateRandomCommunity(config Config) error {
+	if config.Service == nil {
+		return fmt.Errorf("service not available for community generation")
+	}
+
+	// Parse command line flags
+	fs := flag.NewFlagSet("generate-random-community", flag.ContinueOnError)
+	fs.Usage = func() {
+		fmt.Println("Usage: fr0g-ai-aip generate-random-community -size <number> [-name <name>] [-type <type>] [-location <city>] [-age-range <min>-<max>]")
+		fmt.Println("  -size <number>        Number of identities to generate (required)")
+		fmt.Println("  -name <name>          Community name (optional)")
+		fmt.Println("  -type <type>          Community type (optional: geographic, demographic, interest, political, professional)")
+		fmt.Println("  -location <city>      Location constraint (optional)")
+		fmt.Println("  -age-range <min>-<max> Age range for members (optional)")
+	}
+	
+	size := fs.Int("size", 0, "Number of identities to generate (required)")
+	name := fs.String("name", "", "Community name (optional)")
+	communityType := fs.String("type", "demographic", "Community type")
+	location := fs.String("location", "", "Location constraint")
+	ageRange := fs.String("age-range", "", "Age range (min-max)")
+
+	if err := fs.Parse(os.Args[2:]); err != nil {
+		return err
+	}
+
+	if *size <= 0 {
+		fs.Usage()
+		return fmt.Errorf("size must be a positive number")
+	}
+
+	// Type assert to get the persona service
+	service, ok := config.Service.(*persona.Service)
+	if !ok {
+		return fmt.Errorf("invalid service type for community generation")
+	}
+
+	// Get available personas
+	personas, err := service.ListPersonas()
+	if err != nil {
+		return fmt.Errorf("failed to list personas: %v", err)
+	}
+
+	if len(personas) == 0 {
+		fmt.Println("No personas found. Creating sample personas first...")
+		if err := createSamplePersonas(service); err != nil {
+			return fmt.Errorf("failed to create sample personas: %v", err)
+		}
+		personas, err = service.ListPersonas()
+		if err != nil {
+			return fmt.Errorf("failed to list personas after creation: %v", err)
+		}
+	}
+
+	// Set default community name if not provided
+	if *name == "" {
+		*name = fmt.Sprintf("Random Community %d", time.Now().Unix())
+	}
+
+	// Parse age range if provided
+	var ageDistribution types.AgeDistribution
+	if *ageRange != "" {
+		parts := strings.Split(*ageRange, "-")
+		if len(parts) == 2 {
+			min, err1 := strconv.Atoi(strings.TrimSpace(parts[0]))
+			max, err2 := strconv.Atoi(strings.TrimSpace(parts[1]))
+			if err1 == nil && err2 == nil && min <= max {
+				ageDistribution = types.AgeDistribution{
+					Mean:    float64(min+max) / 2,
+					StdDev:  float64(max-min) / 4, // Reasonable spread
+					MinAge:  min,
+					MaxAge:  max,
+					Skewness: 0,
+				}
+			}
+		}
+	} else {
+		// Default age distribution
+		ageDistribution = types.AgeDistribution{
+			Mean:    35,
+			StdDev:  12,
+			MinAge:  18,
+			MaxAge:  75,
+			Skewness: 0,
+		}
+	}
+
+	// Set up location constraint
+	var locationConstraint types.LocationConstraint
+	if *location != "" {
+		locationConstraint = types.LocationConstraint{
+			Type:      "city",
+			Locations: []string{*location},
+			Urban:     func() *bool { b := true; return &b }(), // Default to urban
+		}
+	} else {
+		locationConstraint = types.LocationConstraint{
+			Type: "global",
+		}
+	}
+
+	// Create persona weights (equal distribution)
+	personaWeights := make(map[string]float64)
+	for _, persona := range personas {
+		personaWeights[persona.Id] = 1.0
+	}
+
+	// Create generation config
+	generationConfig := types.CommunityGenerationConfig{
+		PersonaWeights:     personaWeights,
+		AgeDistribution:    ageDistribution,
+		LocationConstraint: locationConstraint,
+		PoliticalSpread:    0.8,  // High political diversity
+		InterestSpread:     0.9,  // High interest diversity
+		SocioeconomicRange: 0.7,  // Moderate socioeconomic diversity
+		ActivityLevel:      0.6,  // Moderate activity level
+	}
+
+	fmt.Printf("Generating random community '%s' with %d members...\n", *name, *size)
+	fmt.Printf("Community type: %s\n", *communityType)
+	if *location != "" {
+		fmt.Printf("Location: %s\n", *location)
+	}
+	if *ageRange != "" {
+		fmt.Printf("Age range: %s\n", *ageRange)
+	}
+	fmt.Println()
+
+	// Create community service
+	communityService := community.NewService(service.GetStorage())
+
+	// Generate the community
+	generatedCommunity, err := communityService.GenerateCommunity(
+		generationConfig,
+		*name,
+		fmt.Sprintf("Randomly generated community with %d diverse members", *size),
+		*communityType,
+		*size,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to generate community: %v", err)
+	}
+
+	fmt.Printf("✅ Successfully generated community: %s (ID: %s)\n", generatedCommunity.Name, generatedCommunity.Id)
+	fmt.Printf("   Members: %d\n", generatedCommunity.Size)
+	fmt.Printf("   Diversity: %.2f\n", generatedCommunity.Diversity)
+	fmt.Printf("   Cohesion: %.2f\n", generatedCommunity.Cohesion)
+	fmt.Printf("   Type: %s\n", generatedCommunity.Type)
+
+	// Show some member details
+	fmt.Println("\n📊 Community Members:")
+	memberCount := 0
+	for _, memberId := range generatedCommunity.MemberIds {
+		if memberCount >= 5 { // Show first 5 members
+			fmt.Printf("   ... and %d more members\n", len(generatedCommunity.MemberIds)-5)
+			break
+		}
+		
+		identity, err := service.GetIdentity(memberId)
+		if err != nil {
+			continue
+		}
+		
+		persona, err := service.GetPersona(identity.PersonaId)
+		if err != nil {
+			continue
+		}
+		
+		fmt.Printf("   • %s (based on %s persona)\n", identity.Name, persona.Name)
+		memberCount++
+	}
+
+	fmt.Printf("\n🎯 Use 'fr0g-ai-aip' with REST/gRPC API to explore community details\n")
+	fmt.Printf("   Community ID: %s\n", generatedCommunity.Id)
+
+	return nil
+}
+
 func createSamplePersonas(service *persona.Service) error {
 	samplePersonas := []types.Persona{
 		{
