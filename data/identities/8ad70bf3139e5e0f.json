@@ -1,0 +1,19 @@
+{
+  "id": "8ad70bf3139e5e0f",
+  "persona_id": "5a2d8736f5593f77",
+  "name": "Sage Williams",
+  "description": "Community member based on Professional Athlete persona",
+  "created_at": {
+    "seconds": 1751265685,
+    "nanos": 784806726
+  },
+  "updated_at": {
+    "seconds": 1751265685,
+    "nanos": 784806726
+  },
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

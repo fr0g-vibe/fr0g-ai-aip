@@ -1,0 +1,39 @@
+{
+  "id": "816f2b3d00d6ac60",
+  "persona_id": "075f1dff2131aa81",
+  "name": "Robert Johnson",
+  "description": "Business consultant with expertise in small business development",
+  "background": "Generated identity based on Investment Banker persona",
+  "created_at": {
+    "seconds": 1751265352,
+    "nanos": 991922565
+  },
+  "updated_at": {
+    "seconds": 1751265352,
+    "nanos": 991922565
+  },
+  "is_active": true,
+  "tags": [
+    "generated",
+    "sample",
+    "Corporate Finance \u0026 Capital Markets"
+  ],
+  "rich_attributes": {
+    "demographics": {
+      "age": 51,
+      "gender": "male",
+      "education": "graduate",
+      "location": {
+        "city": "Dallas",
+        "urban_rural": "urban"
+      }
+    },
+    "psychographics": {
+      "values": [
+        "business",
+        "golf",
+        "travel"
+      ]
+    }
+  }
+}

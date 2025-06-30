@@ -1,0 +1,19 @@
+{
+  "id": "2e47b9ec128e2f25",
+  "persona_id": "73014d0f254f5010",
+  "name": "Kendall White",
+  "description": "Community member based on Construction Manager persona",
+  "created_at": {
+    "seconds": 1751265685,
+    "nanos": 784725731
+  },
+  "updated_at": {
+    "seconds": 1751265685,
+    "nanos": 784725731
+  },
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

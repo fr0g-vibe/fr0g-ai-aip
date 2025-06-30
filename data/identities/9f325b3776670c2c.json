@@ -1,0 +1,19 @@
+{
+  "id": "9f325b3776670c2c",
+  "persona_id": "2bc34f60df50147d",
+  "name": "Taylor Moore",
+  "description": "Community member based on Dialysis Technician persona",
+  "created_at": {
+    "seconds": 1751265685,
+    "nanos": 784846083
+  },
+  "updated_at": {
+    "seconds": 1751265685,
+    "nanos": 784846083
+  },
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

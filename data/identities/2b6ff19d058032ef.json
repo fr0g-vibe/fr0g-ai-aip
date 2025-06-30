@@ -1,0 +1,19 @@
+{
+  "id": "2b6ff19d058032ef",
+  "persona_id": "1e73c878675a2965",
+  "name": "Taylor Lopez",
+  "description": "Community member based on Blacksmith persona",
+  "created_at": {
+    "seconds": 1751265685,
+    "nanos": 784678131
+  },
+  "updated_at": {
+    "seconds": 1751265685,
+    "nanos": 784678131
+  },
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

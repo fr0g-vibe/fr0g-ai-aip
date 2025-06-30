@@ -1,0 +1,19 @@
+{
+  "id": "c013471f4ab65244",
+  "persona_id": "eb80b323a55f4702",
+  "name": "Quinn Rodriguez",
+  "description": "Community member based on Dialysis Technician persona",
+  "created_at": {
+    "seconds": 1751265685,
+    "nanos": 784766046
+  },
+  "updated_at": {
+    "seconds": 1751265685,
+    "nanos": 784766046
+  },
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

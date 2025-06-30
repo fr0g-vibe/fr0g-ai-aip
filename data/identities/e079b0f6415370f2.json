@@ -1,0 +1,19 @@
+{
+  "id": "e079b0f6415370f2",
+  "persona_id": "96e11bcedb144898",
+  "name": "Harper Thompson",
+  "description": "Community member based on Independent Security Researcher persona",
+  "created_at": {
+    "seconds": 1751265685,
+    "nanos": 784924352
+  },
+  "updated_at": {
+    "seconds": 1751265685,
+    "nanos": 784924352
+  },
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

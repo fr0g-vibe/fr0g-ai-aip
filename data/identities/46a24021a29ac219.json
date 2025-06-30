@@ -1,0 +1,39 @@
+{
+  "id": "46a24021a29ac219",
+  "persona_id": "049bd98fec26c01b",
+  "name": "Alex Chen",
+  "description": "Software engineer passionate about AI and machine learning",
+  "background": "Generated identity based on Glazier persona",
+  "created_at": {
+    "seconds": 1751265352,
+    "nanos": 991421289
+  },
+  "updated_at": {
+    "seconds": 1751265352,
+    "nanos": 991421289
+  },
+  "is_active": true,
+  "tags": [
+    "generated",
+    "sample",
+    "Glass Installation \u0026 Window Systems"
+  ],
+  "rich_attributes": {
+    "demographics": {
+      "age": 28,
+      "gender": "male",
+      "education": "bachelor",
+      "location": {
+        "city": "San Francisco",
+        "urban_rural": "urban"
+      }
+    },
+    "psychographics": {
+      "values": [
+        "technology",
+        "gaming",
+        "music"
+      ]
+    }
+  }
+}

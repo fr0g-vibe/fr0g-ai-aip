@@ -1,0 +1,19 @@
+{
+  "id": "490c2965f90c1786",
+  "persona_id": "9777444a5a0a376c",
+  "name": "Drew Perez",
+  "description": "Community member based on Radiologic Technologist persona",
+  "created_at": {
+    "seconds": 1751265685,
+    "nanos": 784328575
+  },
+  "updated_at": {
+    "seconds": 1751265685,
+    "nanos": 784328575
+  },
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

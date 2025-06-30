@@ -1,0 +1,19 @@
+{
+  "id": "5ae9064ecea0e200",
+  "persona_id": "194d8c5bef1240df",
+  "name": "Jordan Wilson",
+  "description": "Community member based on Furniture Maker persona",
+  "created_at": {
+    "seconds": 1751265685,
+    "nanos": 784963985
+  },
+  "updated_at": {
+    "seconds": 1751265685,
+    "nanos": 784963985
+  },
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}

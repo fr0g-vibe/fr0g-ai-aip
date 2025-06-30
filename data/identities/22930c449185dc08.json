@@ -1,0 +1,19 @@
+{
+  "id": "22930c449185dc08",
+  "persona_id": "5001044d292fe4ac",
+  "name": "Jamie Lopez",
+  "description": "Community member based on Medical Laboratory Technician persona",
+  "created_at": {
+    "seconds": 1751265685,
+    "nanos": 785002329
+  },
+  "updated_at": {
+    "seconds": 1751265685,
+    "nanos": 785002329
+  },
+  "is_active": true,
+  "tags": [
+    "community-generated"
+  ],
+  "rich_attributes": {}
+}
