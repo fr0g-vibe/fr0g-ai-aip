@@ -7,7 +7,7 @@ import (
 
 func TestPersonaJSONSerialization(t *testing.T) {
 	p := Persona{
-		ID:     "test-id",
+		Id:     "test-id",
 		Name:   "Test Expert",
 		Topic:  "Testing",
 		Prompt: "You are a testing expert.",
@@ -15,7 +15,7 @@ func TestPersonaJSONSerialization(t *testing.T) {
 			"language": "Go",
 			"domain":   "software testing",
 		},
-		RAG: []string{
+		Rag: []string{
 			"testing best practices",
 			"Go testing framework",
 		},
@@ -35,8 +35,8 @@ func TestPersonaJSONSerialization(t *testing.T) {
 	}
 	
 	// Verify fields
-	if unmarshaled.ID != p.ID {
-		t.Errorf("Expected ID %s, got %s", p.ID, unmarshaled.ID)
+	if unmarshaled.Id != p.Id {
+		t.Errorf("Expected ID %s, got %s", p.Id, unmarshaled.Id)
 	}
 	if unmarshaled.Name != p.Name {
 		t.Errorf("Expected name %s, got %s", p.Name, unmarshaled.Name)
@@ -59,19 +59,19 @@ func TestPersonaJSONSerialization(t *testing.T) {
 	}
 	
 	// Verify RAG
-	if len(unmarshaled.RAG) != len(p.RAG) {
-		t.Errorf("Expected RAG length %d, got %d", len(p.RAG), len(unmarshaled.RAG))
+	if len(unmarshaled.Rag) != len(p.Rag) {
+		t.Errorf("Expected RAG length %d, got %d", len(p.Rag), len(unmarshaled.Rag))
 	}
-	for i, v := range p.RAG {
-		if unmarshaled.RAG[i] != v {
-			t.Errorf("Expected RAG[%d] = %s, got %s", i, v, unmarshaled.RAG[i])
+	for i, v := range p.Rag {
+		if unmarshaled.Rag[i] != v {
+			t.Errorf("Expected RAG[%d] = %s, got %s", i, v, unmarshaled.Rag[i])
 		}
 	}
 }
 
 func TestPersonaEmptyFields(t *testing.T) {
 	p := Persona{
-		ID:     "test-id",
+		Id:     "test-id",
 		Name:   "Test Expert",
 		Topic:  "Testing",
 		Prompt: "You are a testing expert.",
@@ -90,8 +90,8 @@ func TestPersonaEmptyFields(t *testing.T) {
 	}
 	
 	// Verify required fields
-	if unmarshaled.ID != p.ID {
-		t.Errorf("Expected ID %s, got %s", p.ID, unmarshaled.ID)
+	if unmarshaled.Id != p.Id {
+		t.Errorf("Expected ID %s, got %s", p.Id, unmarshaled.Id)
 	}
 	if unmarshaled.Name != p.Name {
 		t.Errorf("Expected name %s, got %s", p.Name, unmarshaled.Name)
@@ -107,8 +107,8 @@ func TestPersonaEmptyFields(t *testing.T) {
 	if unmarshaled.Context != nil && len(unmarshaled.Context) != 0 {
 		t.Errorf("Expected empty context, got %v", unmarshaled.Context)
 	}
-	if unmarshaled.RAG != nil && len(unmarshaled.RAG) != 0 {
-		t.Errorf("Expected empty RAG, got %v", unmarshaled.RAG)
+	if unmarshaled.Rag != nil && len(unmarshaled.Rag) != 0 {
+		t.Errorf("Expected empty RAG, got %v", unmarshaled.Rag)
 	}
 }
 
@@ -123,7 +123,7 @@ func TestPersonaJSONEdgeCases(t *testing.T) {
 			"key with spaces": "value with\nnewlines",
 			"unicode_key":     "unicode value: 🎯",
 		},
-		RAG: []string{
+		Rag: []string{
 			"doc with spaces.txt",
 			"unicode-doc-🚀.md",
 		},
@@ -161,9 +161,9 @@ func TestPersonaJSONEdgeCases(t *testing.T) {
 	}
 	
 	// Verify RAG with special characters
-	for i, v := range p.RAG {
-		if unmarshaled.RAG[i] != v {
-			t.Errorf("Expected RAG[%d] = %s, got %s", i, v, unmarshaled.RAG[i])
+	for i, v := range p.Rag {
+		if unmarshaled.Rag[i] != v {
+			t.Errorf("Expected RAG[%d] = %s, got %s", i, v, unmarshaled.Rag[i])
 		}
 	}
 }

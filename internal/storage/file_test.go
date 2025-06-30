@@ -42,14 +42,14 @@ func TestFileStorage_CreateAndPersist(t *testing.T) {
 	}
 	
 	// Check file exists
-	filePath := filepath.Join(tmpDir, p.ID+".json")
+	filePath := filepath.Join(tmpDir, p.Id+".json")
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		t.Error("Expected persona file to be created")
 	}
 	
 	// Create new storage instance to test persistence
 	storage2, _ := NewFileStorage(tmpDir)
-	retrieved, err := storage2.Get(p.ID)
+	retrieved, err := storage2.Get(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get persisted persona: %v", err)
 	}
@@ -86,12 +86,12 @@ func TestFileStorage_DeleteFile(t *testing.T) {
 	p := &types.Persona{Name: "Delete Test", Topic: "Deleting", Prompt: "Test"}
 	storage.Create(p)
 	
-	filePath := filepath.Join(tmpDir, p.ID+".json")
+	filePath := filepath.Join(tmpDir, p.Id+".json")
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		t.Error("File should exist before delete")
 	}
 	
-	err := storage.Delete(p.ID)
+	err := storage.Delete(p.Id)
 	if err != nil {
 		t.Fatalf("Delete failed: %v", err)
 	}
@@ -119,7 +119,7 @@ func TestFileStorage_CreateValidation(t *testing.T) {
 		{"empty prompt", &types.Persona{Name: "Test", Topic: "Test", Prompt: ""}, true},
 		{"valid persona", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}, false},
 		{"valid with context", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", Context: map[string]string{"key": "value"}}, false},
-		{"valid with RAG", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", RAG: []string{"doc1"}}, false},
+		{"valid with RAG", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", Rag: []string{"doc1"}}, false},
 	}
 	
 	for _, tt := range tests {

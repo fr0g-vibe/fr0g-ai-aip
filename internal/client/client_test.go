@@ -55,7 +55,7 @@ func TestClientCRUDInterface(t *testing.T) {
 	}
 	
 	// Test Get method signature
-	_, err = client.Get(p.ID)
+	_, err = client.Get(p.Id)
 	if err != nil {
 		t.Fatalf("Get failed: %v", err)
 	}
@@ -67,13 +67,13 @@ func TestClientCRUDInterface(t *testing.T) {
 	}
 	
 	// Test Update method signature
-	err = client.Update(p.ID, *p)
+	err = client.Update(p.Id, *p)
 	if err != nil {
 		t.Fatalf("Update failed: %v", err)
 	}
 	
 	// Test Delete method signature
-	err = client.Delete(p.ID)
+	err = client.Delete(p.Id)
 	if err != nil {
 		t.Fatalf("Delete failed: %v", err)
 	}

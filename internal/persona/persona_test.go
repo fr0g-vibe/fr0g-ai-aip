@@ -22,7 +22,7 @@ func TestServiceCreatePersona(t *testing.T) {
 		t.Fatalf("Failed to create persona: %v", err)
 	}
 
-	if p.ID == "" {
+	if p.Id == "" {
 		t.Error("Expected persona ID to be generated")
 	}
 }
@@ -43,7 +43,7 @@ func TestServiceGetPersona(t *testing.T) {
 	}
 
 	// Get the persona
-	retrieved, err := service.GetPersona(p.ID)
+	retrieved, err := service.GetPersona(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get persona: %v", err)
 	}
@@ -87,13 +87,13 @@ func TestServiceDeletePersona(t *testing.T) {
 		t.Fatalf("Failed to create persona: %v", err)
 	}
 
-	err = service.DeletePersona(p.ID)
+	err = service.DeletePersona(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to delete persona: %v", err)
 	}
 
 	// Try to get deleted persona
-	_, err = service.GetPersona(p.ID)
+	_, err = service.GetPersona(p.Id)
 	if err == nil {
 		t.Error("Expected error when getting deleted persona")
 	}
@@ -115,13 +115,13 @@ func TestServiceUpdatePersona(t *testing.T) {
 
 	// Update the persona
 	p.Name = "Updated Expert"
-	err = service.UpdatePersona(p.ID, p)
+	err = service.UpdatePersona(p.Id, p)
 	if err != nil {
 		t.Fatalf("Failed to update persona: %v", err)
 	}
 
 	// Get the updated persona
-	retrieved, err := service.GetPersona(p.ID)
+	retrieved, err := service.GetPersona(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get updated persona: %v", err)
 	}
@@ -144,7 +144,7 @@ func TestCreatePersona(t *testing.T) {
 		t.Fatalf("Failed to create persona: %v", err)
 	}
 
-	if p.ID == "" {
+	if p.Id == "" {
 		t.Error("Expected persona ID to be generated")
 	}
 }
@@ -163,7 +163,7 @@ func TestGetPersona(t *testing.T) {
 	}
 
 	// Get the persona
-	retrieved, err := GetPersona(p.ID)
+	retrieved, err := GetPersona(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get persona: %v", err)
 	}
@@ -205,13 +205,13 @@ func TestDeletePersona(t *testing.T) {
 		t.Fatalf("Failed to create persona: %v", err)
 	}
 
-	err = DeletePersona(p.ID)
+	err = DeletePersona(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to delete persona: %v", err)
 	}
 
 	// Try to get deleted persona
-	_, err = GetPersona(p.ID)
+	_, err = GetPersona(p.Id)
 	if err == nil {
 		t.Error("Expected error when getting deleted persona")
 	}
@@ -234,13 +234,13 @@ func TestUpdatePersona(t *testing.T) {
 
 	// Update the persona
 	p.Name = "Updated Expert"
-	err = UpdatePersona(p.ID, p)
+	err = UpdatePersona(p.Id, p)
 	if err != nil {
 		t.Fatalf("Failed to update persona: %v", err)
 	}
 
 	// Get the updated persona
-	retrieved, err := GetPersona(p.ID)
+	retrieved, err := GetPersona(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get updated persona: %v", err)
 	}
@@ -318,7 +318,7 @@ func TestSetDefaultService(t *testing.T) {
 		t.Fatalf("Failed to create persona with default service: %v", err)
 	}
 
-	if p.ID == "" {
+	if p.Id == "" {
 		t.Error("Expected ID to be generated")
 	}
 }
@@ -365,7 +365,7 @@ func TestServiceWithComplexPersona(t *testing.T) {
 	}
 
 	// Retrieve and verify
-	retrieved, err := service.GetPersona(p.ID)
+	retrieved, err := service.GetPersona(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get complex persona: %v", err)
 	}
@@ -404,13 +404,13 @@ func TestLegacyFunctionsCoverage(t *testing.T) {
 
 	// Update one
 	p1.Name = "Updated Legacy 1"
-	err = UpdatePersona(p1.ID, p1)
+	err = UpdatePersona(p1.Id, p1)
 	if err != nil {
 		t.Fatalf("UpdatePersona failed: %v", err)
 	}
 
 	// Get updated
-	retrieved, err := GetPersona(p1.ID)
+	retrieved, err := GetPersona(p1.Id)
 	if err != nil {
 		t.Fatalf("GetPersona failed: %v", err)
 	}
@@ -419,7 +419,7 @@ func TestLegacyFunctionsCoverage(t *testing.T) {
 	}
 
 	// Delete one
-	err = DeletePersona(p2.ID)
+	err = DeletePersona(p2.Id)
 	if err != nil {
 		t.Fatalf("DeletePersona failed: %v", err)
 	}
@@ -638,7 +638,7 @@ func TestServiceNewService(t *testing.T) {
 	}
 
 	// Verify it was stored in the provided storage
-	retrieved, err := memStorage.Get(p.ID)
+	retrieved, err := memStorage.Get(p.Id)
 	if err != nil {
 		t.Fatalf("Direct storage get failed: %v", err)
 	}
@@ -665,7 +665,7 @@ func TestServiceCreateIdentity(t *testing.T) {
 
 	// Create an identity based on the persona
 	i := types.Identity{
-		PersonaID:   p.ID,
+		PersonaId:   p.Id,
 		Name:        "Test Identity",
 		Description: "Test identity description",
 		Tags:        []string{"test", "identity"},
@@ -676,12 +676,12 @@ func TestServiceCreateIdentity(t *testing.T) {
 		t.Fatalf("Failed to create identity: %v", err)
 	}
 
-	if i.ID == "" {
+	if i.Id == "" {
 		t.Error("Identity ID should be set after creation")
 	}
 
 	// Verify the identity was created
-	retrieved, err := service.GetIdentity(i.ID)
+	retrieved, err := service.GetIdentity(i.Id)
 	if err != nil {
 		t.Fatalf("Failed to get identity: %v", err)
 	}
@@ -689,8 +689,8 @@ func TestServiceCreateIdentity(t *testing.T) {
 	if retrieved.Name != i.Name {
 		t.Errorf("Expected name %s, got %s", i.Name, retrieved.Name)
 	}
-	if retrieved.PersonaID != p.ID {
-		t.Errorf("Expected persona ID %s, got %s", p.ID, retrieved.PersonaID)
+	if retrieved.PersonaId != p.Id {
+		t.Errorf("Expected persona ID %s, got %s", p.Id, retrieved.PersonaId)
 	}
 }
 
@@ -699,7 +699,7 @@ func TestServiceCreateIdentityWithInvalidPersona(t *testing.T) {
 
 	// Try to create an identity with a non-existent persona
 	i := types.Identity{
-		PersonaID: "non-existent-id",
+		PersonaId: "non-existent-id",
 		Name:      "Test Identity",
 	}
 
@@ -725,9 +725,9 @@ func TestServiceListIdentities(t *testing.T) {
 
 	// Create multiple identities
 	identities := []types.Identity{
-		{PersonaID: p.ID, Name: "Identity 1", Tags: []string{"tag1"}},
-		{PersonaID: p.ID, Name: "Identity 2", Tags: []string{"tag2"}},
-		{PersonaID: p.ID, Name: "Identity 3", Tags: []string{"tag1", "tag2"}},
+		{PersonaId: p.Id, Name: "Identity 1", Tags: []string{"tag1"}},
+		{PersonaId: p.Id, Name: "Identity 2", Tags: []string{"tag2"}},
+		{PersonaId: p.Id, Name: "Identity 3", Tags: []string{"tag1", "tag2"}},
 	}
 
 	for i := range identities {
@@ -748,14 +748,14 @@ func TestServiceListIdentities(t *testing.T) {
 	}
 
 	// Test filtering by persona ID
-	filter := &types.IdentityFilter{PersonaID: p.ID}
+	filter := &types.IdentityFilter{PersonaID: p.Id}
 	filteredIdentities, err := service.ListIdentities(filter)
 	if err != nil {
 		t.Fatalf("Failed to list identities with filter: %v", err)
 	}
 
 	if len(filteredIdentities) != 3 {
-		t.Errorf("Expected 3 identities for persona %s, got %d", p.ID, len(filteredIdentities))
+		t.Errorf("Expected 3 identities for persona %s, got %d", p.Id, len(filteredIdentities))
 	}
 
 	// Test filtering by tags
@@ -786,7 +786,7 @@ func TestServiceUpdateIdentity(t *testing.T) {
 
 	// Create an identity
 	i := types.Identity{
-		PersonaID:   p.ID,
+		PersonaId:   p.Id,
 		Name:        "Original Name",
 		Description: "Original description",
 	}
@@ -800,13 +800,13 @@ func TestServiceUpdateIdentity(t *testing.T) {
 	updatedIdentity.Name = "Updated Name"
 	updatedIdentity.Description = "Updated description"
 
-	err = service.UpdateIdentity(i.ID, updatedIdentity)
+	err = service.UpdateIdentity(i.Id, updatedIdentity)
 	if err != nil {
 		t.Fatalf("Failed to update identity: %v", err)
 	}
 
 	// Verify the update
-	retrieved, err := service.GetIdentity(i.ID)
+	retrieved, err := service.GetIdentity(i.Id)
 	if err != nil {
 		t.Fatalf("Failed to get updated identity: %v", err)
 	}
@@ -835,7 +835,7 @@ func TestServiceDeleteIdentity(t *testing.T) {
 
 	// Create an identity
 	i := types.Identity{
-		PersonaID: p.ID,
+		PersonaId: p.Id,
 		Name:      "Test Identity",
 	}
 	err = service.CreateIdentity(&i)
@@ -844,13 +844,13 @@ func TestServiceDeleteIdentity(t *testing.T) {
 	}
 
 	// Delete the identity
-	err = service.DeleteIdentity(i.ID)
+	err = service.DeleteIdentity(i.Id)
 	if err != nil {
 		t.Fatalf("Failed to delete identity: %v", err)
 	}
 
 	// Verify it's deleted
-	_, err = service.GetIdentity(i.ID)
+	_, err = service.GetIdentity(i.Id)
 	if err == nil {
 		t.Error("Expected error when getting deleted identity")
 	}
@@ -865,7 +865,7 @@ func TestServiceGetIdentityWithPersona(t *testing.T) {
 		Topic:   "Test Topic",
 		Prompt:  "Test prompt",
 		Context: map[string]string{"key": "value"},
-		RAG:     []string{"doc1", "doc2"},
+		Rag:     []string{"doc1", "doc2"},
 	}
 	err := service.CreatePersona(&p)
 	if err != nil {
@@ -874,7 +874,7 @@ func TestServiceGetIdentityWithPersona(t *testing.T) {
 
 	// Create an identity
 	i := types.Identity{
-		PersonaID:   p.ID,
+		PersonaId:   p.Id,
 		Name:        "Test Identity",
 		Description: "Test description",
 		Background:  "Test background",
@@ -886,20 +886,20 @@ func TestServiceGetIdentityWithPersona(t *testing.T) {
 	}
 
 	// Get identity with persona
-	iwp, err := service.GetIdentityWithPersona(i.ID)
+	iwp, err := service.GetIdentityWithPersona(i.Id)
 	if err != nil {
 		t.Fatalf("Failed to get identity with persona: %v", err)
 	}
 
 	// Verify both identity and persona data
-	if iwp.Identity.ID != i.ID {
-		t.Errorf("Expected identity ID %s, got %s", i.ID, iwp.Identity.ID)
+	if iwp.Identity.Id != i.Id {
+		t.Errorf("Expected identity ID %s, got %s", i.Id, iwp.Identity.Id)
 	}
 	if iwp.Identity.Name != i.Name {
 		t.Errorf("Expected identity name %s, got %s", i.Name, iwp.Identity.Name)
 	}
-	if iwp.Persona.ID != p.ID {
-		t.Errorf("Expected persona ID %s, got %s", p.ID, iwp.Persona.ID)
+	if iwp.Persona.Id != p.Id {
+		t.Errorf("Expected persona ID %s, got %s", p.Id, iwp.Persona.Id)
 	}
 	if iwp.Persona.Name != p.Name {
 		t.Errorf("Expected persona name %s, got %s", p.Name, iwp.Persona.Name)

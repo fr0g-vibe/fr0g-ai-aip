@@ -99,7 +99,7 @@ func TestPersonaHandler_GET(t *testing.T) {
 	}
 	server.service.CreatePersona(p)
 	
-	req := httptest.NewRequest(http.MethodGet, "/personas/"+p.ID, nil)
+	req := httptest.NewRequest(http.MethodGet, "/personas/"+p.Id, nil)
 	w := httptest.NewRecorder()
 	
 	server.personaHandler(w, req)
@@ -142,7 +142,7 @@ func TestPersonaHandler_PUT(t *testing.T) {
 	// Update the persona
 	p.Name = "Updated Name"
 	body, _ := json.Marshal(p)
-	req := httptest.NewRequest(http.MethodPut, "/personas/"+p.ID, bytes.NewBuffer(body))
+	req := httptest.NewRequest(http.MethodPut, "/personas/"+p.Id, bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	
@@ -164,7 +164,7 @@ func TestPersonaHandler_DELETE(t *testing.T) {
 	}
 	server.service.CreatePersona(p)
 	
-	req := httptest.NewRequest(http.MethodDelete, "/personas/"+p.ID, nil)
+	req := httptest.NewRequest(http.MethodDelete, "/personas/"+p.Id, nil)
 	w := httptest.NewRecorder()
 	
 	server.personaHandler(w, req)
@@ -322,14 +322,14 @@ func TestPersonaHandler_ComplexPersona(t *testing.T) {
 			"domain": "testing",
 			"level":  "expert",
 		},
-		RAG: []string{
+		Rag: []string{
 			"testing best practices",
 			"test automation",
 		},
 	}
 	server.service.CreatePersona(p)
 	
-	req := httptest.NewRequest(http.MethodGet, "/personas/"+p.ID, nil)
+	req := httptest.NewRequest(http.MethodGet, "/personas/"+p.Id, nil)
 	w := httptest.NewRecorder()
 	
 	server.personaHandler(w, req)
@@ -343,8 +343,8 @@ func TestPersonaHandler_ComplexPersona(t *testing.T) {
 	if len(retrieved.Context) != 2 {
 		t.Errorf("Expected 2 context items, got %d", len(retrieved.Context))
 	}
-	if len(retrieved.RAG) != 2 {
-		t.Errorf("Expected 2 RAG items, got %d", len(retrieved.RAG))
+	if len(retrieved.Rag) != 2 {
+		t.Errorf("Expected 2 RAG items, got %d", len(retrieved.Rag))
 	}
 }
 

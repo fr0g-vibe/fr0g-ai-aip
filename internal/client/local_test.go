@@ -22,7 +22,7 @@ func TestLocalClient_Create(t *testing.T) {
 		t.Fatalf("Create failed: %v", err)
 	}
 	
-	if p.ID == "" {
+	if p.Id == "" {
 		t.Error("Expected ID to be generated")
 	}
 }
@@ -39,18 +39,18 @@ func TestLocalClient_CRUD(t *testing.T) {
 		Context: map[string]string{
 			"test": "value",
 		},
-		RAG: []string{"doc1", "doc2"},
+		Rag: []string{"doc1", "doc2"},
 	}
 	if err := client.Create(p); err != nil {
 		t.Fatalf("Create failed: %v", err)
 	}
 	
-	if p.ID == "" {
+	if p.Id == "" {
 		t.Error("Expected ID to be generated")
 	}
 	
 	// Read
-	retrieved, err := client.Get(p.ID)
+	retrieved, err := client.Get(p.Id)
 	if err != nil {
 		t.Fatalf("Get failed: %v", err)
 	}
@@ -60,8 +60,8 @@ func TestLocalClient_CRUD(t *testing.T) {
 	if len(retrieved.Context) != len(p.Context) {
 		t.Errorf("Expected context length %d, got %d", len(p.Context), len(retrieved.Context))
 	}
-	if len(retrieved.RAG) != len(p.RAG) {
-		t.Errorf("Expected RAG length %d, got %d", len(p.RAG), len(retrieved.RAG))
+	if len(retrieved.Rag) != len(p.Rag) {
+		t.Errorf("Expected RAG length %d, got %d", len(p.Rag), len(retrieved.Rag))
 	}
 	
 	// List
@@ -76,12 +76,12 @@ func TestLocalClient_CRUD(t *testing.T) {
 	// Update
 	retrieved.Name = "Updated CRUD Test"
 	retrieved.Context["updated"] = "true"
-	if err := client.Update(p.ID, retrieved); err != nil {
+	if err := client.Update(p.Id, retrieved); err != nil {
 		t.Fatalf("Update failed: %v", err)
 	}
 	
 	// Verify update
-	updated, err := client.Get(p.ID)
+	updated, err := client.Get(p.Id)
 	if err != nil {
 		t.Fatalf("Get after update failed: %v", err)
 	}
@@ -93,11 +93,11 @@ func TestLocalClient_CRUD(t *testing.T) {
 	}
 	
 	// Delete
-	if err := client.Delete(p.ID); err != nil {
+	if err := client.Delete(p.Id); err != nil {
 		t.Fatalf("Delete failed: %v", err)
 	}
 	
-	_, err = client.Get(p.ID)
+	_, err = client.Get(p.Id)
 	if err == nil {
 		t.Error("Expected error after delete")
 	}

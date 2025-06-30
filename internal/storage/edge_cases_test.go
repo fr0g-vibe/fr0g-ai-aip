@@ -49,7 +49,7 @@ func TestMemoryStorage_UnicodeContent(t *testing.T) {
 			"language": "中文",
 			"encoding": "UTF-8",
 		},
-		RAG: []string{
+		Rag: []string{
 			"Unicode best practices",
 			"UTF-8 编码最佳实践",
 		},
@@ -60,7 +60,7 @@ func TestMemoryStorage_UnicodeContent(t *testing.T) {
 		t.Fatalf("Failed to create Unicode persona: %v", err)
 	}
 
-	retrieved, err := storage.Get(p.ID)
+	retrieved, err := storage.Get(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get Unicode persona: %v", err)
 	}
@@ -128,7 +128,7 @@ func TestFileStorage_VeryLongFilenames(t *testing.T) {
 	}
 
 	// Verify we can retrieve it
-	retrieved, err := storage.Get(p.ID)
+	retrieved, err := storage.Get(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get persona with long content: %v", err)
 	}
@@ -192,7 +192,7 @@ func TestFileStorage_DiskSpaceSimulation(t *testing.T) {
 	}
 
 	// If creation succeeded, verify retrieval
-	retrieved, err := storage.Get(p.ID)
+	retrieved, err := storage.Get(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to get large persona: %v", err)
 	}
@@ -238,7 +238,7 @@ func TestFileStorage_ConcurrentFileAccess(t *testing.T) {
 			defer func() { done <- true }()
 
 			for j := 0; j < 100; j++ {
-				_, err := storage.Get(p.ID)
+				_, err := storage.Get(p.Id)
 				if err != nil {
 					t.Errorf("Concurrent read failed: %v", err)
 					return
