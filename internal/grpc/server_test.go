@@ -1444,10 +1444,6 @@ func TestStartGRPCServer(t *testing.T) {
 	// Test the StartGRPCServer function to improve coverage
 	// We'll test that it can start and stop gracefully
 	
-	// Set up clean storage for the test
-	memStorage := storage.NewMemoryStorage()
-	service := persona.NewService(memStorage)
-	
 	// Use a random available port
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
