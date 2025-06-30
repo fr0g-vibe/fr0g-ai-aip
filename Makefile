@@ -1,15 +1,15 @@
 .PHONY: build test clean run-server run-grpc run-both run-cli proto help
 
 # Build the application
-build: proto
+build: proto-if-needed
 	@echo "Building application..."
 	go build -o bin/fr0g-ai-aip ./cmd/fr0g-ai-aip
 
 # Build with local gRPC support (no external dependencies)
-build-with-grpc: proto build
+build-with-grpc: proto-if-needed build
 	@echo "gRPC support built using local JSON-over-HTTP implementation"
 
-# Generate protobuf code
+# Generate protobuf code (force regeneration)
 proto:
 	@echo "Generating protobuf code..."
 	@if [ ! -f "internal/grpc/proto/persona.proto" ]; then \
@@ -28,29 +28,38 @@ proto:
 		internal/grpc/proto/persona.proto
 	@echo "Protobuf code generated successfully in internal/grpc/pb/"
 
+# Generate protobuf code only if files don't exist
+proto-if-needed:
+	@if [ ! -f "internal/grpc/pb/persona.pb.go" ] || [ ! -f "internal/grpc/pb/persona_grpc.pb.go" ]; then \
+		echo "Protobuf files missing, generating..."; \
+		$(MAKE) proto; \
+	else \
+		echo "Protobuf files already exist, skipping generation"; \
+	fi
+
 # Run tests
-test: proto
+test: proto-if-needed
 	go test ./...
 
 # Run tests with coverage
-test-coverage: proto
+test-coverage: proto-if-needed
 	go test -cover ./...
 
 # Clean build artifacts
 clean:
 	rm -rf bin/
-	rm -rf internal/grpc/pb/
+	rm -rf internal/grpc/pb/*.pb.go
 
 # Run HTTP REST API server
-run-server: proto
+run-server: proto-if-needed
 	go run ./cmd/fr0g-ai-aip -server
 
 # Run gRPC server
-run-grpc: proto
+run-grpc: proto-if-needed
 	go run ./cmd/fr0g-ai-aip -grpc
 
 # Run both HTTP and gRPC servers
-run-both: proto
+run-both: proto-if-needed
 	go run ./cmd/fr0g-ai-aip -server -grpc
 
 # Run CLI help
@@ -82,7 +91,8 @@ help:
 	@echo "Available targets:"
 	@echo "  build              - Build the application (no external deps)"
 	@echo "  build-with-grpc    - Build with full gRPC support"
-	@echo "  proto              - Generate protobuf code (optional)"
+	@echo "  proto              - Force generate protobuf code"
+	@echo "  proto-if-needed    - Generate protobuf code only if missing"
 	@echo "  test               - Run tests"
 	@echo "  test-coverage      - Run tests with coverage"
 	@echo "  clean              - Clean build artifacts"
