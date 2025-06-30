@@ -6,9 +6,13 @@ AI Personas - A customizable AI subject matter expert system
 
 fr0g-ai-aip is a collection of customizable AI "personas" that function as on-demand subject matter experts. Each persona consists of a chatbot system prompt with accompanying RAG (Retrieval-Augmented Generation) and context for a specific AI identity or domain expertise.
 
+The system also supports **community generation** - the ability to create realistic communities of AI personas with diverse demographics, political leanings, interests, and social dynamics for simulation and analysis purposes.
+
 ## Purpose
 
 This system provides specialized AI personas that can be instantiated as subject matter experts on specific topics or perspectives. These personas are designed to be used via MCP (Model Context Protocol) to provide knowledge and perspective when making decisions or taking actions.
+
+Additionally, the community generation feature enables researchers, social scientists, and developers to create realistic populations of AI personas with configurable demographics, political distributions, interests, and social dynamics for simulation, testing, and analysis purposes.
 
 ## Architecture
 
@@ -86,6 +90,27 @@ FR0G_CLIENT_TYPE=grpc FR0G_SERVER_URL=localhost:9090 ./bin/fr0g-ai-aip list
 # Delete a persona
 ./bin/fr0g-ai-aip delete <persona-id>
 
+# Identity Management
+./bin/fr0g-ai-aip create-identity -persona-id <persona-id> -name "John Doe" -description "Software engineer from Seattle"
+
+# List identities
+./bin/fr0g-ai-aip list-identities
+
+# Get identity with persona details
+./bin/fr0g-ai-aip get-identity <identity-id>
+
+# Community Generation
+./bin/fr0g-ai-aip generate-community -name "Tech Community" -type "professional" -size 50 -description "Software developers and engineers"
+
+# List communities
+./bin/fr0g-ai-aip list-communities
+
+# Get community details and statistics
+./bin/fr0g-ai-aip get-community <community-id>
+
+# Get community analytics
+./bin/fr0g-ai-aip community-stats <community-id>
+
 # Start HTTP REST API server with in-memory storage
 ./bin/fr0g-ai-aip -server
 
@@ -121,6 +146,31 @@ Server mode supports command-line flags:
 - `-port`: HTTP server port - default: `8080`
 - `-grpc-port`: gRPC server port - default: `9090`
 
+## Community Generation Features
+
+### Demographics Configuration
+- **Age Distribution**: Normal distribution with mean, standard deviation, and skewness
+- **Geographic Constraints**: City, region, country, or global distribution
+- **Political Spectrum**: Configurable spread from very liberal to very conservative
+- **Socioeconomic Range**: Income and class diversity settings
+- **Education Levels**: From high school to graduate degrees
+- **Interest Diversity**: Configurable variety of hobbies and interests
+
+### Community Analytics
+- **Diversity Index**: Shannon diversity across multiple demographic dimensions
+- **Cohesion Score**: Measure of similarity and social connectivity
+- **Engagement Metrics**: Activity levels and participation patterns
+- **Political Distribution**: Breakdown of political leanings
+- **Geographic Spread**: Location distribution analysis
+- **Age Demographics**: Average age and age distribution statistics
+
+### Use Cases
+- **Social Research**: Study community dynamics and demographic interactions
+- **Product Testing**: Test applications with diverse user populations
+- **Content Moderation**: Simulate diverse perspectives for policy development
+- **Market Research**: Analyze how different demographics respond to products
+- **Educational Simulations**: Create realistic populations for learning scenarios
+
 ## API Usage
 
 ### HTTP REST API
@@ -129,6 +179,7 @@ Server mode supports command-line flags:
 # Health check
 curl http://localhost:8080/health
 
+# Persona Management
 # List all personas
 curl http://localhost:8080/personas
 
@@ -142,6 +193,33 @@ curl http://localhost:8080/personas/<persona-id>
 
 # Delete a persona
 curl -X DELETE http://localhost:8080/personas/<persona-id>
+
+# Identity Management
+# List all identities
+curl http://localhost:8080/identities
+
+# Create an identity
+curl -X POST http://localhost:8080/identities \
+  -H "Content-Type: application/json" \
+  -d '{"persona_id":"<persona-id>","name":"Alice Johnson","description":"Senior software engineer","rich_attributes":{"age":32,"gender":"female","political_leaning":"moderate","education":"bachelor"}}'
+
+# Get identity with persona details
+curl http://localhost:8080/identities/<identity-id>
+
+# Community Management
+# List all communities
+curl http://localhost:8080/communities
+
+# Generate a community
+curl -X POST http://localhost:8080/communities/generate \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Tech Startup Community","type":"professional","description":"Software developers and entrepreneurs","target_size":25,"generation_config":{"age_distribution":{"mean":30,"std_dev":8,"min_age":22,"max_age":55},"political_spread":0.6,"interest_spread":0.8}}'
+
+# Get community details
+curl http://localhost:8080/communities/<community-id>
+
+# Get community statistics
+curl http://localhost:8080/communities/<community-id>/stats
 ```
 
 ### gRPC API
@@ -197,6 +275,9 @@ The test suite includes:
 - **JSON marshaling/unmarshaling** with special characters
 - **File corruption handling** for file storage
 - **Performance benchmarks** for critical paths
+- **Community generation algorithms** with statistical validation
+- **Identity management** with rich attribute handling
+- **Demographic distribution** accuracy testing
 
 ### Test Organization
 
