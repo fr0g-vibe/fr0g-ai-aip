@@ -17,10 +17,10 @@ import (
 func main() {
 	var (
 		serverMode  = flag.Bool("server", false, "Run HTTP REST API server")
-		grpcMode    = flag.Bool("grpc", false, "Run gRPC server")
+		grpcMode    = flag.Bool("grpc", true, "Run gRPC server (default)")
 		httpPort    = flag.String("port", "8080", "HTTP server port")
 		grpcPort    = flag.String("grpc-port", "9090", "gRPC server port")
-		storageType = flag.String("storage", "memory", "Storage type: memory, file")
+		storageType = flag.String("storage", "file", "Storage type: memory, file")
 		dataDir     = flag.String("data-dir", "./data", "Data directory for file storage")
 		help        = flag.Bool("help", false, "Show help")
 	)
@@ -95,10 +95,22 @@ func main() {
 			log.Fatalf("Failed to start gRPC server: %v", err)
 		}
 	} else {
-		// CLI mode - use environment configuration
-		config := cli.GetConfigFromEnv()
-		if err := cli.ExecuteWithConfig(config); err != nil {
-			log.Fatalf("CLI error: %v", err)
+		// Check if no flags were provided - if so, start gRPC server by default
+		if !*serverMode && !*grpcMode {
+			*grpcMode = true
+		}
+		
+		if *grpcMode {
+			fmt.Printf("Starting fr0g-ai-aip gRPC server on port %s (storage: %s)\n", *grpcPort, *storageType)
+			if err := grpcserver.StartGRPCServer(*grpcPort); err != nil {
+				log.Fatalf("Failed to start gRPC server: %v", err)
+			}
+		} else {
+			// CLI mode - use environment configuration
+			config := cli.GetConfigFromEnv()
+			if err := cli.ExecuteWithConfig(config); err != nil {
+				log.Fatalf("CLI error: %v", err)
+			}
 		}
 	}
 }

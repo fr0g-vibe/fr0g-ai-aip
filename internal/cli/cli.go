@@ -20,10 +20,10 @@ type Config struct {
 }
 
 var defaultConfig = Config{
-	ClientType:  "local",
+	ClientType:  "grpc",
 	StorageType: "file", // Changed to file for persistence
 	DataDir:     "./data",
-	ServerURL:   "http://localhost:8080", // For REST, or "localhost:9090" for gRPC
+	ServerURL:   "localhost:9090", // Default to gRPC
 }
 
 // Execute runs the CLI interface
@@ -117,8 +117,8 @@ func printUsage() {
 	fmt.Println("  -grpc-port <port>   gRPC server port (default: 9090)")
 	fmt.Println()
 	fmt.Println("Environment variables:")
-	fmt.Println("  FR0G_CLIENT_TYPE    Client type: local, rest, grpc (default: local)")
-	fmt.Println("  FR0G_STORAGE_TYPE   Storage type: memory, file (default: memory)")
+	fmt.Println("  FR0G_CLIENT_TYPE    Client type: local, rest, grpc (default: grpc)")
+	fmt.Println("  FR0G_STORAGE_TYPE   Storage type: memory, file (default: file)")
 	fmt.Println("  FR0G_DATA_DIR       Data directory for file storage (default: ./data)")
 	fmt.Println("  FR0G_SERVER_URL     Server URL for REST (http://localhost:8080) or gRPC (localhost:9090)")
 }
