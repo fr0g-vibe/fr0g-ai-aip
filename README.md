@@ -148,6 +148,70 @@ curl -X DELETE http://localhost:8080/personas/<persona-id>
 
 The gRPC service runs on port 9090 by default and provides the same functionality as the REST API with better performance and type safety.
 
+## Testing
+
+The project maintains comprehensive test coverage across all packages:
+
+- **API**: 100% coverage
+- **gRPC**: 96.9% coverage  
+- **Storage**: 94.1% coverage
+- **Client**: 90.7% coverage
+- **Persona**: 82.6% coverage
+- **CLI**: 85.6% coverage
+
+### Running Tests
+
+Run all tests:
+```bash
+make test
+```
+
+Run tests with coverage report:
+```bash
+make test-coverage
+```
+
+Generate detailed HTML coverage report:
+```bash
+make test-coverage-detailed
+```
+
+Run tests with verbose output:
+```bash
+make test-verbose
+```
+
+Run tests with race detection:
+```bash
+make test-race
+```
+
+Run benchmarks:
+```bash
+make test-bench
+```
+
+### Test Coverage
+
+The test suite includes:
+
+- **Unit tests** for all core functionality
+- **Integration tests** across storage implementations
+- **Concurrent operation tests** for thread safety
+- **Error handling tests** for edge cases
+- **Network failure simulation** for REST client
+- **gRPC server validation** with comprehensive scenarios
+- **JSON marshaling/unmarshaling** with special characters
+- **File corruption handling** for file storage
+- **Performance benchmarks** for critical paths
+
+### Test Organization
+
+- `*_test.go` files contain unit tests for each package
+- `integration_test.go` files test cross-package functionality
+- Mock servers and storage implementations for isolated testing
+- Comprehensive validation of error conditions and edge cases
+
 ## Contributing
 
 Please follow Go best practices for code documentation and CLI design.
