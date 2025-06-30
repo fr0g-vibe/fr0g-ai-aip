@@ -506,16 +506,19 @@ func TestServiceWithFileStorage(t *testing.T) {
 func TestServiceEdgeCases(t *testing.T) {
 	service := NewService(storage.NewMemoryStorage())
 	
-	// Test with very long strings
-	longString := fmt.Sprintf("%0*d", 1000, 0) // 1000 character string of zeros
+	// Test with moderately long strings that fit within validation limits
+	longString := fmt.Sprintf("%0*d", 400, 0) // 400 character string of zeros (within 500 char limit for context)
+	promptString := fmt.Sprintf("%0*d", 1000, 0) // 1000 character string for prompt (within 10000 char limit)
+	ragString := fmt.Sprintf("%0*d", 500, 0) // 500 character string for RAG (within 1000 char limit)
+	
 	p := types.Persona{
 		Name:   "Long String Test",
 		Topic:  "Long Strings",
-		Prompt: longString,
+		Prompt: promptString,
 		Context: map[string]string{
 			"long_key": longString,
 		},
-		RAG: []string{longString},
+		RAG: []string{ragString},
 	}
 	
 	err := service.CreatePersona(&p)

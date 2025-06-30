@@ -430,7 +430,7 @@ func TestPersonaServer_UpdatePersona_ValidationErrors(t *testing.T) {
 				Topic:  "Updated Topic",
 				Prompt: "Updated Prompt",
 			},
-			wantErr: false, // Server doesn't validate these fields on update
+			wantErr: true, // Server validates these fields on update
 		},
 		{
 			name: "Empty name",
@@ -439,7 +439,7 @@ func TestPersonaServer_UpdatePersona_ValidationErrors(t *testing.T) {
 				Topic:  "Updated Topic",
 				Prompt: "Updated Prompt",
 			},
-			wantErr: false, // Server doesn't validate these fields on update
+			wantErr: true, // Server validates these fields on update
 		},
 		{
 			name: "Missing topic",
@@ -447,7 +447,7 @@ func TestPersonaServer_UpdatePersona_ValidationErrors(t *testing.T) {
 				Name:   "Updated Name",
 				Prompt: "Updated Prompt",
 			},
-			wantErr: false, // Server doesn't validate these fields on update
+			wantErr: true, // Server validates these fields on update
 		},
 		{
 			name: "Empty topic",
@@ -456,7 +456,7 @@ func TestPersonaServer_UpdatePersona_ValidationErrors(t *testing.T) {
 				Topic:  "",
 				Prompt: "Updated Prompt",
 			},
-			wantErr: false, // Server doesn't validate these fields on update
+			wantErr: true, // Server validates these fields on update
 		},
 		{
 			name: "Missing prompt",
@@ -464,7 +464,7 @@ func TestPersonaServer_UpdatePersona_ValidationErrors(t *testing.T) {
 				Name:  "Updated Name",
 				Topic: "Updated Topic",
 			},
-			wantErr: false, // Server doesn't validate these fields on update
+			wantErr: true, // Server validates these fields on update
 		},
 		{
 			name: "Empty prompt",
@@ -473,7 +473,7 @@ func TestPersonaServer_UpdatePersona_ValidationErrors(t *testing.T) {
 				Topic:  "Updated Topic",
 				Prompt: "",
 			},
-			wantErr: false, // Server doesn't validate these fields on update
+			wantErr: true, // Server validates these fields on update
 		},
 	}
 	
@@ -1235,18 +1235,18 @@ func TestPersonaServer_ValidationErrorPaths(t *testing.T) {
 	defer cleanup()
 	
 	// Test all validation error paths in CreatePersona
-	// Note: The server currently accepts whitespace-only fields, so these should succeed
+	// The server validates and rejects whitespace-only fields
 	validationTests := []struct {
 		name    string
 		persona *pb.Persona
 		wantErr bool
 	}{
-		{"whitespace only name", &pb.Persona{Name: "   ", Topic: "Test", Prompt: "Test"}, false},
-		{"whitespace only topic", &pb.Persona{Name: "Test", Topic: "   ", Prompt: "Test"}, false},
-		{"whitespace only prompt", &pb.Persona{Name: "Test", Topic: "Test", Prompt: "   "}, false},
-		{"tab characters in name", &pb.Persona{Name: "\t\t", Topic: "Test", Prompt: "Test"}, false},
-		{"newline characters in topic", &pb.Persona{Name: "Test", Topic: "\n\n", Prompt: "Test"}, false},
-		{"mixed whitespace in prompt", &pb.Persona{Name: "Test", Topic: "Test", Prompt: " \t\n "}, false},
+		{"whitespace only name", &pb.Persona{Name: "   ", Topic: "Test", Prompt: "Test"}, true},
+		{"whitespace only topic", &pb.Persona{Name: "Test", Topic: "   ", Prompt: "Test"}, true},
+		{"whitespace only prompt", &pb.Persona{Name: "Test", Topic: "Test", Prompt: "   "}, true},
+		{"tab characters in name", &pb.Persona{Name: "\t\t", Topic: "Test", Prompt: "Test"}, true},
+		{"newline characters in topic", &pb.Persona{Name: "Test", Topic: "\n\n", Prompt: "Test"}, true},
+		{"mixed whitespace in prompt", &pb.Persona{Name: "Test", Topic: "Test", Prompt: " \t\n "}, true},
 	}
 	
 	for _, tt := range validationTests {
@@ -1279,17 +1279,17 @@ func TestPersonaServer_UpdateValidationErrorPaths(t *testing.T) {
 	}
 	
 	// Test validation in UpdatePersona
-	// Note: The server currently accepts whitespace-only fields, so these should succeed
+	// The server validates and rejects whitespace-only fields
 	validationTests := []struct {
 		name    string
 		persona *pb.Persona
 		wantErr bool
 	}{
-		{"whitespace only name", &pb.Persona{Name: "   ", Topic: "Test", Prompt: "Test"}, false},
-		{"whitespace only topic", &pb.Persona{Name: "Test", Topic: "   ", Prompt: "Test"}, false},
-		{"whitespace only prompt", &pb.Persona{Name: "Test", Topic: "Test", Prompt: "   "}, false},
-		{"tab characters", &pb.Persona{Name: "\t", Topic: "\t", Prompt: "\t"}, false},
-		{"newline characters", &pb.Persona{Name: "\n", Topic: "\n", Prompt: "\n"}, false},
+		{"whitespace only name", &pb.Persona{Name: "   ", Topic: "Test", Prompt: "Test"}, true},
+		{"whitespace only topic", &pb.Persona{Name: "Test", Topic: "   ", Prompt: "Test"}, true},
+		{"whitespace only prompt", &pb.Persona{Name: "Test", Topic: "Test", Prompt: "   "}, true},
+		{"tab characters", &pb.Persona{Name: "\t", Topic: "\t", Prompt: "\t"}, true},
+		{"newline characters", &pb.Persona{Name: "\n", Topic: "\n", Prompt: "\n"}, true},
 	}
 	
 	for _, tt := range validationTests {
@@ -1427,6 +1427,10 @@ func TestPersonaServer_ProtobufConversion(t *testing.T) {
 	
 	// Verify all RAG fields
 	for i, v := range complexPersona.Rag {
+		if i >= len(getResp.Persona.Rag) {
+			t.Errorf("RAG field %d: expected %s, but response has only %d RAG entries", i, v, len(getResp.Persona.Rag))
+			continue
+		}
 		if getResp.Persona.Rag[i] != v {
 			t.Errorf("RAG field %d: expected %s, got %s", i, v, getResp.Persona.Rag[i])
 		}
