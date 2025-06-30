@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // FileStorage implements file-based storage for personas and identities
@@ -56,7 +57,7 @@ func (f *FileStorage) Create(p *types.Persona) error {
 		return fmt.Errorf("persona prompt is required")
 	}
 
-	p.ID = f.generateID()
+	p.Id = f.generateID()
 	return f.writePersona(*p)
 }
 
@@ -98,7 +99,7 @@ func (f *FileStorage) Update(id string, p types.Persona) error {
 		return fmt.Errorf("persona not found: %s", id)
 	}
 
-	p.ID = id
+	p.Id = id
 	return f.writePersona(p)
 }
 
@@ -122,7 +123,7 @@ func (f *FileStorage) CreateIdentity(i *types.Identity) error {
 	if i == nil {
 		return fmt.Errorf("identity cannot be nil")
 	}
-	if i.PersonaID == "" {
+	if i.PersonaId == "" {
 		return fmt.Errorf("persona ID is required")
 	}
 	if i.Name == "" {
@@ -130,21 +131,18 @@ func (f *FileStorage) CreateIdentity(i *types.Identity) error {
 	}
 
 	// Verify persona exists
-	if _, err := f.readPersona(i.PersonaID); err != nil {
-		return fmt.Errorf("referenced persona not found: %s", i.PersonaID)
+	if _, err := f.readPersona(i.PersonaId); err != nil {
+		return fmt.Errorf("referenced persona not found: %s", i.PersonaId)
 	}
 
-	i.ID = f.generateID()
+	i.Id = f.generateID()
 	now := time.Now()
-	i.CreatedAt = now
-	i.UpdatedAt = now
+	i.CreatedAt = timestamppb.New(now)
+	i.UpdatedAt = timestamppb.New(now)
 
 	// Set default values
-	if i.Attributes == nil {
-		i.Attributes = make(map[string]string)
-	}
-	if i.Preferences == nil {
-		i.Preferences = make(map[string]string)
+	if i.RichAttributes == nil {
+		i.RichAttributes = &types.RichAttributes{}
 	}
 	if i.Tags == nil {
 		i.Tags = []string{}
@@ -179,7 +177,7 @@ func (f *FileStorage) ListIdentities(filter *types.IdentityFilter) ([]types.Iden
 			if i, err := f.readIdentity(id); err == nil {
 				// Apply filters
 				if filter != nil {
-					if filter.PersonaID != "" && i.PersonaID != filter.PersonaID {
+					if filter.PersonaID != "" && i.PersonaId != filter.PersonaID {
 						continue
 					}
 					if filter.IsActive != nil && i.IsActive != *filter.IsActive {
@@ -229,12 +227,12 @@ func (f *FileStorage) UpdateIdentity(id string, i types.Identity) error {
 	}
 
 	// Verify persona exists
-	if _, err := f.readPersona(i.PersonaID); err != nil {
-		return fmt.Errorf("referenced persona not found: %s", i.PersonaID)
+	if _, err := f.readPersona(i.PersonaId); err != nil {
+		return fmt.Errorf("referenced persona not found: %s", i.PersonaId)
 	}
 
-	i.ID = id
-	i.UpdatedAt = time.Now()
+	i.Id = id
+	i.UpdatedAt = timestamppb.New(time.Now())
 	return f.writeIdentity(i)
 }
 
@@ -259,9 +257,9 @@ func (f *FileStorage) GetIdentityWithPersona(id string) (types.IdentityWithPerso
 		return types.IdentityWithPersona{}, err
 	}
 
-	p, err := f.readPersona(i.PersonaID)
+	p, err := f.readPersona(i.PersonaId)
 	if err != nil {
-		return types.IdentityWithPersona{}, fmt.Errorf("referenced persona not found: %s", i.PersonaID)
+		return types.IdentityWithPersona{}, fmt.Errorf("referenced persona not found: %s", i.PersonaId)
 	}
 
 	return types.IdentityWithPersona{
@@ -296,7 +294,7 @@ func (f *FileStorage) readPersona(id string) (types.Persona, error) {
 }
 
 func (f *FileStorage) writePersona(p types.Persona) error {
-	filePath := filepath.Join(f.dataDir, p.ID+".json")
+	filePath := filepath.Join(f.dataDir, p.Id+".json")
 	data, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal persona data: %v", err)
@@ -324,7 +322,7 @@ func (f *FileStorage) readIdentity(id string) (types.Identity, error) {
 }
 
 func (f *FileStorage) writeIdentity(i types.Identity) error {
-	filePath := filepath.Join(f.identitiesDir, i.ID+".json")
+	filePath := filepath.Join(f.identitiesDir, i.Id+".json")
 	data, err := json.MarshalIndent(i, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal identity data: %v", err)

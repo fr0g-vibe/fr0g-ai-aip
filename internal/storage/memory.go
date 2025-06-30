@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // MemoryStorage implements in-memory storage for personas and identities
@@ -51,8 +52,8 @@ func (m *MemoryStorage) Create(p *types.Persona) error {
 		return fmt.Errorf("persona prompt is required")
 	}
 
-	p.ID = generateID()
-	m.personas[p.ID] = *p
+	p.Id = generateID()
+	m.personas[p.Id] = *p
 	return nil
 }
 
@@ -86,7 +87,7 @@ func (m *MemoryStorage) Update(id string, p types.Persona) error {
 		return fmt.Errorf("persona not found: %s", id)
 	}
 
-	p.ID = id
+	p.Id = id
 	m.personas[id] = p
 	return nil
 }
@@ -110,7 +111,7 @@ func (m *MemoryStorage) CreateIdentity(i *types.Identity) error {
 	if i == nil {
 		return fmt.Errorf("identity cannot be nil")
 	}
-	if i.PersonaID == "" {
+	if i.PersonaId == "" {
 		return fmt.Errorf("persona ID is required")
 	}
 	if i.Name == "" {
@@ -118,21 +119,18 @@ func (m *MemoryStorage) CreateIdentity(i *types.Identity) error {
 	}
 
 	// Verify persona exists
-	if _, exists := m.personas[i.PersonaID]; !exists {
-		return fmt.Errorf("referenced persona not found: %s", i.PersonaID)
+	if _, exists := m.personas[i.PersonaId]; !exists {
+		return fmt.Errorf("referenced persona not found: %s", i.PersonaId)
 	}
 
-	i.ID = generateID()
+	i.Id = generateID()
 	now := time.Now()
-	i.CreatedAt = now
-	i.UpdatedAt = now
+	i.CreatedAt = timestamppb.New(now)
+	i.UpdatedAt = timestamppb.New(now)
 
 	// Set default values
-	if i.Attributes == nil {
-		i.Attributes = make(map[string]string)
-	}
-	if i.Preferences == nil {
-		i.Preferences = make(map[string]string)
+	if i.RichAttributes == nil {
+		i.RichAttributes = &types.RichAttributes{}
 	}
 	if i.Tags == nil {
 		i.Tags = []string{}
@@ -141,7 +139,7 @@ func (m *MemoryStorage) CreateIdentity(i *types.Identity) error {
 		i.IsActive = true
 	}
 
-	m.identities[i.ID] = *i
+	m.identities[i.Id] = *i
 	return nil
 }
 
@@ -165,7 +163,7 @@ func (m *MemoryStorage) ListIdentities(filter *types.IdentityFilter) ([]types.Id
 	for _, i := range m.identities {
 		// Apply filters
 		if filter != nil {
-			if filter.PersonaID != "" && i.PersonaID != filter.PersonaID {
+			if filter.PersonaID != "" && i.PersonaId != filter.PersonaID {
 				continue
 			}
 			if filter.IsActive != nil && i.IsActive != *filter.IsActive {
@@ -212,12 +210,12 @@ func (m *MemoryStorage) UpdateIdentity(id string, i types.Identity) error {
 	}
 
 	// Verify persona exists
-	if _, exists := m.personas[i.PersonaID]; !exists {
-		return fmt.Errorf("referenced persona not found: %s", i.PersonaID)
+	if _, exists := m.personas[i.PersonaId]; !exists {
+		return fmt.Errorf("referenced persona not found: %s", i.PersonaId)
 	}
 
-	i.ID = id
-	i.UpdatedAt = time.Now()
+	i.Id = id
+	i.UpdatedAt = timestamppb.New(time.Now())
 	m.identities[id] = i
 	return nil
 }
@@ -242,9 +240,9 @@ func (m *MemoryStorage) GetIdentityWithPersona(id string) (types.IdentityWithPer
 		return types.IdentityWithPersona{}, fmt.Errorf("identity not found: %s", id)
 	}
 
-	p, exists := m.personas[i.PersonaID]
+	p, exists := m.personas[i.PersonaId]
 	if !exists {
-		return types.IdentityWithPersona{}, fmt.Errorf("referenced persona not found: %s", i.PersonaID)
+		return types.IdentityWithPersona{}, fmt.Errorf("referenced persona not found: %s", i.PersonaId)
 	}
 
 	return types.IdentityWithPersona{
