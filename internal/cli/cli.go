@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/client"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/community"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
@@ -55,6 +56,11 @@ func ExecuteWithConfig(config Config) error {
 	// Handle generate-identities command (requires direct service access)
 	if command == "generate-identities" {
 		return handleGenerateIdentities(config)
+	}
+
+	// Handle generate-random-community command (requires direct service access)
+	if command == "generate-random-community" {
+		return handleGenerateRandomCommunity(config)
 	}
 
 	// Create client based on configuration
@@ -424,6 +430,12 @@ func printUsage() {
 	fmt.Println()
 	fmt.Println("GENERATION COMMANDS:")
 	fmt.Println("  generate-identities   Generate a diverse set of sample identities")
+	fmt.Println("  generate-random-community Generate a random community with specified size")
+	fmt.Println("    -size <number>        Number of identities to generate (required)")
+	fmt.Println("    -name <name>          Community name (optional)")
+	fmt.Println("    -type <type>          Community type (optional: geographic, demographic, interest, political, professional)")
+	fmt.Println("    -location <city>      Location constraint (optional)")
+	fmt.Println("    -age-range <min>-<max> Age range for members (optional)")
 	fmt.Println("  generate-identity     Generate a random identity based on a persona")
 	fmt.Println("    -persona-id <id>      Persona ID (required)")
 	fmt.Println("    -name <name>          Identity name (optional, auto-generated if not provided)")
@@ -488,6 +500,10 @@ func printUsage() {
 	fmt.Println()
 	fmt.Println("  # Generate a diverse set of sample identities")
 	fmt.Println("  fr0g-ai-aip generate-identities")
+	fmt.Println()
+	fmt.Println("  # Generate a random community with 15 members")
+	fmt.Println("  fr0g-ai-aip generate-random-community -size 15 -name \"Tech Community\" \\")
+	fmt.Println("    -type \"professional\" -location \"San Francisco\" -age-range 25-45")
 	fmt.Println()
 	fmt.Println("  # Generate a random identity")
 	fmt.Println("  fr0g-ai-aip generate-identity -persona-id <persona_id> -name \"Alex Chen\"")
