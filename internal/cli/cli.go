@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/client"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
@@ -91,13 +92,19 @@ func createClient(config Config) (client.Client, error) {
 
 		return client.NewLocalClient(store), nil
 	case "rest":
-		return client.NewRESTClient(config.ServerURL), nil
+		// Ensure REST URL format
+		serverURL := config.ServerURL
+		if !strings.HasPrefix(serverURL, "http://") && !strings.HasPrefix(serverURL, "https://") {
+			serverURL = "http://" + serverURL
+		}
+		return client.NewRESTClient(serverURL), nil
 	case "grpc":
 		// Use gRPC-specific default or extract from config
 		address := "localhost:9090"
-		if config.ServerURL != "" && config.ServerURL != "http://localhost:8080" {
-			// If a custom server URL is provided and it's not the REST default, use it
-			address = config.ServerURL
+		if config.ServerURL != "" {
+			// Remove http/https prefix if present for gRPC
+			address = strings.TrimPrefix(config.ServerURL, "http://")
+			address = strings.TrimPrefix(address, "https://")
 		}
 		grpcClient, err := client.NewGRPCClient(address)
 		if err != nil {
