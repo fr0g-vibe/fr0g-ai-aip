@@ -89,7 +89,7 @@ func (s *Service) generateMembers(config types.CommunityGenerationConfig, count 
 
 	members := make([]types.Identity, 0, count)
 
-	for i := 0; i < count; i++ {
+	for i := range count {
 		// Select persona based on weights
 		persona := s.selectPersonaByWeight(personas, config.PersonaWeights)
 

@@ -20,10 +20,7 @@ type GRPCClient struct {
 
 // NewGRPCClient creates a new gRPC client
 func NewGRPCClient(address string) (*GRPCClient, error) {
-	// Don't block on connection for client creation to avoid test timeouts
-	conn, err := grpc.Dial(address,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gRPC connection: %v", err)
 	}
@@ -157,12 +154,12 @@ func (g *GRPCClient) CreateIdentity(i *types.Identity) error {
 
 	req := &pb.CreateIdentityRequest{
 		Identity: &pb.Identity{
-			PersonaId:   i.PersonaId,
-			Name:        i.Name,
-			Description: i.Description,
+			PersonaId:      i.PersonaId,
+			Name:           i.Name,
+			Description:    i.Description,
 			RichAttributes: i.RichAttributes,
-			IsActive:    i.IsActive,
-			Tags:        i.Tags,
+			IsActive:       i.IsActive,
+			Tags:           i.Tags,
 		},
 	}
 
@@ -196,15 +193,15 @@ func (g *GRPCClient) GetIdentity(id string) (types.Identity, error) {
 	}
 
 	return types.Identity{
-		Id:          resp.Identity.Id,
-		PersonaId:   resp.Identity.PersonaId,
-		Name:        resp.Identity.Name,
-		Description: resp.Identity.Description,
+		Id:             resp.Identity.Id,
+		PersonaId:      resp.Identity.PersonaId,
+		Name:           resp.Identity.Name,
+		Description:    resp.Identity.Description,
 		RichAttributes: resp.Identity.RichAttributes,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-		IsActive:    resp.Identity.IsActive,
-		Tags:        resp.Identity.Tags,
+		CreatedAt:      createdAt,
+		UpdatedAt:      updatedAt,
+		IsActive:       resp.Identity.IsActive,
+		Tags:           resp.Identity.Tags,
 	}, nil
 }
 
@@ -242,15 +239,15 @@ func (g *GRPCClient) ListIdentities(filter *types.IdentityFilter) ([]types.Ident
 		}
 
 		identities = append(identities, types.Identity{
-			Id:          i.Id,
-			PersonaId:   i.PersonaId,
-			Name:        i.Name,
-			Description: i.Description,
+			Id:             i.Id,
+			PersonaId:      i.PersonaId,
+			Name:           i.Name,
+			Description:    i.Description,
 			RichAttributes: i.RichAttributes,
-			CreatedAt:   createdAt,
-			UpdatedAt:   updatedAt,
-			IsActive:    i.IsActive,
-			Tags:        i.Tags,
+			CreatedAt:      createdAt,
+			UpdatedAt:      updatedAt,
+			IsActive:       i.IsActive,
+			Tags:           i.Tags,
 		})
 	}
 
@@ -264,12 +261,12 @@ func (g *GRPCClient) UpdateIdentity(id string, i types.Identity) error {
 	req := &pb.UpdateIdentityRequest{
 		Id: id,
 		Identity: &pb.Identity{
-			PersonaId:   i.PersonaId,
-			Name:        i.Name,
-			Description: i.Description,
+			PersonaId:      i.PersonaId,
+			Name:           i.Name,
+			Description:    i.Description,
 			RichAttributes: i.RichAttributes,
-			IsActive:    i.IsActive,
-			Tags:        i.Tags,
+			IsActive:       i.IsActive,
+			Tags:           i.Tags,
 		},
 	}
 
@@ -315,15 +312,15 @@ func (g *GRPCClient) GetIdentityWithPersona(id string) (types.IdentityWithPerson
 	}
 
 	identity := types.Identity{
-		Id:          resp.IdentityWithPersona.Identity.Id,
-		PersonaId:   resp.IdentityWithPersona.Identity.PersonaId,
-		Name:        resp.IdentityWithPersona.Identity.Name,
-		Description: resp.IdentityWithPersona.Identity.Description,
+		Id:             resp.IdentityWithPersona.Identity.Id,
+		PersonaId:      resp.IdentityWithPersona.Identity.PersonaId,
+		Name:           resp.IdentityWithPersona.Identity.Name,
+		Description:    resp.IdentityWithPersona.Identity.Description,
 		RichAttributes: resp.IdentityWithPersona.Identity.RichAttributes,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-		IsActive:    resp.IdentityWithPersona.Identity.IsActive,
-		Tags:        resp.IdentityWithPersona.Identity.Tags,
+		CreatedAt:      createdAt,
+		UpdatedAt:      updatedAt,
+		IsActive:       resp.IdentityWithPersona.Identity.IsActive,
+		Tags:           resp.IdentityWithPersona.Identity.Tags,
 	}
 
 	persona := types.Persona{
