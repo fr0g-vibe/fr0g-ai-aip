@@ -99,23 +99,10 @@ func (app *App) RunServers(httpMode, grpcMode bool) error {
 	// Wait for shutdown signal or error
 	select {
 	case sig := <-sigChan:
-		fmt.Printf("\nReceived signal %v, shutting down gracefully...\n", sig)
+		fmt.Printf("\nReceived signal %v, shutting down immediately...\n", sig)
+		os.Exit(0)
 	case err := <-errChan:
 		return err
-	}
-	
-	// Wait for all goroutines to finish
-	done := make(chan struct{})
-	go func() {
-		wg.Wait()
-		close(done)
-	}()
-	
-	select {
-	case <-done:
-		fmt.Println("Shutdown complete")
-	case <-sigChan:
-		fmt.Println("Force shutdown")
 	}
 	
 	return nil
