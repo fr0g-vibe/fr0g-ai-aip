@@ -1453,7 +1453,7 @@ func TestStartGRPCServer(t *testing.T) {
 	// Start the server in a goroutine
 	done := make(chan error, 1)
 	go func() {
-		err := StartGRPCServer(port)
+		err := StartGRPCServer(fmt.Sprintf("%d", port))
 		done <- err
 	}()
 	
