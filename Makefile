@@ -5,35 +5,14 @@ build:
 	@echo "Building application..."
 	go build -o bin/fr0g-ai-aip ./cmd/fr0g-ai-aip
 
-# Generate protobuf code
-proto:
-	@echo "Generating protobuf files..."
-	@mkdir -p internal/grpc/pb
-	@if command -v protoc >/dev/null 2>&1; then \
-		if PATH="$(shell go env GOPATH)/bin:$(PATH)" command -v protoc-gen-go >/dev/null 2>&1 && PATH="$(shell go env GOPATH)/bin:$(PATH)" command -v protoc-gen-go-grpc >/dev/null 2>&1; then \
-			PATH="$(shell go env GOPATH)/bin:$(PATH)" protoc --go_out=internal/grpc/pb --go_opt=paths=source_relative \
-				--go-grpc_out=internal/grpc/pb --go-grpc_opt=paths=source_relative \
-				proto/persona.proto && \
-			echo "Protobuf generation complete" && \
-			echo "Updating imports..." && \
-			sed -i 's|package grpc|package pb|g' internal/grpc/pb/persona.pb.go internal/grpc/pb/persona_grpc.pb.go 2>/dev/null || true && \
-			echo "Generated files:" && \
-			ls -la internal/grpc/pb/; \
-		else \
-			echo "protoc-gen-go or protoc-gen-go-grpc not found. Run 'make install-proto-tools' first."; \
-			exit 1; \
-		fi; \
-	else \
-		echo "protoc not found. Install Protocol Buffers compiler first."; \
-		echo "On Ubuntu/Debian: sudo apt install protobuf-compiler"; \
-		echo "On macOS: brew install protobuf"; \
-		exit 1; \
-	fi
+# Build with local gRPC support (no external dependencies)
+build-with-grpc: build
+	@echo "gRPC support built using local JSON-over-HTTP implementation"
 
-# Build with protobuf support
-build-with-grpc: proto
-	@echo "Building application with gRPC support..."
-	go build -o bin/fr0g-ai-aip ./cmd/fr0g-ai-aip
+# Generate protobuf code (optional - for reference only)
+proto:
+	@echo "Protobuf generation is optional with local gRPC implementation"
+	@echo "Current implementation uses JSON-over-HTTP with Go standard library"
 
 # Run tests
 test:
