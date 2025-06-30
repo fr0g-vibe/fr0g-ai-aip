@@ -91,10 +91,11 @@ func TestFileStorage_SpecialCharactersInPath(t *testing.T) {
 		t.Fatalf("Failed to create persona in special path: %v", err)
 	}
 
-	// Verify file was created in the main directory
-	files, err := os.ReadDir(specialDir)
+	// Verify file was created in the personas subdirectory
+	personasDir := filepath.Join(specialDir, "personas")
+	files, err := os.ReadDir(personasDir)
 	if err != nil {
-		t.Fatalf("Failed to read special directory: %v", err)
+		t.Fatalf("Failed to read personas directory: %v", err)
 	}
 
 	// Count only JSON files (persona files)
@@ -106,7 +107,7 @@ func TestFileStorage_SpecialCharactersInPath(t *testing.T) {
 	}
 
 	if jsonFiles != 1 {
-		t.Errorf("Expected 1 JSON file in special directory, got %d", jsonFiles)
+		t.Errorf("Expected 1 JSON file in personas directory, got %d", jsonFiles)
 	}
 }
 

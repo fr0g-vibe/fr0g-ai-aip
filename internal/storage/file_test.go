@@ -41,8 +41,8 @@ func TestFileStorage_CreateAndPersist(t *testing.T) {
 		t.Fatalf("Create failed: %v", err)
 	}
 	
-	// Check file exists
-	filePath := filepath.Join(tmpDir, p.Id+".json")
+	// Check file exists in personas subdirectory
+	filePath := filepath.Join(tmpDir, "personas", p.Id+".json")
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		t.Error("Expected persona file to be created")
 	}
@@ -86,7 +86,7 @@ func TestFileStorage_DeleteFile(t *testing.T) {
 	p := &types.Persona{Name: "Delete Test", Topic: "Deleting", Prompt: "Test"}
 	storage.Create(p)
 	
-	filePath := filepath.Join(tmpDir, p.Id+".json")
+	filePath := filepath.Join(tmpDir, "personas", p.Id+".json")
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		t.Error("File should exist before delete")
 	}
@@ -180,16 +180,17 @@ func TestFileStorage_ListWithCorruptedFile(t *testing.T) {
 	}
 	storage.Create(validPersona)
 	
-	// Create a corrupted JSON file
-	corruptedFile := filepath.Join(tmpDir, "corrupted.json")
+	// Create a corrupted JSON file in personas directory
+	personasDir := filepath.Join(tmpDir, "personas")
+	corruptedFile := filepath.Join(personasDir, "corrupted.json")
 	os.WriteFile(corruptedFile, []byte("invalid json"), 0644)
 	
-	// Create a non-JSON file
-	nonJSONFile := filepath.Join(tmpDir, "notjson.txt")
+	// Create a non-JSON file in personas directory
+	nonJSONFile := filepath.Join(personasDir, "notjson.txt")
 	os.WriteFile(nonJSONFile, []byte("not json"), 0644)
 	
-	// Create a file with wrong extension
-	wrongExtFile := filepath.Join(tmpDir, "wrong.xml")
+	// Create a file with wrong extension in personas directory
+	wrongExtFile := filepath.Join(personasDir, "wrong.xml")
 	os.WriteFile(wrongExtFile, []byte(`{"name": "test"}`), 0644)
 	
 	// List should still work and return only valid personas
