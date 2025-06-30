@@ -18,4 +18,11 @@ type Storage interface {
 	UpdateIdentity(id string, i types.Identity) error
 	DeleteIdentity(id string) error
 	GetIdentityWithPersona(id string) (types.IdentityWithPersona, error)
+
+	// Community operations
+	CreateCommunity(c *types.Community) error
+	GetCommunity(id string) (types.Community, error)
+	ListCommunities(filter *types.CommunityFilter) ([]types.Community, error)
+	UpdateCommunity(id string, c types.Community) error
+	DeleteCommunity(id string) error
 }
