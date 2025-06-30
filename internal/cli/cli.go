@@ -276,7 +276,7 @@ func listPersonas(c client.Client) error {
 
 	fmt.Println("Personas:")
 	for _, p := range personas {
-		fmt.Printf("  ID: %s, Name: %s, Topic: %s\n", p.ID, p.Name, p.Topic)
+		fmt.Printf("  ID: %s, Name: %s, Topic: %s\n", p.Id, p.Name, p.Topic)
 	}
 	return nil
 }
@@ -309,7 +309,7 @@ func createPersona(c client.Client) error {
 		return err
 	}
 
-	fmt.Printf("Created persona: %s (ID: %s)\n", p.Name, p.ID)
+	fmt.Printf("Created persona: %s (ID: %s)\n", p.Name, p.Id)
 	return nil
 }
 
@@ -325,7 +325,7 @@ func getPersona(c client.Client) error {
 		return err
 	}
 
-	fmt.Printf("ID: %s\n", p.ID)
+	fmt.Printf("ID: %s\n", p.Id)
 	fmt.Printf("Name: %s\n", p.Name)
 	fmt.Printf("Topic: %s\n", p.Topic)
 	fmt.Printf("Prompt: %s\n", p.Prompt)
@@ -335,9 +335,9 @@ func getPersona(c client.Client) error {
 			fmt.Printf("  %s: %s\n", k, v)
 		}
 	}
-	if len(p.RAG) > 0 {
+	if len(p.Rag) > 0 {
 		fmt.Println("RAG:")
-		for _, r := range p.RAG {
+		for _, r := range p.Rag {
 			fmt.Printf("  %s\n", r)
 		}
 	}
@@ -459,7 +459,7 @@ func listIdentities(c client.Client) error {
 			status = "Inactive"
 		}
 		fmt.Printf("  ID: %s, Name: %s, Persona: %s, Status: %s\n",
-			i.ID, i.Name, i.PersonaID, status)
+			i.Id, i.Name, i.PersonaId, status)
 		if i.Description != "" {
 			fmt.Printf("    Description: %s\n", i.Description)
 		}
@@ -500,10 +500,9 @@ func createIdentity(c client.Client) error {
 	}
 
 	i := types.Identity{
-		PersonaID:   *personaID,
+		PersonaId:   *personaID,
 		Name:        *name,
 		Description: *description,
-		Background:  *background,
 		Tags:        tagList,
 		IsActive:    true,
 	}
@@ -512,7 +511,7 @@ func createIdentity(c client.Client) error {
 		return fmt.Errorf("failed to create identity: %v", err)
 	}
 
-	fmt.Printf("Identity created successfully: %s\n", i.ID)
+	fmt.Printf("Identity created successfully: %s\n", i.Id)
 	return nil
 }
 
@@ -527,30 +526,23 @@ func getIdentity(c client.Client) error {
 		return err
 	}
 
-	fmt.Printf("Identity: %s\n", i.ID)
+	fmt.Printf("Identity: %s\n", i.Id)
 	fmt.Printf("  Name: %s\n", i.Name)
-	fmt.Printf("  Persona ID: %s\n", i.PersonaID)
+	fmt.Printf("  Persona ID: %s\n", i.PersonaId)
 	fmt.Printf("  Description: %s\n", i.Description)
-	fmt.Printf("  Background: %s\n", i.Background)
 	fmt.Printf("  Status: %s\n", map[bool]string{true: "Active", false: "Inactive"}[i.IsActive])
-	fmt.Printf("  Created: %s\n", i.CreatedAt.Format("2006-01-02 15:04:05"))
-	fmt.Printf("  Updated: %s\n", i.UpdatedAt.Format("2006-01-02 15:04:05"))
+	fmt.Printf("  Created: %s\n", i.CreatedAt.AsTime().Format("2006-01-02 15:04:05"))
+	fmt.Printf("  Updated: %s\n", i.UpdatedAt.AsTime().Format("2006-01-02 15:04:05"))
 
 	if len(i.Tags) > 0 {
 		fmt.Printf("  Tags: %s\n", strings.Join(i.Tags, ", "))
 	}
 
-	if len(i.Attributes) > 0 {
-		fmt.Printf("  Attributes:\n")
-		for k, v := range i.Attributes {
-			fmt.Printf("    %s: %s\n", k, v)
-		}
-	}
-
-	if len(i.Preferences) > 0 {
-		fmt.Printf("  Preferences:\n")
-		for k, v := range i.Preferences {
-			fmt.Printf("    %s: %s\n", k, v)
+	if i.RichAttributes != nil {
+		fmt.Printf("  Rich Attributes: Available\n")
+		if i.RichAttributes.Demographics != nil {
+			fmt.Printf("    Age: %d\n", i.RichAttributes.Demographics.Age)
+			fmt.Printf("    Gender: %s\n", i.RichAttributes.Demographics.Gender)
 		}
 	}
 
@@ -638,7 +630,7 @@ func getIdentityWithPersona(c client.Client) error {
 		return err
 	}
 
-	fmt.Printf("Identity with Persona: %s\n", iwp.Identity.ID)
+	fmt.Printf("Identity with Persona: %s\n", iwp.Identity.Id)
 	fmt.Printf("  Identity Name: %s\n", iwp.Identity.Name)
 	fmt.Printf("  Persona Name: %s\n", iwp.Persona.Name)
 	fmt.Printf("  Persona Topic: %s\n", iwp.Persona.Topic)
@@ -689,25 +681,24 @@ func generateIdentity(c client.Client) error {
 	// For now, we'll create a simple identity
 	// In a full implementation, you'd use the generator package
 	i := types.Identity{
-		PersonaID:   *personaID,
+		PersonaId:   *personaID,
 		Name:        *name,
 		Description: "A generated identity with rich attributes",
-		Background:  "Generated background story based on attributes",
 		Tags:        []string{"generated", "random"},
 		IsActive:    true,
 		RichAttributes: &types.RichAttributes{
-			Demographics: types.Demographics{
+			Demographics: &types.Demographics{
 				Age:       30,
 				Gender:    "non-binary",
 				Education: "bachelors",
-				Location: types.Location{
+				Location: &types.Location{
 					Country:    "United States",
 					City:       "San Francisco",
 					UrbanRural: "urban",
 				},
 			},
-			Psychographics: types.Psychographics{
-				Personality: types.Personality{
+			Psychographics: &types.Psychographics{
+				Personality: &types.Personality{
 					Openness:          0.7,
 					Conscientiousness: 0.6,
 					Extraversion:      0.5,
@@ -724,12 +715,14 @@ func generateIdentity(c client.Client) error {
 		return fmt.Errorf("failed to create generated identity: %v", err)
 	}
 
-	fmt.Printf("Generated identity created successfully: %s\n", i.ID)
+	fmt.Printf("Generated identity created successfully: %s\n", i.Id)
 	fmt.Printf("  Name: %s\n", i.Name)
-	fmt.Printf("  Persona: %s\n", i.PersonaID)
-	if i.RichAttributes != nil {
+	fmt.Printf("  Persona: %s\n", i.PersonaId)
+	if i.RichAttributes != nil && i.RichAttributes.Demographics != nil {
 		fmt.Printf("  Age: %d\n", i.RichAttributes.Demographics.Age)
-		fmt.Printf("  Location: %s, %s\n", i.RichAttributes.Demographics.Location.City, i.RichAttributes.Demographics.Location.Country)
+		if i.RichAttributes.Demographics.Location != nil {
+			fmt.Printf("  Location: %s, %s\n", i.RichAttributes.Demographics.Location.City, i.RichAttributes.Demographics.Location.Country)
+		}
 	}
 
 	return nil
@@ -797,20 +790,19 @@ func generateCommunity(c client.Client) error {
 
 		// Create identity with location and age range if specified
 		identity := types.Identity{
-			PersonaID:   *personaID,
+			PersonaId:   *personaID,
 			Name:        name,
 			Description: fmt.Sprintf("Community member %d with generated attributes", i+1),
-			Background:  "Generated community member background",
 			Tags:        []string{"community", "generated"},
 			IsActive:    true,
 			RichAttributes: &types.RichAttributes{
-				Demographics: types.Demographics{
-					Age:       25 + i%45, // Spread ages
+				Demographics: &types.Demographics{
+					Age:       int32(25 + i%45), // Spread ages
 					Gender:    []string{"male", "female", "non-binary"}[i%3],
 					Education: []string{"high_school", "bachelors", "masters"}[i%3],
 				},
-				Psychographics: types.Psychographics{
-					Personality: types.Personality{
+				Psychographics: &types.Psychographics{
+					Personality: &types.Personality{
 						Openness:          0.5 + float64(i%5)*0.1,
 						Conscientiousness: 0.5 + float64(i%5)*0.1,
 						Extraversion:      0.5 + float64(i%5)*0.1,
@@ -824,12 +816,12 @@ func generateCommunity(c client.Client) error {
 
 		// Apply location if specified
 		if loc != nil {
-			identity.RichAttributes.Demographics.Location = *loc
+			identity.RichAttributes.Demographics.Location = loc
 		}
 
 		// Apply age range if specified
 		if ageRangeStruct != nil {
-			identity.RichAttributes.Demographics.Age = ageRangeStruct.Min + (i % (ageRangeStruct.Max - ageRangeStruct.Min + 1))
+			identity.RichAttributes.Demographics.Age = int32(ageRangeStruct.Min + (i % (ageRangeStruct.Max - ageRangeStruct.Min + 1)))
 		}
 
 		if err := c.CreateIdentity(&identity); err != nil {
