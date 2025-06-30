@@ -261,18 +261,16 @@ func (s *Server) identityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	id := path
-	
 	switch r.Method {
 	case http.MethodGet:
 		// TODO: Implement get identity
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Get identity not yet implemented"})
+		json.NewEncoder(w).Encode(map[string]string{"message": "Get identity not yet implemented", "id": path})
 		
 	case http.MethodPut:
 		// TODO: Implement update identity
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Update identity not yet implemented"})
+		json.NewEncoder(w).Encode(map[string]string{"message": "Update identity not yet implemented", "id": path})
 		
 	case http.MethodDelete:
 		// TODO: Implement delete identity
@@ -320,18 +318,16 @@ func (s *Server) communityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	id := path
-	
 	switch r.Method {
 	case http.MethodGet:
 		// TODO: Implement get community
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Get community not yet implemented"})
+		json.NewEncoder(w).Encode(map[string]string{"message": "Get community not yet implemented", "id": path})
 		
 	case http.MethodPut:
 		// TODO: Implement update community
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Update community not yet implemented"})
+		json.NewEncoder(w).Encode(map[string]string{"message": "Update community not yet implemented", "id": path})
 		
 	case http.MethodDelete:
 		// TODO: Implement delete community
