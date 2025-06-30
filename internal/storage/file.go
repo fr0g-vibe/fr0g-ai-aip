@@ -151,8 +151,8 @@ func (f *FileStorage) CreateIdentity(i *types.Identity) error {
 
 	i.Id = f.generateID()
 	now := time.Now()
-	i.CreatedAt = timestamppb.New(now)
-	i.UpdatedAt = timestamppb.New(now)
+	i.CreatedAt = now
+	i.UpdatedAt = now
 
 	// Set default values
 	if i.RichAttributes == nil {
@@ -250,7 +250,7 @@ func (f *FileStorage) UpdateIdentity(id string, i types.Identity) error {
 	}
 
 	i.Id = id
-	i.UpdatedAt = timestamppb.New(time.Now())
+	i.UpdatedAt = time.Now()
 	return f.writeIdentity(i)
 }
 
