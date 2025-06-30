@@ -12,6 +12,7 @@ import (
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/config"
 	pb "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
@@ -30,7 +31,15 @@ func StartGRPCServer(port string) error {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterPersonaServiceServer(s, &PersonaServer{})
+	
+	// Create a default service for the standalone server
+	memStorage := storage.NewMemoryStorage()
+	service := persona.NewService(memStorage)
+	personaServer := &PersonaServer{
+		service: service,
+	}
+	
+	pb.RegisterPersonaServiceServer(s, personaServer)
 
 	fmt.Printf("gRPC server listening on port %s\n", port)
 	fmt.Println("Using real gRPC with protobuf")
