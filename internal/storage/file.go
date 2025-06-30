@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // FileStorage implements file-based storage for personas and identities

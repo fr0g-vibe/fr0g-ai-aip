@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // MemoryStorage implements in-memory storage for personas and identities
