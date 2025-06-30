@@ -334,7 +334,7 @@ func TestRESTClient_ComplexPersona(t *testing.T) {
 		if r.Method == "POST" && r.URL.Path == "/personas" {
 			w.WriteHeader(http.StatusCreated)
 			json.NewDecoder(r.Body).Decode(&p)
-			p.ID = "complex-id"
+			p.Id = "complex-id"
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(p)
 		} else if r.Method == "GET" && r.URL.Path == "/personas/complex-id" {
