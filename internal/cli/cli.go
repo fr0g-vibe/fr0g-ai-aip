@@ -988,8 +988,8 @@ func getIdentity(c client.Client) error {
 	fmt.Printf("  Persona ID: %s\n", i.PersonaId)
 	fmt.Printf("  Description: %s\n", i.Description)
 	fmt.Printf("  Status: %s\n", map[bool]string{true: "Active", false: "Inactive"}[i.IsActive])
-	fmt.Printf("  Created: %s\n", i.CreatedAt.AsTime().Format("2006-01-02 15:04:05"))
-	fmt.Printf("  Updated: %s\n", i.UpdatedAt.AsTime().Format("2006-01-02 15:04:05"))
+	fmt.Printf("  Created: %s\n", i.CreatedAt.Format("2006-01-02 15:04:05"))
+	fmt.Printf("  Updated: %s\n", i.UpdatedAt.Format("2006-01-02 15:04:05"))
 
 	if len(i.Tags) > 0 {
 		fmt.Printf("  Tags: %s\n", strings.Join(i.Tags, ", "))
