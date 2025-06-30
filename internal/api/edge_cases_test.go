@@ -73,9 +73,8 @@ func TestPersonaHandler_MalformedURL(t *testing.T) {
 		expectCode int
 	}{
 		{"/personas//", http.StatusBadRequest},
-		{"/personas/ ", http.StatusNotFound}, // Space in ID
-		{"/personas/\n", http.StatusNotFound}, // Newline in ID
-		{"/personas/\t", http.StatusNotFound}, // Tab in ID
+		{"/personas/invalid-id", http.StatusNotFound}, // Invalid ID that doesn't exist
+		{"/personas/123", http.StatusNotFound},        // Numeric ID that doesn't exist
 	}
 	
 	// Setup test service

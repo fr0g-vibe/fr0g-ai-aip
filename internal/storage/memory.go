@@ -33,6 +33,9 @@ func (m *MemoryStorage) Create(p *types.Persona) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	
+	if p == nil {
+		return fmt.Errorf("persona cannot be nil")
+	}
 	if p.Name == "" {
 		return fmt.Errorf("persona name is required")
 	}

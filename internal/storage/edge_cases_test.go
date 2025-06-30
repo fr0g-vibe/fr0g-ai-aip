@@ -194,6 +194,13 @@ func TestMemoryStorage_NilPointerHandling(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error when creating nil persona")
 	}
+	
+	// Test with empty persona (missing required fields)
+	p := &types.Persona{} // Empty persona with required fields missing
+	err = storage.Create(p)
+	if err == nil {
+		t.Error("Expected error when creating persona with missing required fields")
+	}
 }
 
 func TestFileStorage_ConcurrentFileAccess(t *testing.T) {
