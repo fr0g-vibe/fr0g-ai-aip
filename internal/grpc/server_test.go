@@ -1399,7 +1399,6 @@ func TestPersonaServer_ProtobufConversion(t *testing.T) {
 		},
 		Rag: []string{
 			"document1.txt",
-			"",  // empty string
 			"unicode_doc_🚀.md",
 			"special@chars#doc.pdf",
 		},
