@@ -990,7 +990,7 @@ func TestPersonaServer_RequestValidation(t *testing.T) {
 	client, cleanup := setupTestServer(t)
 	defer cleanup()
 	
-	// Test nil request handling
+	// Test nil request handling - some operations handle nil gracefully
 	_, err := client.CreatePersona(context.Background(), nil)
 	if err == nil {
 		t.Error("Expected error for nil CreatePersonaRequest")
@@ -1011,8 +1011,220 @@ func TestPersonaServer_RequestValidation(t *testing.T) {
 		t.Error("Expected error for nil DeletePersonaRequest")
 	}
 	
+	// ListPersonas handles nil request gracefully
 	_, err = client.ListPersonas(context.Background(), nil)
+	if err != nil {
+		t.Errorf("ListPersonas should handle nil request gracefully, got error: %v", err)
+	}
+}
+
+func TestPersonaServer_EmptyStringValidation(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test operations with empty string IDs
+	testCases := []struct {
+		name      string
+		operation func() error
+		wantErr   bool
+	}{
+		{
+			name: "Get with empty ID",
+			operation: func() error {
+				_, err := client.GetPersona(context.Background(), &pb.GetPersonaRequest{Id: ""})
+				return err
+			},
+			wantErr: true,
+		},
+		{
+			name: "Update with empty ID",
+			operation: func() error {
+				_, err := client.UpdatePersona(context.Background(), &pb.UpdatePersonaRequest{
+					Id: "",
+					Persona: &pb.Persona{Name: "Test", Topic: "Test", Prompt: "Test"},
+				})
+				return err
+			},
+			wantErr: true,
+		},
+		{
+			name: "Delete with empty ID",
+			operation: func() error {
+				_, err := client.DeletePersona(context.Background(), &pb.DeletePersonaRequest{Id: ""})
+				return err
+			},
+			wantErr: true,
+		},
+	}
+	
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.operation()
+			if (err != nil) != tc.wantErr {
+				t.Errorf("Operation error = %v, wantErr %v", err, tc.wantErr)
+			}
+		})
+	}
+}
+
+func TestPersonaServer_FullWorkflow(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test a complete workflow with multiple personas
+	personas := []*pb.Persona{
+		{Name: "Workflow Expert 1", Topic: "Workflow", Prompt: "Expert 1"},
+		{Name: "Workflow Expert 2", Topic: "Workflow", Prompt: "Expert 2"},
+		{Name: "Workflow Expert 3", Topic: "Workflow", Prompt: "Expert 3"},
+	}
+	
+	var createdIds []string
+	
+	// Create all personas
+	for i, p := range personas {
+		req := &pb.CreatePersonaRequest{Persona: p}
+		resp, err := client.CreatePersona(context.Background(), req)
+		if err != nil {
+			t.Fatalf("Failed to create persona %d: %v", i, err)
+		}
+		createdIds = append(createdIds, resp.Persona.Id)
+	}
+	
+	// List and verify count
+	listResp, err := client.ListPersonas(context.Background(), &pb.ListPersonasRequest{})
+	if err != nil {
+		t.Fatalf("Failed to list personas: %v", err)
+	}
+	if len(listResp.Personas) != 3 {
+		t.Errorf("Expected 3 personas, got %d", len(listResp.Personas))
+	}
+	
+	// Update middle persona
+	updateReq := &pb.UpdatePersonaRequest{
+		Id: createdIds[1],
+		Persona: &pb.Persona{
+			Name:   "Updated Workflow Expert 2",
+			Topic:  "Updated Workflow",
+			Prompt: "Updated Expert 2",
+		},
+	}
+	_, err = client.UpdatePersona(context.Background(), updateReq)
+	if err != nil {
+		t.Fatalf("Failed to update persona: %v", err)
+	}
+	
+	// Verify update
+	getResp, err := client.GetPersona(context.Background(), &pb.GetPersonaRequest{Id: createdIds[1]})
+	if err != nil {
+		t.Fatalf("Failed to get updated persona: %v", err)
+	}
+	if getResp.Persona.Name != "Updated Workflow Expert 2" {
+		t.Errorf("Expected updated name, got %s", getResp.Persona.Name)
+	}
+	
+	// Delete first persona
+	_, err = client.DeletePersona(context.Background(), &pb.DeletePersonaRequest{Id: createdIds[0]})
+	if err != nil {
+		t.Fatalf("Failed to delete persona: %v", err)
+	}
+	
+	// Verify deletion
+	_, err = client.GetPersona(context.Background(), &pb.GetPersonaRequest{Id: createdIds[0]})
 	if err == nil {
-		t.Error("Expected error for nil ListPersonasRequest")
+		t.Error("Expected error when getting deleted persona")
+	}
+	
+	// Final list should have 2 personas
+	finalListResp, err := client.ListPersonas(context.Background(), &pb.ListPersonasRequest{})
+	if err != nil {
+		t.Fatalf("Failed to list final personas: %v", err)
+	}
+	if len(finalListResp.Personas) != 2 {
+		t.Errorf("Expected 2 personas after deletion, got %d", len(finalListResp.Personas))
+	}
+}
+
+func TestPersonaServer_ContextAndRAGHandling(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test persona with various context and RAG configurations
+	testCases := []struct {
+		name    string
+		persona *pb.Persona
+	}{
+		{
+			name: "Empty context and RAG",
+			persona: &pb.Persona{
+				Name:    "Empty Expert",
+				Topic:   "Empty",
+				Prompt:  "Empty prompt",
+				Context: map[string]string{},
+				Rag:     []string{},
+			},
+		},
+		{
+			name: "Nil context and RAG",
+			persona: &pb.Persona{
+				Name:    "Nil Expert",
+				Topic:   "Nil",
+				Prompt:  "Nil prompt",
+				Context: nil,
+				Rag:     nil,
+			},
+		},
+		{
+			name: "Single item context and RAG",
+			persona: &pb.Persona{
+				Name:    "Single Expert",
+				Topic:   "Single",
+				Prompt:  "Single prompt",
+				Context: map[string]string{"key": "value"},
+				Rag:     []string{"single-doc"},
+			},
+		},
+	}
+	
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create
+			createReq := &pb.CreatePersonaRequest{Persona: tc.persona}
+			createResp, err := client.CreatePersona(context.Background(), createReq)
+			if err != nil {
+				t.Fatalf("Failed to create persona: %v", err)
+			}
+			
+			// Get and verify
+			getResp, err := client.GetPersona(context.Background(), &pb.GetPersonaRequest{Id: createResp.Persona.Id})
+			if err != nil {
+				t.Fatalf("Failed to get persona: %v", err)
+			}
+			
+			// Verify context handling
+			expectedContextLen := 0
+			if tc.persona.Context != nil {
+				expectedContextLen = len(tc.persona.Context)
+			}
+			actualContextLen := 0
+			if getResp.Persona.Context != nil {
+				actualContextLen = len(getResp.Persona.Context)
+			}
+			if actualContextLen != expectedContextLen {
+				t.Errorf("Expected context length %d, got %d", expectedContextLen, actualContextLen)
+			}
+			
+			// Verify RAG handling
+			expectedRAGLen := 0
+			if tc.persona.Rag != nil {
+				expectedRAGLen = len(tc.persona.Rag)
+			}
+			actualRAGLen := 0
+			if getResp.Persona.Rag != nil {
+				actualRAGLen = len(getResp.Persona.Rag)
+			}
+			if actualRAGLen != expectedRAGLen {
+				t.Errorf("Expected RAG length %d, got %d", expectedRAGLen, actualRAGLen)
+			}
+		})
 	}
 }
