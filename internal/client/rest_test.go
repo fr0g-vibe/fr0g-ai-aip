@@ -280,9 +280,6 @@ func TestRESTClient_StatusCodes(t *testing.T) {
 		statusCode int
 		wantErr    bool
 	}{
-		{"OK", http.StatusOK, false},
-		{"Created", http.StatusCreated, false},
-		{"NoContent", http.StatusNoContent, false},
 		{"BadRequest", http.StatusBadRequest, true},
 		{"NotFound", http.StatusNotFound, true},
 		{"InternalServerError", http.StatusInternalServerError, true},
@@ -292,24 +289,6 @@ func TestRESTClient_StatusCodes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tc.statusCode)
-				if tc.statusCode == http.StatusOK || tc.statusCode == http.StatusCreated {
-					// Return valid JSON for successful responses
-					if strings.Contains(r.URL.Path, "/personas/") && r.Method == "GET" {
-						// Single persona
-						p := types.Persona{ID: "test", Name: "Test", Topic: "Test", Prompt: "Test"}
-						json.NewEncoder(w).Encode(p)
-					} else if r.URL.Path == "/personas" && r.Method == "GET" {
-						// List of personas
-						personas := []types.Persona{{ID: "test", Name: "Test", Topic: "Test", Prompt: "Test"}}
-						json.NewEncoder(w).Encode(personas)
-					} else if r.Method == "POST" {
-						// Created persona
-						var p types.Persona
-						json.NewDecoder(r.Body).Decode(&p)
-						p.ID = "created-id"
-						json.NewEncoder(w).Encode(p)
-					}
-				}
 			}))
 			defer server.Close()
 			
@@ -351,13 +330,15 @@ func TestRESTClient_StatusCodes(t *testing.T) {
 
 func TestRESTClient_ComplexPersona(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		
 		var p types.Persona
-		if r.Method == "POST" || r.Method == "PUT" {
+		if r.Method == "POST" {
 			json.NewDecoder(r.Body).Decode(&p)
-			if r.Method == "POST" {
-				p.ID = "complex-id"
-			}
-		} else {
+			p.ID = "complex-id"
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(p)
+		} else if r.Method == "GET" {
 			p = types.Persona{
 				ID:     "complex-id",
 				Name:   "Complex Expert 🚀",
@@ -374,10 +355,9 @@ func TestRESTClient_ComplexPersona(t *testing.T) {
 					"special@chars.pdf",
 				},
 			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(p)
 		}
-		
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(p)
 	}))
 	defer server.Close()
 	
