@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	pb "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/config"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
@@ -17,6 +18,8 @@ import (
 // PersonaServer implements the gRPC PersonaService
 type PersonaServer struct {
 	pb.UnimplementedPersonaServiceServer
+	service *persona.Service
+	config  *config.Config
 }
 
 // StartGRPCServer starts a real gRPC server using protobuf
@@ -33,13 +36,6 @@ func StartGRPCServer(port string) error {
 	fmt.Println("Using real gRPC with protobuf")
 
 	return s.Serve(lis)
-}
-
-// PersonaServer implements the gRPC PersonaService
-type PersonaServer struct {
-	pb.UnimplementedPersonaServiceServer
-	service *persona.Service
-	config  *config.Config
 }
 
 // NewPersonaServer creates a new gRPC persona server
@@ -115,7 +111,20 @@ func (s *PersonaServer) CreatePersona(ctx context.Context, req *pb.CreatePersona
 
 // GetPersona retrieves a persona by ID
 func (s *PersonaServer) GetPersona(ctx context.Context, req *pb.GetPersonaRequest) (*pb.GetPersonaResponse, error) {
-	p, err := persona.GetPersona(req.Id)
+	if req.Id == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "persona ID is required")
+	}
+	
+	var p types.Persona
+	var err error
+	
+	if s.service != nil {
+		p, err = s.service.GetPersona(req.Id)
+	} else {
+		// Fallback to legacy global service
+		p, err = persona.GetPersona(req.Id)
+	}
+	
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
@@ -134,7 +143,19 @@ func (s *PersonaServer) GetPersona(ctx context.Context, req *pb.GetPersonaReques
 
 // ListPersonas returns all personas
 func (s *PersonaServer) ListPersonas(ctx context.Context, req *pb.ListPersonasRequest) (*pb.ListPersonasResponse, error) {
-	personas := persona.ListPersonas()
+	var personas []types.Persona
+	var err error
+	
+	if s.service != nil {
+		personas, err = s.service.ListPersonas()
+	} else {
+		// Fallback to legacy global service
+		personas = persona.ListPersonas()
+	}
+	
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list personas: %v", err)
+	}
 
 	var protoPersonas []*pb.Persona
 	for _, p := range personas {
@@ -155,6 +176,10 @@ func (s *PersonaServer) ListPersonas(ctx context.Context, req *pb.ListPersonasRe
 
 // UpdatePersona updates an existing persona
 func (s *PersonaServer) UpdatePersona(ctx context.Context, req *pb.UpdatePersonaRequest) (*pb.UpdatePersonaResponse, error) {
+	if req.Id == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "persona ID is required")
+	}
+	
 	if req.Persona == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "persona is required")
 	}
@@ -168,7 +193,15 @@ func (s *PersonaServer) UpdatePersona(ctx context.Context, req *pb.UpdatePersona
 		RAG:     req.Persona.Rag,
 	}
 
-	if err := persona.UpdatePersona(req.Id, p); err != nil {
+	var err error
+	if s.service != nil {
+		err = s.service.UpdatePersona(req.Id, p)
+	} else {
+		// Fallback to legacy global service
+		err = persona.UpdatePersona(req.Id, p)
+	}
+	
+	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
@@ -186,7 +219,19 @@ func (s *PersonaServer) UpdatePersona(ctx context.Context, req *pb.UpdatePersona
 
 // DeletePersona removes a persona by ID
 func (s *PersonaServer) DeletePersona(ctx context.Context, req *pb.DeletePersonaRequest) (*pb.DeletePersonaResponse, error) {
-	if err := persona.DeletePersona(req.Id); err != nil {
+	if req.Id == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "persona ID is required")
+	}
+	
+	var err error
+	if s.service != nil {
+		err = s.service.DeletePersona(req.Id)
+	} else {
+		// Fallback to legacy global service
+		err = persona.DeletePersona(req.Id)
+	}
+	
+	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 

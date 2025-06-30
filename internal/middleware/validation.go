@@ -159,9 +159,18 @@ func ValidationMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 // SanitizePersona sanitizes persona input by trimming whitespace
 func SanitizePersona(p *types.Persona) {
+	if p == nil {
+		return
+	}
+	
 	p.Name = strings.TrimSpace(p.Name)
 	p.Topic = strings.TrimSpace(p.Topic)
 	p.Prompt = strings.TrimSpace(p.Prompt)
+	
+	// Initialize context if nil
+	if p.Context == nil {
+		p.Context = make(map[string]string)
+	}
 	
 	// Sanitize context
 	for key, value := range p.Context {
