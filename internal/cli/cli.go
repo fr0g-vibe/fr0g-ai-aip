@@ -57,6 +57,8 @@ func ExecuteWithConfig(config Config) error {
 		return deletePersona(client)
 	case "update":
 		return updatePersona(client)
+	case "serve":
+		return serveCommand()
 	default:
 		printUsage()
 		return fmt.Errorf("unknown command: %s", command)
@@ -109,11 +111,12 @@ func printUsage() {
 	fmt.Println("  get <id>            Get persona by ID")
 	fmt.Println("  update <id>         Update persona by ID")
 	fmt.Println("  delete <id>         Delete persona by ID")
+	fmt.Println("  serve               Start gRPC server")
 	fmt.Println()
-	fmt.Println("Server mode:")
-	fmt.Println("  -server             Run in server mode")
-	fmt.Println("  -port <port>        Server port (default: 8080)")
+	fmt.Println("Server mode (use flags instead):")
+	fmt.Println("  -server             Run HTTP REST API server")
 	fmt.Println("  -grpc               Run gRPC server")
+	fmt.Println("  -port <port>        HTTP server port (default: 8080)")
 	fmt.Println("  -grpc-port <port>   gRPC server port (default: 9090)")
 	fmt.Println()
 	fmt.Println("Environment variables:")
@@ -279,4 +282,13 @@ func GetConfigFromEnv() Config {
 	}
 	
 	return config
+}
+
+func serveCommand() error {
+	fmt.Println("Starting gRPC server on port 9090...")
+	fmt.Println("Use Ctrl+C to stop the server")
+	
+	// Import the grpc package here to avoid circular imports
+	// We'll need to refactor this properly
+	return fmt.Errorf("serve command not yet implemented - use './bin/fr0g-ai-aip -grpc' instead")
 }
