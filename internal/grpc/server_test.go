@@ -782,3 +782,237 @@ func TestPersonaServer_ConcurrentOperations(t *testing.T) {
 		<-readDone
 	}
 }
+
+func TestPersonaServer_EdgeCases(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test with empty string ID for Get
+	getReq := &pb.GetPersonaRequest{Id: ""}
+	_, err := client.GetPersona(context.Background(), getReq)
+	if err == nil {
+		t.Error("Expected error for empty ID")
+	}
+	
+	// Test with empty string ID for Update
+	updateReq := &pb.UpdatePersonaRequest{
+		Id: "",
+		Persona: &pb.Persona{
+			Name:   "Test",
+			Topic:  "Test",
+			Prompt: "Test",
+		},
+	}
+	_, err = client.UpdatePersona(context.Background(), updateReq)
+	if err == nil {
+		t.Error("Expected error for empty ID in update")
+	}
+	
+	// Test with empty string ID for Delete
+	deleteReq := &pb.DeletePersonaRequest{Id: ""}
+	_, err = client.DeletePersona(context.Background(), deleteReq)
+	if err == nil {
+		t.Error("Expected error for empty ID in delete")
+	}
+}
+
+func TestPersonaServer_LargeDataHandling(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test with large context and RAG data
+	largeContext := make(map[string]string)
+	for i := 0; i < 100; i++ {
+		largeContext[fmt.Sprintf("key_%d", i)] = fmt.Sprintf("value_%d_with_some_longer_content", i)
+	}
+	
+	largeRAG := make([]string, 100)
+	for i := 0; i < 100; i++ {
+		largeRAG[i] = fmt.Sprintf("document_%d_with_some_longer_filename.txt", i)
+	}
+	
+	req := &pb.CreatePersonaRequest{
+		Persona: &pb.Persona{
+			Name:    "Large Data Expert",
+			Topic:   "Large Data Processing",
+			Prompt:  "You are an expert in handling large datasets and complex information structures.",
+			Context: largeContext,
+			Rag:     largeRAG,
+		},
+	}
+	
+	resp, err := client.CreatePersona(context.Background(), req)
+	if err != nil {
+		t.Fatalf("CreatePersona with large data failed: %v", err)
+	}
+	
+	// Verify large data was preserved
+	if len(resp.Persona.Context) != 100 {
+		t.Errorf("Expected 100 context items, got %d", len(resp.Persona.Context))
+	}
+	if len(resp.Persona.Rag) != 100 {
+		t.Errorf("Expected 100 RAG items, got %d", len(resp.Persona.Rag))
+	}
+	
+	// Test retrieval of large data
+	getReq := &pb.GetPersonaRequest{Id: resp.Persona.Id}
+	getResp, err := client.GetPersona(context.Background(), getReq)
+	if err != nil {
+		t.Fatalf("GetPersona with large data failed: %v", err)
+	}
+	
+	if len(getResp.Persona.Context) != 100 {
+		t.Errorf("Expected 100 context items on retrieval, got %d", len(getResp.Persona.Context))
+	}
+	if len(getResp.Persona.Rag) != 100 {
+		t.Errorf("Expected 100 RAG items on retrieval, got %d", len(getResp.Persona.Rag))
+	}
+}
+
+func TestPersonaServer_SpecialCharacterHandling(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test with special characters and unicode
+	req := &pb.CreatePersonaRequest{
+		Persona: &pb.Persona{
+			Name:   "Special Chars Expert 🚀",
+			Topic:  "Unicode & Special Characters\nMultiline",
+			Prompt: "You are an expert in handling special characters: @#$%^&*(){}[]|\\:;\"'<>,.?/~`",
+			Context: map[string]string{
+				"unicode":        "🎯🚀💡🔥⭐",
+				"special_chars":  "@#$%^&*()",
+				"quotes":         "\"single'double\"",
+				"newlines":       "line1\nline2\nline3",
+				"tabs":           "col1\tcol2\tcol3",
+			},
+			Rag: []string{
+				"file with spaces.txt",
+				"file-with-dashes.md",
+				"file_with_underscores.json",
+				"unicode-file-🚀.txt",
+				"special@chars#file$.pdf",
+			},
+		},
+	}
+	
+	resp, err := client.CreatePersona(context.Background(), req)
+	if err != nil {
+		t.Fatalf("CreatePersona with special chars failed: %v", err)
+	}
+	
+	// Verify special characters were preserved
+	if resp.Persona.Name != "Special Chars Expert 🚀" {
+		t.Errorf("Expected unicode name to be preserved, got %s", resp.Persona.Name)
+	}
+	
+	// Test retrieval preserves special characters
+	getReq := &pb.GetPersonaRequest{Id: resp.Persona.Id}
+	getResp, err := client.GetPersona(context.Background(), getReq)
+	if err != nil {
+		t.Fatalf("GetPersona with special chars failed: %v", err)
+	}
+	
+	if getResp.Persona.Context["unicode"] != "🎯🚀💡🔥⭐" {
+		t.Errorf("Expected unicode context to be preserved")
+	}
+	if getResp.Persona.Context["newlines"] != "line1\nline2\nline3" {
+		t.Errorf("Expected newlines to be preserved")
+	}
+}
+
+func TestPersonaServer_ErrorStatusCodes(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test various error scenarios and their status codes
+	testCases := []struct {
+		name           string
+		operation      func() error
+		expectedCode   codes.Code
+	}{
+		{
+			name: "Create with nil persona",
+			operation: func() error {
+				_, err := client.CreatePersona(context.Background(), &pb.CreatePersonaRequest{Persona: nil})
+				return err
+			},
+			expectedCode: codes.InvalidArgument,
+		},
+		{
+			name: "Get with nonexistent ID",
+			operation: func() error {
+				_, err := client.GetPersona(context.Background(), &pb.GetPersonaRequest{Id: "nonexistent"})
+				return err
+			},
+			expectedCode: codes.NotFound,
+		},
+		{
+			name: "Update with nil persona",
+			operation: func() error {
+				_, err := client.UpdatePersona(context.Background(), &pb.UpdatePersonaRequest{Id: "test", Persona: nil})
+				return err
+			},
+			expectedCode: codes.InvalidArgument,
+		},
+		{
+			name: "Delete with nonexistent ID",
+			operation: func() error {
+				_, err := client.DeletePersona(context.Background(), &pb.DeletePersonaRequest{Id: "nonexistent"})
+				return err
+			},
+			expectedCode: codes.NotFound,
+		},
+	}
+	
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.operation()
+			if err == nil {
+				t.Error("Expected error but got none")
+				return
+			}
+			
+			st, ok := status.FromError(err)
+			if !ok {
+				t.Error("Expected gRPC status error")
+				return
+			}
+			
+			if st.Code() != tc.expectedCode {
+				t.Errorf("Expected status code %v, got %v", tc.expectedCode, st.Code())
+			}
+		})
+	}
+}
+
+func TestPersonaServer_RequestValidation(t *testing.T) {
+	client, cleanup := setupTestServer(t)
+	defer cleanup()
+	
+	// Test nil request handling
+	_, err := client.CreatePersona(context.Background(), nil)
+	if err == nil {
+		t.Error("Expected error for nil CreatePersonaRequest")
+	}
+	
+	_, err = client.GetPersona(context.Background(), nil)
+	if err == nil {
+		t.Error("Expected error for nil GetPersonaRequest")
+	}
+	
+	_, err = client.UpdatePersona(context.Background(), nil)
+	if err == nil {
+		t.Error("Expected error for nil UpdatePersonaRequest")
+	}
+	
+	_, err = client.DeletePersona(context.Background(), nil)
+	if err == nil {
+		t.Error("Expected error for nil DeletePersonaRequest")
+	}
+	
+	_, err = client.ListPersonas(context.Background(), nil)
+	if err == nil {
+		t.Error("Expected error for nil ListPersonasRequest")
+	}
+}
