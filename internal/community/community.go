@@ -1,9 +1,10 @@
 package community
 
 import (
+	"crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"math"
-	"math/rand"
 	"reflect"
 	"time"
 
@@ -14,14 +15,12 @@ import (
 // Service provides community generation and management functionality
 type Service struct {
 	storage storage.Storage
-	rand    *rand.Rand
 }
 
 // NewService creates a new community service
 func NewService(storage storage.Storage) *Service {
 	return &Service{
 		storage: storage,
-		rand:    rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
@@ -109,17 +108,17 @@ func (s *Service) generateMembers(config types.CommunityGenerationConfig, count 
 
 		// Generate rich attributes based on community config
 		richAttrs := s.generateRichAttributes(config, i, count)
-		
+
 		// Create RichAttributes with available fields
 		identity.RichAttributes = &types.RichAttributes{}
-		
+
 		// Set age if the field exists
 		if age, ok := richAttrs["age"].(int); ok {
 			if hasField(identity.RichAttributes, "Age") {
 				setField(identity.RichAttributes, "Age", int32(age))
 			}
 		}
-		
+
 		// Set other attributes using a generic approach
 		if gender, ok := richAttrs["gender"].(string); ok {
 			setStringField(identity.RichAttributes, "Gender", gender)
@@ -136,12 +135,12 @@ func (s *Service) generateMembers(config types.CommunityGenerationConfig, count 
 		if activity, ok := richAttrs["activity_level"].(float64); ok {
 			setFloatField(identity.RichAttributes, "ActivityLevel", activity)
 		}
-		
+
 		// Handle location if supported
 		if loc, ok := richAttrs["location"].(map[string]interface{}); ok {
 			setLocationField(identity.RichAttributes, loc)
 		}
-		
+
 		// Handle interests if supported
 		if interests, ok := richAttrs["interests"].([]string); ok {
 			setStringSliceField(identity.RichAttributes, "Interests", interests)
@@ -157,7 +156,7 @@ func (s *Service) generateMembers(config types.CommunityGenerationConfig, count 
 func (s *Service) selectPersonaByWeight(personas []types.Persona, weights map[string]float64) types.Persona {
 	if len(weights) == 0 {
 		// Equal probability if no weights specified
-		return personas[s.rand.Intn(len(personas))]
+		return personas[cryptoRandIntn(len(personas))]
 	}
 
 	// Calculate total weight for available personas
@@ -176,7 +175,7 @@ func (s *Service) selectPersonaByWeight(personas []types.Persona, weights map[st
 	}
 
 	// Select based on weighted random
-	target := s.rand.Float64() * totalWeight
+	target := cryptoRandFloat64() * totalWeight
 	current := 0.0
 
 	for i, weight := range personaWeights {
@@ -232,8 +231,8 @@ func (s *Service) generateRichAttributes(config types.CommunityGenerationConfig,
 // generateAge creates an age based on the distribution parameters
 func (s *Service) generateAge(dist types.AgeDistribution) int {
 	// Use normal distribution with constraints
-	age := s.rand.NormFloat64()*dist.StdDev + dist.Mean
-	
+	age := cryptoRandNormFloat64()*dist.StdDev + dist.Mean
+
 	// Apply skewness (simple implementation)
 	if dist.Skewness != 0 {
 		skewAdjustment := dist.Skewness * (age - dist.Mean) * 0.5
@@ -259,7 +258,7 @@ func (s *Service) generateLocation(constraint types.LocationConstraint) map[stri
 	switch constraint.Type {
 	case "city":
 		if len(constraint.Locations) > 0 {
-			city := constraint.Locations[s.rand.Intn(len(constraint.Locations))]
+			city := constraint.Locations[cryptoRandIntn(len(constraint.Locations))]
 			location["city"] = city
 			location["type"] = "city"
 		} else {
@@ -268,13 +267,13 @@ func (s *Service) generateLocation(constraint types.LocationConstraint) map[stri
 		}
 	case "region":
 		if len(constraint.Locations) > 0 {
-			region := constraint.Locations[s.rand.Intn(len(constraint.Locations))]
+			region := constraint.Locations[cryptoRandIntn(len(constraint.Locations))]
 			location["region"] = region
 			location["type"] = "region"
 		}
 	case "country":
 		if len(constraint.Locations) > 0 {
-			country := constraint.Locations[s.rand.Intn(len(constraint.Locations))]
+			country := constraint.Locations[cryptoRandIntn(len(constraint.Locations))]
 			location["country"] = country
 			location["type"] = "country"
 		}
@@ -286,7 +285,7 @@ func (s *Service) generateLocation(constraint types.LocationConstraint) map[stri
 	if constraint.Urban != nil {
 		location["urban"] = *constraint.Urban
 	} else {
-		location["urban"] = s.rand.Float64() > 0.3 // 70% urban by default
+		location["urban"] = cryptoRandFloat64() > 0.3 // 70% urban by default
 	}
 
 	if constraint.Timezone != "" {
@@ -300,7 +299,7 @@ func (s *Service) generateLocation(constraint types.LocationConstraint) map[stri
 func (s *Service) generatePoliticalLeaning(spread float64) string {
 	// Generate value from -1 (very liberal) to 1 (very conservative)
 	center := 0.0 // Neutral center
-	value := s.rand.NormFloat64()*spread + center
+	value := cryptoRandNormFloat64()*spread + center
 
 	// Constrain to [-1, 1]
 	if value < -1 {
@@ -326,7 +325,7 @@ func (s *Service) generatePoliticalLeaning(spread float64) string {
 
 // generateSocioeconomicStatus creates economic status with specified range
 func (s *Service) generateSocioeconomicStatus(spread float64) string {
-	value := s.rand.Float64() * spread
+	value := cryptoRandFloat64() * spread
 
 	if value < 0.2 {
 		return "low_income"
@@ -357,8 +356,8 @@ func (s *Service) generateInterests(diversity float64) []string {
 
 	// Randomly select interests
 	selected := make([]string, 0, numInterests)
-	indices := s.rand.Perm(len(allInterests))
-	
+	indices := cryptoRandPerm(len(allInterests))
+
 	for i := 0; i < numInterests; i++ {
 		selected = append(selected, allInterests[indices[i]])
 	}
@@ -369,7 +368,7 @@ func (s *Service) generateInterests(diversity float64) []string {
 // generateActivityLevel creates activity level based on community config
 func (s *Service) generateActivityLevel(baseLevel float64) float64 {
 	// Add some randomness around the base level
-	variation := s.rand.NormFloat64() * 0.2 // 20% standard deviation
+	variation := cryptoRandNormFloat64() * 0.2 // 20% standard deviation
 	level := baseLevel + variation
 
 	// Constrain to [0, 1]
@@ -385,7 +384,7 @@ func (s *Service) generateActivityLevel(baseLevel float64) float64 {
 
 // generateGender creates gender (simplified binary model)
 func (s *Service) generateGender() string {
-	if s.rand.Float64() < 0.5 {
+	if cryptoRandFloat64() < 0.5 {
 		return "male"
 	}
 	return "female"
@@ -401,7 +400,7 @@ func (s *Service) generateEducationLevel(age int) string {
 		baseProb = 0.4
 	}
 
-	value := s.rand.Float64()
+	value := cryptoRandFloat64()
 	if value < baseProb*0.3 {
 		return "graduate"
 	} else if value < baseProb*0.7 {
@@ -422,16 +421,16 @@ func (s *Service) generateName() string {
 		"Sam", "Blake", "Cameron", "Drew", "Emery", "Finley", "Harper", "Hayden",
 		"Jamie", "Kendall", "Logan", "Parker", "Peyton", "Reese", "Sage", "Skyler",
 	}
-	
+
 	lastNames := []string{
 		"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
 		"Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas",
 		"Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson", "White",
 	}
 
-	firstName := firstNames[s.rand.Intn(len(firstNames))]
-	lastName := lastNames[s.rand.Intn(len(lastNames))]
-	
+	firstName := firstNames[cryptoRandIntn(len(firstNames))]
+	lastName := lastNames[cryptoRandIntn(len(lastNames))]
+
 	return fmt.Sprintf("%s %s", firstName, lastName)
 }
 
@@ -443,7 +442,7 @@ func (s *Service) generateRandomCity() string {
 		"Fort Worth", "Columbus", "Charlotte", "San Francisco", "Indianapolis", "Seattle",
 		"Denver", "Washington", "Boston", "El Paso", "Nashville", "Detroit", "Portland",
 	}
-	return cities[s.rand.Intn(len(cities))]
+	return cities[cryptoRandIntn(len(cities))]
 }
 
 // calculateCommunityMetrics computes diversity and cohesion scores
@@ -487,12 +486,12 @@ func (s *Service) calculateDiversityIndex(members []types.Identity) float64 {
 // calculateAttributeDiversity computes diversity for a specific attribute
 func (s *Service) calculateAttributeDiversity(members []types.Identity, attribute string) float64 {
 	values := make(map[interface{}]int)
-	
+
 	for _, member := range members {
 		if member.RichAttributes == nil {
 			continue
 		}
-		
+
 		var val interface{}
 		switch attribute {
 		case "age":
@@ -513,7 +512,7 @@ func (s *Service) calculateAttributeDiversity(members []types.Identity, attribut
 		default:
 			continue
 		}
-		
+
 		if val != nil && val != "" && val != int32(0) && val != 0 {
 			values[val]++
 		}
@@ -526,7 +525,7 @@ func (s *Service) calculateAttributeDiversity(members []types.Identity, attribut
 	// Shannon diversity index
 	total := float64(len(members))
 	diversity := 0.0
-	
+
 	for _, count := range values {
 		if count > 0 {
 			p := float64(count) / total
@@ -539,7 +538,7 @@ func (s *Service) calculateAttributeDiversity(members []types.Identity, attribut
 	if maxDiversity > 0 {
 		return diversity / maxDiversity
 	}
-	
+
 	return 0
 }
 
@@ -567,7 +566,7 @@ func (s *Service) calculateInterestDiversity(members []types.Identity) float64 {
 	// Shannon diversity for interests
 	diversity := 0.0
 	total := float64(totalInterests)
-	
+
 	for _, count := range allInterests {
 		if count > 0 {
 			p := float64(count) / total
@@ -580,7 +579,7 @@ func (s *Service) calculateInterestDiversity(members []types.Identity) float64 {
 	if maxDiversity > 0 {
 		return diversity / maxDiversity
 	}
-	
+
 	return 0
 }
 
@@ -609,7 +608,7 @@ func (s *Service) calculateCohesionScore(members []types.Identity, config types.
 	for _, sim := range similarities {
 		total += sim
 	}
-	
+
 	return total / float64(len(similarities))
 }
 
@@ -663,7 +662,7 @@ func (s *Service) calculateMemberSimilarity(member1, member2 types.Identity) flo
 	for _, sim := range similarities {
 		total += sim
 	}
-	
+
 	return total / float64(len(similarities))
 }
 
@@ -679,7 +678,7 @@ func (s *Service) calculatePoliticalSimilarity(pol1, pol2 string) float64 {
 
 	val1, ok1 := politicalOrder[pol1]
 	val2, ok2 := politicalOrder[pol2]
-	
+
 	if !ok1 || !ok2 {
 		return 0
 	}
@@ -692,7 +691,7 @@ func (s *Service) calculatePoliticalSimilarity(pol1, pol2 string) float64 {
 func (s *Service) calculateInterestSimilarity(interests1, interests2 []string) float64 {
 	set1 := make(map[string]bool)
 	set2 := make(map[string]bool)
-	
+
 	for _, interest := range interests1 {
 		set1[interest] = true
 	}
@@ -702,7 +701,7 @@ func (s *Service) calculateInterestSimilarity(interests1, interests2 []string) f
 
 	intersection := 0
 	union := len(set1)
-	
+
 	for interest := range set2 {
 		if set1[interest] {
 			intersection++
@@ -714,7 +713,7 @@ func (s *Service) calculateInterestSimilarity(interests1, interests2 []string) f
 	if union == 0 {
 		return 0
 	}
-	
+
 	return float64(intersection) / float64(union)
 }
 
@@ -722,7 +721,7 @@ func (s *Service) calculateInterestSimilarity(interests1, interests2 []string) f
 func (s *Service) calculateAverageAge(members []types.Identity) float64 {
 	total := 0.0
 	count := 0
-	
+
 	for _, member := range members {
 		if member.RichAttributes != nil {
 			ageVal := getFieldValue(member.RichAttributes, "Age")
@@ -733,18 +732,18 @@ func (s *Service) calculateAverageAge(members []types.Identity) float64 {
 			}
 		}
 	}
-	
+
 	if count == 0 {
 		return 0
 	}
-	
+
 	return total / float64(count)
 }
 
 func (s *Service) calculatePoliticalDistribution(members []types.Identity) map[string]float64 {
 	distribution := make(map[string]int)
 	total := 0
-	
+
 	for _, member := range members {
 		if member.RichAttributes != nil {
 			polVal := getFieldValue(member.RichAttributes, "PoliticalLeaning")
@@ -754,18 +753,18 @@ func (s *Service) calculatePoliticalDistribution(members []types.Identity) map[s
 			}
 		}
 	}
-	
+
 	result := make(map[string]float64)
 	for pol, count := range distribution {
 		result[pol] = float64(count) / float64(total)
 	}
-	
+
 	return result
 }
 
 func (s *Service) calculateLocationSpread(members []types.Identity) map[string]int {
 	locations := make(map[string]int)
-	
+
 	for _, member := range members {
 		if member.RichAttributes != nil {
 			locationVal := getFieldValue(member.RichAttributes, "Location")
@@ -782,7 +781,7 @@ func (s *Service) calculateLocationSpread(members []types.Identity) map[string]i
 			}
 		}
 	}
-	
+
 	return locations
 }
 
@@ -857,7 +856,7 @@ func (s *Service) GetCommunityStats(communityId string) (*types.CommunityStats, 
 			}
 		}
 	}
-	
+
 	genderRatio := make(map[string]float64)
 	for gender, count := range genderCount {
 		genderRatio[gender] = float64(count) / float64(len(members))
@@ -926,7 +925,7 @@ func (s *Service) RemoveMemberFromCommunity(communityId, identityId string) erro
 	// Find and remove member
 	newMemberIds := make([]string, 0, len(community.MemberIds))
 	found := false
-	
+
 	for _, memberId := range community.MemberIds {
 		if memberId != identityId {
 			newMemberIds = append(newMemberIds, memberId)
@@ -964,7 +963,21 @@ func max(a, b int) int {
 }
 
 // Helper functions to safely set fields on protobuf structs using reflection
+var allowedFields = map[string]struct{}{
+	"Age": {}, "Gender": {}, "PoliticalLeaning": {}, "SocioeconomicStatus": {},
+	"Education": {}, "ActivityLevel": {}, "Interests": {}, "Location": {},
+	// Add any other fields you intend to support
+}
+
+func isAllowedField(fieldName string) bool {
+	_, ok := allowedFields[fieldName]
+	return ok
+}
+
 func hasField(v interface{}, fieldName string) bool {
+	if !isAllowedField(fieldName) {
+		return false
+	}
 	val := reflect.ValueOf(v)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
@@ -976,6 +989,9 @@ func hasField(v interface{}, fieldName string) bool {
 }
 
 func setField(v interface{}, fieldName string, value interface{}) {
+	if !isAllowedField(fieldName) {
+		return
+	}
 	val := reflect.ValueOf(v)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
@@ -993,14 +1009,23 @@ func setField(v interface{}, fieldName string, value interface{}) {
 }
 
 func setStringField(v interface{}, fieldName string, value string) {
+	if !isAllowedField(fieldName) {
+		return
+	}
 	setField(v, fieldName, value)
 }
 
 func setFloatField(v interface{}, fieldName string, value float64) {
+	if !isAllowedField(fieldName) {
+		return
+	}
 	setField(v, fieldName, value)
 }
 
 func setStringSliceField(v interface{}, fieldName string, value []string) {
+	if !isAllowedField(fieldName) {
+		return
+	}
 	setField(v, fieldName, value)
 }
 
@@ -1017,10 +1042,10 @@ func setLocationField(richAttrs *types.RichAttributes, loc map[string]interface{
 		if locationType.Kind() == reflect.Ptr {
 			locationType = locationType.Elem()
 		}
-		
+
 		newLocation := reflect.New(locationType)
 		locationValue := newLocation.Elem()
-		
+
 		// Set location fields if they exist
 		if city, ok := loc["city"].(string); ok {
 			cityField := locationValue.FieldByName("City")
@@ -1046,12 +1071,15 @@ func setLocationField(richAttrs *types.RichAttributes, loc map[string]interface{
 				timezoneField.SetString(timezone)
 			}
 		}
-		
+
 		locationField.Set(newLocation)
 	}
 }
 
 func getFieldValue(v interface{}, fieldName string) interface{} {
+	if !isAllowedField(fieldName) {
+		return nil
+	}
 	val := reflect.ValueOf(v)
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {
@@ -1084,4 +1112,49 @@ func convertToInt(v interface{}) int {
 	default:
 		return 0
 	}
+}
+
+// Helper functions for cryptographically secure random numbers
+func cryptoRandIntn(max int) int {
+	if max <= 0 {
+		return 0
+	}
+	var b [8]byte
+	_, err := rand.Read(b[:])
+	if err != nil {
+		panic(err)
+	}
+	num := binary.BigEndian.Uint64(b[:])
+	return int(num % uint64(max))
+}
+
+func cryptoRandFloat64() float64 {
+	var b [8]byte
+	_, err := rand.Read(b[:])
+	if err != nil {
+		panic(err)
+	}
+	num := binary.BigEndian.Uint64(b[:])
+	return float64(num) / (1 << 64)
+}
+
+// Box-Muller transform for normal distribution
+func cryptoRandNormFloat64() float64 {
+	u1 := cryptoRandFloat64()
+	u2 := cryptoRandFloat64()
+	z0 := math.Sqrt(-2.0*math.Log(u1)) * math.Cos(2*math.Pi*u2)
+	return z0
+}
+
+// Fisher-Yates shuffle for permutation
+func cryptoRandPerm(n int) []int {
+	m := make([]int, n)
+	for i := 0; i < n; i++ {
+		m[i] = i
+	}
+	for i := n - 1; i > 0; i-- {
+		j := cryptoRandIntn(i + 1)
+		m[i], m[j] = m[j], m[i]
+	}
+	return m
 }

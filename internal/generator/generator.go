@@ -1,22 +1,18 @@
 package generator
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"encoding/binary"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
 // Generator provides methods for creating random and directed identities
-type Generator struct {
-	rng *rand.Rand
-}
+type Generator struct{}
 
-// NewGenerator creates a new generator with a seeded random number generator
+// NewGenerator creates a new generator (no longer needs a seeded random number generator)
 func NewGenerator() *Generator {
-	return &Generator{
-		rng: rand.New(rand.NewSource(time.Now().UnixNano())),
-	}
+	return &Generator{}
 }
 
 // GenerateRandomIdentity creates a random identity based on a persona
@@ -89,6 +85,30 @@ type CommunitySpecification struct {
 	PersonalityProfile     *types.Personality `json:"personality_profile,omitempty"` // Average personality for the community
 }
 
+// Helper functions for cryptographically secure random numbers
+func cryptoRandIntn(max int) int {
+	if max <= 0 {
+		return 0
+	}
+	var b [8]byte
+	_, err := rand.Read(b[:])
+	if err != nil {
+		panic(err)
+	}
+	num := binary.BigEndian.Uint64(b[:])
+	return int(num % uint64(max))
+}
+
+func cryptoRandFloat64() float64 {
+	var b [8]byte
+	_, err := rand.Read(b[:])
+	if err != nil {
+		panic(err)
+	}
+	num := binary.BigEndian.Uint64(b[:])
+	return float64(num) / (1 << 64)
+}
+
 // Helper methods for generating random content
 func (g *Generator) generateRandomDescription() string {
 	descriptions := []string{
@@ -98,7 +118,7 @@ func (g *Generator) generateRandomDescription() string {
 		"An independent thinker with unique perspectives.",
 		"A dedicated professional with a balanced lifestyle.",
 	}
-	return descriptions[g.rng.Intn(len(descriptions))]
+	return descriptions[cryptoRandIntn(len(descriptions))]
 }
 
 func (g *Generator) generateRandomBackground() string {
@@ -109,7 +129,7 @@ func (g *Generator) generateRandomBackground() string {
 		"Built a career and life through determination and adaptability.",
 		"Formed meaningful relationships that continue to inspire growth.",
 	}
-	return backgrounds[g.rng.Intn(len(backgrounds))]
+	return backgrounds[cryptoRandIntn(len(backgrounds))]
 }
 
 func (g *Generator) generateRandomTags() []string {
@@ -119,13 +139,13 @@ func (g *Generator) generateRandomTags() []string {
 		"traditional", "progressive", "practical", "idealistic", "resilient",
 	}
 
-	numTags := g.rng.Intn(4) + 1 // 1-4 tags
+	numTags := cryptoRandIntn(4) + 1 // 1-4 tags
 	tags := make([]string, numTags)
 	used := make(map[string]bool)
 
 	for i := 0; i < numTags; i++ {
 		for {
-			tag := allTags[g.rng.Intn(len(allTags))]
+			tag := allTags[cryptoRandIntn(len(allTags))]
 			if !used[tag] {
 				tags[i] = tag
 				used[tag] = true
@@ -161,10 +181,10 @@ func (g *Generator) generateRandomDemographics() *types.Demographics {
 	education := []string{"high_school", "bachelors", "masters", "phd"}
 
 	return &types.Demographics{
-		Age:       int32(ages[g.rng.Intn(len(ages))]),
-		Gender:    genders[g.rng.Intn(len(genders))],
-		Ethnicity: ethnicities[g.rng.Intn(len(ethnicities))],
-		Education: education[g.rng.Intn(len(education))],
+		Age:       int32(ages[cryptoRandIntn(len(ages))]),
+		Gender:    genders[cryptoRandIntn(len(genders))],
+		Ethnicity: ethnicities[cryptoRandIntn(len(ethnicities))],
+		Education: education[cryptoRandIntn(len(education))],
 		Location: &types.Location{
 			Country:    "United States",
 			City:       "New York",
@@ -176,11 +196,11 @@ func (g *Generator) generateRandomDemographics() *types.Demographics {
 func (g *Generator) generateRandomPsychographics() *types.Psychographics {
 	return &types.Psychographics{
 		Personality: &types.Personality{
-			Openness:          g.rng.Float64(),
-			Conscientiousness: g.rng.Float64(),
-			Extraversion:      g.rng.Float64(),
-			Agreeableness:     g.rng.Float64(),
-			Neuroticism:       g.rng.Float64(),
+			Openness:          cryptoRandFloat64(),
+			Conscientiousness: cryptoRandFloat64(),
+			Extraversion:      cryptoRandFloat64(),
+			Agreeableness:     cryptoRandFloat64(),
+			Neuroticism:       cryptoRandFloat64(),
 		},
 		Values:        []string{"honesty", "compassion", "growth"},
 		RiskTolerance: "medium",
@@ -262,7 +282,7 @@ func (g *Generator) generateCommunityDemographics(spec *CommunitySpecification) 
 	demographics := &types.Demographics{}
 
 	if spec.AgeRange != nil {
-		demographics.Age = int32(g.rng.Intn(int(spec.AgeRange.Max-spec.AgeRange.Min+1)) + int(spec.AgeRange.Min))
+		demographics.Age = int32(cryptoRandIntn(int(spec.AgeRange.Max-spec.AgeRange.Min+1)) + int(spec.AgeRange.Min))
 	}
 
 	if spec.Location != nil {
@@ -299,12 +319,12 @@ func (g *Generator) generateName(demographics *types.Demographics) string {
 	firstNames := []string{"Alex", "Jordan", "Casey", "Taylor", "Morgan", "Riley", "Quinn", "Avery"}
 	lastNames := []string{"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"}
 
-	return firstNames[g.rng.Intn(len(firstNames))] + " " + lastNames[g.rng.Intn(len(lastNames))]
+	return firstNames[cryptoRandIntn(len(firstNames))] + " " + lastNames[cryptoRandIntn(len(lastNames))]
 }
 
 // Utility methods
 func (g *Generator) selectFromDistribution(distribution map[string]float64) string {
-	r := g.rng.Float64()
+	r := cryptoRandFloat64()
 	cumulative := 0.0
 
 	for key, prob := range distribution {
@@ -322,7 +342,7 @@ func (g *Generator) selectFromDistribution(distribution map[string]float64) stri
 }
 
 func (g *Generator) addVariation(base float64, variation float64) float64 {
-	change := (g.rng.Float64() - 0.5) * 2 * variation
+	change := (cryptoRandFloat64() - 0.5) * 2 * variation
 	result := base + change
 	if result < 0 {
 		return 0
