@@ -9,14 +9,14 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb/proto"
+	pb "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
 // PersonaServer implements the gRPC PersonaService
 type PersonaServer struct {
-	proto.UnimplementedPersonaServiceServer
+	pb.UnimplementedPersonaServiceServer
 }
 
 // StartGRPCServer starts a real gRPC server using protobuf
@@ -27,7 +27,7 @@ func StartGRPCServer(port string) error {
 	}
 
 	s := grpc.NewServer()
-	proto.RegisterPersonaServiceServer(s, &PersonaServer{})
+	pb.RegisterPersonaServiceServer(s, &PersonaServer{})
 
 	fmt.Printf("gRPC server listening on port %s\n", port)
 	fmt.Println("Using real gRPC with protobuf")
@@ -36,7 +36,7 @@ func StartGRPCServer(port string) error {
 }
 
 // CreatePersona creates a new persona
-func (s *PersonaServer) CreatePersona(ctx context.Context, req *proto.CreatePersonaRequest) (*proto.CreatePersonaResponse, error) {
+func (s *PersonaServer) CreatePersona(ctx context.Context, req *pb.CreatePersonaRequest) (*pb.CreatePersonaResponse, error) {
 	if req.Persona == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "persona is required")
 	}
@@ -53,8 +53,8 @@ func (s *PersonaServer) CreatePersona(ctx context.Context, req *proto.CreatePers
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	return &proto.CreatePersonaResponse{
-		Persona: &proto.Persona{
+	return &pb.CreatePersonaResponse{
+		Persona: &pb.Persona{
 			Id:      p.ID,
 			Name:    p.Name,
 			Topic:   p.Topic,
@@ -66,14 +66,14 @@ func (s *PersonaServer) CreatePersona(ctx context.Context, req *proto.CreatePers
 }
 
 // GetPersona retrieves a persona by ID
-func (s *PersonaServer) GetPersona(ctx context.Context, req *proto.GetPersonaRequest) (*proto.GetPersonaResponse, error) {
+func (s *PersonaServer) GetPersona(ctx context.Context, req *pb.GetPersonaRequest) (*pb.GetPersonaResponse, error) {
 	p, err := persona.GetPersona(req.Id)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
-	return &proto.GetPersonaResponse{
-		Persona: &proto.Persona{
+	return &pb.GetPersonaResponse{
+		Persona: &pb.Persona{
 			Id:      p.ID,
 			Name:    p.Name,
 			Topic:   p.Topic,
@@ -85,12 +85,12 @@ func (s *PersonaServer) GetPersona(ctx context.Context, req *proto.GetPersonaReq
 }
 
 // ListPersonas returns all personas
-func (s *PersonaServer) ListPersonas(ctx context.Context, req *proto.ListPersonasRequest) (*proto.ListPersonasResponse, error) {
+func (s *PersonaServer) ListPersonas(ctx context.Context, req *pb.ListPersonasRequest) (*pb.ListPersonasResponse, error) {
 	personas := persona.ListPersonas()
 
-	var protoPersonas []*proto.Persona
+	var protoPersonas []*pb.Persona
 	for _, p := range personas {
-		protoPersonas = append(protoPersonas, &proto.Persona{
+		protoPersonas = append(protoPersonas, &pb.Persona{
 			Id:      p.ID,
 			Name:    p.Name,
 			Topic:   p.Topic,
@@ -100,13 +100,13 @@ func (s *PersonaServer) ListPersonas(ctx context.Context, req *proto.ListPersona
 		})
 	}
 
-	return &proto.ListPersonasResponse{
+	return &pb.ListPersonasResponse{
 		Personas: protoPersonas,
 	}, nil
 }
 
 // UpdatePersona updates an existing persona
-func (s *PersonaServer) UpdatePersona(ctx context.Context, req *proto.UpdatePersonaRequest) (*proto.UpdatePersonaResponse, error) {
+func (s *PersonaServer) UpdatePersona(ctx context.Context, req *pb.UpdatePersonaRequest) (*pb.UpdatePersonaResponse, error) {
 	if req.Persona == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "persona is required")
 	}
@@ -124,8 +124,8 @@ func (s *PersonaServer) UpdatePersona(ctx context.Context, req *proto.UpdatePers
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	return &proto.UpdatePersonaResponse{
-		Persona: &proto.Persona{
+	return &pb.UpdatePersonaResponse{
+		Persona: &pb.Persona{
 			Id:      p.ID,
 			Name:    p.Name,
 			Topic:   p.Topic,
@@ -137,10 +137,10 @@ func (s *PersonaServer) UpdatePersona(ctx context.Context, req *proto.UpdatePers
 }
 
 // DeletePersona removes a persona by ID
-func (s *PersonaServer) DeletePersona(ctx context.Context, req *proto.DeletePersonaRequest) (*proto.DeletePersonaResponse, error) {
+func (s *PersonaServer) DeletePersona(ctx context.Context, req *pb.DeletePersonaRequest) (*pb.DeletePersonaResponse, error) {
 	if err := persona.DeletePersona(req.Id); err != nil {
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
-	return &proto.DeletePersonaResponse{}, nil
+	return &pb.DeletePersonaResponse{}, nil
 }

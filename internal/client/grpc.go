@@ -8,14 +8,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb/proto"
+	pb "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
 // GRPCClient implements a real gRPC client using protobuf
 type GRPCClient struct {
 	conn   *grpc.ClientConn
-	client proto.PersonaServiceClient
+	client pb.PersonaServiceClient
 }
 
 // NewGRPCClient creates a new gRPC client
@@ -31,7 +31,7 @@ func NewGRPCClient(address string) (*GRPCClient, error) {
 		return nil, fmt.Errorf("failed to connect to gRPC server: %v", err)
 	}
 
-	client := proto.NewPersonaServiceClient(conn)
+	client := pb.NewPersonaServiceClient(conn)
 
 	return &GRPCClient{
 		conn:   conn,
@@ -48,8 +48,8 @@ func (g *GRPCClient) Create(p *types.Persona) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	req := &proto.CreatePersonaRequest{
-		Persona: &proto.Persona{
+	req := &pb.CreatePersonaRequest{
+		Persona: &pb.Persona{
 			Name:    p.Name,
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
@@ -72,7 +72,7 @@ func (g *GRPCClient) Get(id string) (types.Persona, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	req := &proto.GetPersonaRequest{Id: id}
+	req := &pb.GetPersonaRequest{Id: id}
 
 	resp, err := g.client.GetPersona(ctx, req)
 	if err != nil {
@@ -93,7 +93,7 @@ func (g *GRPCClient) List() ([]types.Persona, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	req := &proto.ListPersonasRequest{}
+	req := &pb.ListPersonasRequest{}
 
 	resp, err := g.client.ListPersonas(ctx, req)
 	if err != nil {
@@ -119,9 +119,9 @@ func (g *GRPCClient) Update(id string, p types.Persona) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	req := &proto.UpdatePersonaRequest{
+	req := &pb.UpdatePersonaRequest{
 		Id: id,
-		Persona: &proto.Persona{
+		Persona: &pb.Persona{
 			Name:    p.Name,
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
@@ -142,7 +142,7 @@ func (g *GRPCClient) Delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	req := &proto.DeletePersonaRequest{Id: id}
+	req := &pb.DeletePersonaRequest{Id: id}
 
 	_, err := g.client.DeletePersona(ctx, req)
 	if err != nil {
