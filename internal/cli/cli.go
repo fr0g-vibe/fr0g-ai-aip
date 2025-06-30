@@ -23,7 +23,7 @@ var defaultConfig = Config{
 	ClientType:  "local",
 	StorageType: "memory",
 	DataDir:     "./data",
-	ServerURL:   "http://localhost:8080", // For REST, or "localhost:9090" for gRPC
+	ServerURL:   "localhost:8080", // For REST, or "localhost:9090" for gRPC
 }
 
 // Execute runs the CLI interface
@@ -39,13 +39,13 @@ func ExecuteWithConfig(config Config) error {
 	}
 
 	command := os.Args[1]
-	
+
 	// Create client based on configuration
 	client, err := createClient(config)
 	if err != nil {
 		return fmt.Errorf("failed to create client: %v", err)
 	}
-	
+
 	switch command {
 	case "list":
 		return listPersonas(client)
@@ -68,7 +68,7 @@ func createClient(config Config) (client.Client, error) {
 	case "local":
 		var store storage.Storage
 		var err error
-		
+
 		switch config.StorageType {
 		case "memory":
 			store = storage.NewMemoryStorage()
@@ -80,7 +80,7 @@ func createClient(config Config) (client.Client, error) {
 		default:
 			return nil, fmt.Errorf("unknown storage type: %s", config.StorageType)
 		}
-		
+
 		return client.NewLocalClient(store), nil
 	case "rest":
 		return client.NewRESTClient(config.ServerURL), nil
@@ -129,12 +129,12 @@ func listPersonas(c client.Client) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if len(personas) == 0 {
 		fmt.Println("No personas found")
 		return nil
 	}
-	
+
 	fmt.Println("Personas:")
 	for _, p := range personas {
 		fmt.Printf("  ID: %s, Name: %s, Topic: %s\n", p.ID, p.Name, p.Topic)
@@ -147,24 +147,24 @@ func createPersona(c client.Client) error {
 	name := fs.String("name", "", "Persona name")
 	topic := fs.String("topic", "", "Persona topic/expertise")
 	prompt := fs.String("prompt", "", "System prompt")
-	
+
 	fs.Parse(os.Args[2:])
-	
+
 	if *name == "" || *topic == "" || *prompt == "" {
 		fmt.Println("Usage: fr0g-ai-aip create -name <name> -topic <topic> -prompt <prompt>")
 		return fmt.Errorf("missing required parameters")
 	}
-	
+
 	p := types.Persona{
 		Name:   *name,
 		Topic:  *topic,
 		Prompt: *prompt,
 	}
-	
+
 	if err := c.Create(&p); err != nil {
 		return err
 	}
-	
+
 	fmt.Printf("Created persona: %s (ID: %s)\n", p.Name, p.ID)
 	return nil
 }
@@ -174,13 +174,13 @@ func getPersona(c client.Client) error {
 		fmt.Println("Usage: fr0g-ai-aip get <id>")
 		return fmt.Errorf("persona ID required")
 	}
-	
+
 	id := os.Args[2]
 	p, err := c.Get(id)
 	if err != nil {
 		return err
 	}
-	
+
 	fmt.Printf("ID: %s\n", p.ID)
 	fmt.Printf("Name: %s\n", p.Name)
 	fmt.Printf("Topic: %s\n", p.Topic)
@@ -205,22 +205,22 @@ func updatePersona(c client.Client) error {
 		fmt.Println("Usage: fr0g-ai-aip update <id> -name <name> -topic <topic> -prompt <prompt>")
 		return fmt.Errorf("persona ID required")
 	}
-	
+
 	id := os.Args[2]
-	
+
 	fs := flag.NewFlagSet("update", flag.ExitOnError)
 	name := fs.String("name", "", "Persona name")
 	topic := fs.String("topic", "", "Persona topic/expertise")
 	prompt := fs.String("prompt", "", "System prompt")
-	
+
 	fs.Parse(os.Args[3:])
-	
+
 	// Get existing persona first
 	existing, err := c.Get(id)
 	if err != nil {
 		return err
 	}
-	
+
 	// Update only provided fields
 	if *name != "" {
 		existing.Name = *name
@@ -231,11 +231,11 @@ func updatePersona(c client.Client) error {
 	if *prompt != "" {
 		existing.Prompt = *prompt
 	}
-	
+
 	if err := c.Update(id, existing); err != nil {
 		return err
 	}
-	
+
 	fmt.Printf("Updated persona: %s\n", id)
 	return nil
 }
@@ -245,12 +245,12 @@ func deletePersona(c client.Client) error {
 		fmt.Println("Usage: fr0g-ai-aip delete <id>")
 		return fmt.Errorf("persona ID required")
 	}
-	
+
 	id := os.Args[2]
 	if err := c.Delete(id); err != nil {
 		return err
 	}
-	
+
 	fmt.Printf("Deleted persona: %s\n", id)
 	return nil
 }
@@ -258,7 +258,7 @@ func deletePersona(c client.Client) error {
 // GetConfigFromEnv reads configuration from environment variables
 func GetConfigFromEnv() Config {
 	config := defaultConfig
-	
+
 	if clientType := os.Getenv("FR0G_CLIENT_TYPE"); clientType != "" {
 		config.ClientType = clientType
 	}
@@ -271,13 +271,13 @@ func GetConfigFromEnv() Config {
 	if serverURL := os.Getenv("FR0G_SERVER_URL"); serverURL != "" {
 		config.ServerURL = serverURL
 	}
-	
+
 	// Expand relative paths
 	if !filepath.IsAbs(config.DataDir) {
 		if abs, err := filepath.Abs(config.DataDir); err == nil {
 			config.DataDir = abs
 		}
 	}
-	
+
 	return config
 }
