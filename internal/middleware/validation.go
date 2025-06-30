@@ -36,51 +36,51 @@ func ValidatePersona(p *types.Persona) error {
 			Message: "persona cannot be nil",
 		}}}
 	}
-	
+
 	var errors []ValidationError
-	
+
 	if strings.TrimSpace(p.Name) == "" {
 		errors = append(errors, ValidationError{
 			Field:   "name",
 			Message: "name is required and cannot be empty",
 		})
 	}
-	
+
 	if len(p.Name) > 100 {
 		errors = append(errors, ValidationError{
 			Field:   "name",
 			Message: "name cannot exceed 100 characters",
 		})
 	}
-	
+
 	if strings.TrimSpace(p.Topic) == "" {
 		errors = append(errors, ValidationError{
 			Field:   "topic",
 			Message: "topic is required and cannot be empty",
 		})
 	}
-	
+
 	if len(p.Topic) > 200 {
 		errors = append(errors, ValidationError{
 			Field:   "topic",
 			Message: "topic cannot exceed 200 characters",
 		})
 	}
-	
+
 	if strings.TrimSpace(p.Prompt) == "" {
 		errors = append(errors, ValidationError{
 			Field:   "prompt",
 			Message: "prompt is required and cannot be empty",
 		})
 	}
-	
+
 	if len(p.Prompt) > 10000 {
 		errors = append(errors, ValidationError{
 			Field:   "prompt",
 			Message: "prompt cannot exceed 10000 characters",
 		})
 	}
-	
+
 	// Validate context keys and values
 	for key, value := range p.Context {
 		if strings.TrimSpace(key) == "" {
@@ -102,34 +102,20 @@ func ValidatePersona(p *types.Persona) error {
 			})
 		}
 	}
-	
-	// Validate RAG entries
-	if len(p.RAG) > 100 {
-		errors = append(errors, ValidationError{
-			Field:   "rag",
-			Message: "cannot have more than 100 RAG entries",
-		})
-	}
-	
-	for i, rag := range p.RAG {
-		if strings.TrimSpace(rag) == "" {
-			errors = append(errors, ValidationError{
-				Field:   fmt.Sprintf("rag[%d]", i),
-				Message: "RAG entries cannot be empty",
-			})
-		}
-		if len(rag) > 1000 {
-			errors = append(errors, ValidationError{
-				Field:   fmt.Sprintf("rag[%d]", i),
-				Message: "RAG entries cannot exceed 1000 characters",
-			})
+
+	// Validate RAG field
+	if p.Rag != nil {
+		for i, rag := range p.Rag {
+			if strings.TrimSpace(rag) == "" {
+				return fmt.Errorf("RAG item %d cannot be empty", i)
+			}
 		}
 	}
-	
+
 	if len(errors) > 0 {
 		return ValidationErrors{Errors: errors}
 	}
-	
+
 	return nil
 }
 
@@ -137,29 +123,29 @@ func ValidatePersona(p *types.Persona) error {
 func ValidationMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Only validate POST and PUT requests with JSON content
-		if (r.Method == http.MethodPost || r.Method == http.MethodPut) && 
-		   strings.Contains(r.Header.Get("Content-Type"), "application/json") {
-			
+		if (r.Method == http.MethodPost || r.Method == http.MethodPut) &&
+			strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+
 			var p types.Persona
 			if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 				http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 				return
 			}
-			
+
 			if err := ValidatePersona(&p); err != nil {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode(map[string]interface{}{
-					"error": "Validation failed",
+					"error":   "Validation failed",
 					"details": err,
 				})
 				return
 			}
-			
+
 			// Store validated persona in request context for handlers to use
 			// For now, we'll let the handler re-decode, but this could be optimized
 		}
-		
+
 		next.ServeHTTP(w, r)
 	}
 }
@@ -169,16 +155,16 @@ func SanitizePersona(p *types.Persona) {
 	if p == nil {
 		return
 	}
-	
+
 	p.Name = strings.TrimSpace(p.Name)
 	p.Topic = strings.TrimSpace(p.Topic)
 	p.Prompt = strings.TrimSpace(p.Prompt)
-	
+
 	// Initialize context if nil
 	if p.Context == nil {
 		p.Context = make(map[string]string)
 	}
-	
+
 	// Sanitize context
 	for key, value := range p.Context {
 		delete(p.Context, key)
@@ -188,13 +174,15 @@ func SanitizePersona(p *types.Persona) {
 			p.Context[cleanKey] = cleanValue
 		}
 	}
-	
-	// Sanitize RAG entries
-	var cleanRAG []string
-	for _, rag := range p.RAG {
-		if clean := strings.TrimSpace(rag); clean != "" {
-			cleanRAG = append(cleanRAG, clean)
+
+	// Sanitize RAG field
+	if p.Rag != nil {
+		var cleanRAG []string
+		for _, rag := range p.Rag {
+			if clean := strings.TrimSpace(rag); clean != "" {
+				cleanRAG = append(cleanRAG, clean)
+			}
 		}
+		p.Rag = cleanRAG
 	}
-	p.RAG = cleanRAG
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/middleware"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Type alias for backward compatibility
@@ -78,21 +79,18 @@ func (s *Service) CreateIdentity(i *types.Identity) error {
 	}
 
 	// Validate that the referenced persona exists
-	if _, err := s.storage.Get(i.PersonaID); err != nil {
+	if _, err := s.storage.Get(i.PersonaId); err != nil {
 		return fmt.Errorf("referenced persona not found: %v", err)
 	}
 
 	// Set timestamps
 	now := time.Now()
-	i.CreatedAt = now
-	i.UpdatedAt = now
+	i.CreatedAt = timestamppb.New(now)
+	i.UpdatedAt = timestamppb.New(now)
 
 	// Set default values
-	if i.Attributes == nil {
-		i.Attributes = make(map[string]string)
-	}
-	if i.Preferences == nil {
-		i.Preferences = make(map[string]string)
+	if i.RichAttributes == nil {
+		i.RichAttributes = &types.RichAttributes{}
 	}
 	if i.Tags == nil {
 		i.Tags = []string{}
@@ -118,12 +116,12 @@ func (s *Service) ListIdentities(filter *types.IdentityFilter) ([]types.Identity
 // UpdateIdentity updates an existing identity with validation
 func (s *Service) UpdateIdentity(id string, i types.Identity) error {
 	// Validate that the referenced persona exists
-	if _, err := s.storage.Get(i.PersonaID); err != nil {
+	if _, err := s.storage.Get(i.PersonaId); err != nil {
 		return fmt.Errorf("referenced persona not found: %v", err)
 	}
 
 	// Update timestamp
-	i.UpdatedAt = time.Now()
+	i.UpdatedAt = timestamppb.New(time.Now())
 
 	// Update identity
 	return s.storage.UpdateIdentity(id, i)

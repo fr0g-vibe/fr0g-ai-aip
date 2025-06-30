@@ -22,19 +22,177 @@ message Identity {
   string persona_id = 2;
   string name = 3;
   string description = 4;
-  map<string, string> attributes = 5;
-  map<string, string> preferences = 6;
+  map<string, string> attributes = 5;  // Legacy simple attributes (deprecated)
+  map<string, string> preferences = 6; // Legacy preferences (deprecated)
   string background = 7;
   google.protobuf.Timestamp created_at = 8;
   google.protobuf.Timestamp updated_at = 9;
   bool is_active = 10;
   repeated string tags = 11;
+  RichAttributes rich_attributes = 12; // New structured attributes
 }
 
-// IdentityWithPersona combines an identity with its base persona
-message IdentityWithPersona {
-  Identity identity = 1;
-  Persona persona = 2;
+// RichAttributes combines all attribute categories into a comprehensive structure
+message RichAttributes {
+  Demographics demographics = 1;
+  Psychographics psychographics = 2;
+  LifeHistory life_history = 3;
+  CulturalReligious cultural_religious = 4;
+  PoliticalSocial political_social = 5;
+  Health health = 6;
+  Preferences preferences = 7;
+  BehavioralTendencies behavioral_tendencies = 8;
+  CurrentContext current_context = 9;
+  map<string, string> custom = 10; // For any additional custom attributes
+}
+
+// Demographics represents basic demographic information
+message Demographics {
+  int32 age = 1;
+  string gender = 2;
+  string ethnicity = 3;
+  string nationality = 4;
+  string education = 5;
+  string occupation = 6;
+  string socioeconomic_status = 7;
+  Location location = 8;
+  repeated string languages = 9;
+  string marital_status = 10;
+  int32 children = 11;
+}
+
+// Location represents geographic and cultural location information
+message Location {
+  string country = 1;
+  string region = 2;
+  string city = 3;
+  string urban_rural = 4;
+  string timezone = 5;
+}
+
+// Psychographics represents personality and psychological traits
+message Psychographics {
+  Personality personality = 1;
+  repeated string values = 2;
+  repeated string core_beliefs = 3;
+  string cognitive_style = 4;
+  string learning_style = 5;
+  string risk_tolerance = 6;
+  double openness_to_change = 7;
+}
+
+// Personality represents personality traits using Big Five model
+message Personality {
+  double openness = 1;
+  double conscientiousness = 2;
+  double extraversion = 3;
+  double agreeableness = 4;
+  double neuroticism = 5;
+}
+
+// LifeHistory represents significant life events and experiences
+message LifeHistory {
+  repeated string childhood_traumas = 1;
+  repeated string adult_traumas = 2;
+  repeated LifeEvent major_events = 3;
+  repeated Education education_history = 4;
+  repeated Career career_history = 5;
+}
+
+// LifeEvent represents a significant life event
+message LifeEvent {
+  string type = 1;
+  string description = 2;
+  int32 age = 3;
+  google.protobuf.Timestamp date = 4;
+  string impact = 5;
+}
+
+// Education represents educational background
+message Education {
+  string level = 1;
+  string field = 2;
+  string institution = 3;
+  google.protobuf.Timestamp graduation = 4;
+  string performance = 5;
+}
+
+// Career represents career information
+message Career {
+  string title = 1;
+  string industry = 2;
+  string company = 3;
+  google.protobuf.Timestamp start_date = 4;
+  google.protobuf.Timestamp end_date = 5;
+  bool is_current = 6;
+  string salary = 7;
+}
+
+// CulturalReligious represents cultural and religious background
+message CulturalReligious {
+  string religion = 1;
+  string spirituality = 2;
+  string cultural_background = 3;
+  repeated string traditions = 4;
+  repeated string holidays = 5;
+  repeated string dietary_restrictions = 6;
+}
+
+// PoliticalSocial represents political and social views
+message PoliticalSocial {
+  string political_leaning = 1;
+  repeated string activism = 2;
+  repeated string social_groups = 3;
+  repeated string causes = 4;
+  string voting_history = 5;
+  repeated string media_consumption = 6;
+}
+
+// Health represents health information
+message Health {
+  string physical_health = 1;
+  string mental_health = 2;
+  repeated string disabilities = 3;
+  repeated string chronic_conditions = 4;
+  repeated string addictions = 5;
+  repeated string medications = 6;
+}
+
+// Preferences represents personal preferences and interests
+message Preferences {
+  repeated string hobbies = 1;
+  repeated string interests = 2;
+  repeated string favorite_foods = 3;
+  repeated string favorite_music = 4;
+  repeated string favorite_movies = 5;
+  repeated string favorite_books = 6;
+  string technology_use = 7;
+  string travel_style = 8;
+}
+
+// BehavioralTendencies represents behavioral patterns
+message BehavioralTendencies {
+  string decision_making = 1;
+  string conflict_resolution = 2;
+  string communication_style = 3;
+  string leadership_style = 4;
+  repeated string coping_mechanisms = 5;
+  string stress_response = 6;
+}
+
+// CurrentContext represents current situational context
+message CurrentContext {
+  string mood = 1;
+  double stress_level = 2;
+  repeated string current_goals = 3;
+  repeated string recent_events = 4;
+  string life_stage = 5;
+}
+
+// AgeRange represents a range of ages for filtering
+message AgeRange {
+  int32 min = 1;
+  int32 max = 2;
 }
 
 // IdentityFilter represents filters for listing identities
@@ -43,6 +201,18 @@ message IdentityFilter {
   repeated string tags = 2;
   bool is_active = 3;
   string search = 4;
+  AgeRange age_range = 5;
+  Location location = 6;
+  string political_leaning = 7;
+  string education = 8;
+  string occupation = 9;
+  Personality personality = 10;
+}
+
+// IdentityWithPersona combines an identity with its base persona
+message IdentityWithPersona {
+  Identity identity = 1;
+  Persona persona = 2;
 }
 
 // Request messages for personas
