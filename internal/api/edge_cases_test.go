@@ -8,9 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fr0g-vibe/fr0g-ai-aip/internal/config"
-	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
-	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
