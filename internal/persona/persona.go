@@ -41,7 +41,6 @@ import (
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/middleware"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Persona is a type alias for backward compatibility.
