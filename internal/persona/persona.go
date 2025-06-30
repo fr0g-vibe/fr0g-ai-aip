@@ -232,6 +232,11 @@ func (s *Service) UpdatePersona(id string, p types.Persona) error {
 	return s.storage.Update(id, p)
 }
 
+// GetStorage returns the underlying storage interface
+func (s *Service) GetStorage() storage.Storage {
+	return s.storage
+}
+
 // CreateIdentity creates a new identity with validation.
 //
 // An identity represents an instance of a persona with specific demographic

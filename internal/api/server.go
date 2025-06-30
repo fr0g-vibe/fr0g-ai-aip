@@ -218,9 +218,15 @@ func (s *Server) identitiesHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		
-		// TODO: Implement identity service methods
+		// Get identities from storage
+		identities, err := s.service.GetStorage().ListIdentities(filter)
+		if err != nil {
+			http.Error(w, "Failed to list identities", http.StatusInternalServerError)
+			return
+		}
+		
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode([]types.Identity{})
+		json.NewEncoder(w).Encode(identities)
 		
 	case http.MethodPost:
 		var req struct {
