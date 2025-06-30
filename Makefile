@@ -51,6 +51,13 @@ test-coverage-detailed: proto-if-needed
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
+# Run tests with verbose coverage for specific package
+test-coverage-verbose-grpc: proto-if-needed
+	go test -v -coverprofile=grpc_coverage.out ./internal/grpc/
+	go tool cover -func=grpc_coverage.out
+	go tool cover -html=grpc_coverage.out -o grpc_coverage.html
+	@echo "gRPC coverage report generated: grpc_coverage.html"
+
 # Run tests with verbose output
 test-verbose: proto-if-needed
 	go test -v ./...
