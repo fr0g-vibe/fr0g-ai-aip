@@ -385,3 +385,18 @@ func TestPersonaHandler_ComplexPersona(t *testing.T) {
 		t.Errorf("Expected 2 RAG items, got %d", len(retrieved.RAG))
 	}
 }
+
+func TestPersonaHandler_DELETE_NotFound(t *testing.T) {
+	// Setup test service
+	store := storage.NewMemoryStorage()
+	persona.SetDefaultService(persona.NewService(store))
+	
+	req := httptest.NewRequest(http.MethodDelete, "/personas/nonexistent", nil)
+	w := httptest.NewRecorder()
+	
+	personaHandler(w, req)
+	
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Expected status 404, got %d", w.Code)
+	}
+}

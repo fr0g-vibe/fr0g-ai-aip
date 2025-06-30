@@ -89,3 +89,27 @@ func TestMainInvalidStorageType(t *testing.T) {
 	// This would cause log.Fatalf in main()
 	// We can't test main() directly but can verify the logic would handle this
 }
+
+func TestMainBothServerModes(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test both server modes together
+	os.Args = []string{"fr0g-ai-aip", "-server", "-grpc", "-storage", "memory"}
+	
+	// This would start both HTTP and gRPC servers concurrently
+	// We can't test main() directly but can verify the flag parsing
+}
+
+func TestMainInvalidStorageType(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test with invalid storage type
+	os.Args = []string{"fr0g-ai-aip", "-server", "-storage", "invalid"}
+	
+	// This would cause log.Fatalf in main()
+	// We can't test main() directly but can verify the logic would handle this
+}
