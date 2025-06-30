@@ -42,7 +42,7 @@ make build-with-grpc
 make build
 ```
 
-## Dependency Philosophy
+## Architecture
 
 This project supports multiple client/server modes:
 - **Core functionality**: Uses Go standard library where possible
@@ -50,6 +50,9 @@ This project supports multiple client/server modes:
 - **gRPC API**: Uses google.golang.org/grpc and google.golang.org/protobuf
 - **JSON handling**: Built with `encoding/json` (standard library)
 - **File storage**: Built with `os` and `path/filepath` (standard library)
+- **Community Generation**: Advanced AI persona community creation and management
+- **Identity Management**: Rich persona instances with demographics and attributes
+- **Statistical Analysis**: Diversity metrics, cohesion scoring, and community analytics
 
 ## Documentation
 
