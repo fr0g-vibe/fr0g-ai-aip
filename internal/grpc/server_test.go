@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"testing"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -1430,4 +1431,64 @@ func TestPersonaServer_ProtobufConversion(t *testing.T) {
 			t.Errorf("RAG field %d: expected %s, got %s", i, v, getResp.Persona.Rag[i])
 		}
 	}
+}
+
+func TestStartGRPCServer(t *testing.T) {
+	// Test the StartGRPCServer function to improve coverage
+	// We'll test that it can start and stop gracefully
+	
+	// Set up clean storage for the test
+	memStorage := storage.NewMemoryStorage()
+	service := persona.NewService(memStorage)
+	persona.SetDefaultService(service)
+	
+	// Use a random available port
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		t.Fatalf("Failed to create listener: %v", err)
+	}
+	port := listener.Addr().(*net.TCPAddr).Port
+	listener.Close()
+	
+	// Start the server in a goroutine
+	done := make(chan error, 1)
+	go func() {
+		err := StartGRPCServer(port)
+		done <- err
+	}()
+	
+	// Give the server a moment to start
+	time.Sleep(100 * time.Millisecond)
+	
+	// Try to connect to verify the server is running
+	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", port), 
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTimeout(time.Second))
+	if err != nil {
+		t.Fatalf("Failed to connect to gRPC server: %v", err)
+	}
+	
+	// Create a client and test a simple operation
+	client := pb.NewPersonaServiceClient(conn)
+	
+	// Test that the server is responding
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	
+	listResp, err := client.ListPersonas(ctx, &pb.ListPersonasRequest{})
+	if err != nil {
+		t.Fatalf("Failed to call ListPersonas: %v", err)
+	}
+	
+	// Should return empty list initially
+	if len(listResp.Personas) != 0 {
+		t.Errorf("Expected empty list, got %d personas", len(listResp.Personas))
+	}
+	
+	// Clean up
+	conn.Close()
+	
+	// Note: We can't easily test server shutdown without modifying the StartGRPCServer function
+	// to accept a context or shutdown channel, but we've covered the startup path which was
+	// the missing coverage.
 }
