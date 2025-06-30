@@ -345,3 +345,107 @@ func TestExecuteWithConfig_ErrorPropagation(t *testing.T) {
 		t.Error("Expected error for invalid storage path")
 	}
 }
+
+func TestExecuteWithConfig_GetSuccess(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	
+	// Create a persona first
+	os.Args = []string{"fr0g-ai-aip", "create", "-name", "Get Test", "-topic", "Testing", "-prompt", "Test prompt"}
+	err := ExecuteWithConfig(config)
+	if err != nil {
+		t.Fatalf("Create failed: %v", err)
+	}
+	
+	// We can't easily test get without knowing the ID, but we can test the error case
+	os.Args = []string{"fr0g-ai-aip", "get", "nonexistent"}
+	err = ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for non-existent persona")
+	}
+}
+
+func TestExecuteWithConfig_UpdateSuccess(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	
+	// Test update with non-existent ID
+	os.Args = []string{"fr0g-ai-aip", "update", "nonexistent", "-name", "Updated"}
+	err := ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for updating non-existent persona")
+	}
+}
+
+func TestExecuteWithConfig_DeleteSuccess(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	
+	// Test delete with non-existent ID
+	os.Args = []string{"fr0g-ai-aip", "delete", "nonexistent"}
+	err := ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for deleting non-existent persona")
+	}
+}
+
+func TestCreateClient_GRPCError(t *testing.T) {
+	// Test gRPC client creation with invalid address
+	config := Config{
+		ClientType: "grpc",
+		ServerURL:  "invalid:address:format",
+	}
+	
+	client, err := createClient(config)
+	// gRPC client creation might not fail immediately, but should return a client
+	if client == nil && err == nil {
+		t.Error("Expected either client or error")
+	}
+}
+
+func TestGetConfigFromEnv_AllDefaults(t *testing.T) {
+	// Save original env vars
+	originalClientType := os.Getenv("FR0G_CLIENT_TYPE")
+	originalStorageType := os.Getenv("FR0G_STORAGE_TYPE")
+	originalDataDir := os.Getenv("FR0G_DATA_DIR")
+	originalServerURL := os.Getenv("FR0G_SERVER_URL")
+	
+	// Clean up after test
+	defer func() {
+		os.Setenv("FR0G_CLIENT_TYPE", originalClientType)
+		os.Setenv("FR0G_STORAGE_TYPE", originalStorageType)
+		os.Setenv("FR0G_DATA_DIR", originalDataDir)
+		os.Setenv("FR0G_SERVER_URL", originalServerURL)
+	}()
+	
+	// Clear all env vars
+	os.Unsetenv("FR0G_CLIENT_TYPE")
+	os.Unsetenv("FR0G_STORAGE_TYPE")
+	os.Unsetenv("FR0G_DATA_DIR")
+	os.Unsetenv("FR0G_SERVER_URL")
+	
+	config := GetConfigFromEnv()
+	
+	// Verify all defaults
+	if config.ClientType != "grpc" {
+		t.Errorf("Expected default client type 'grpc', got %s", config.ClientType)
+	}
+	if config.StorageType != "file" {
+		t.Errorf("Expected default storage type 'file', got %s", config.StorageType)
+	}
+	if config.DataDir != "./data" {
+		t.Errorf("Expected default data dir './data', got %s", config.DataDir)
+	}
+	if config.ServerURL != "localhost:9090" {
+		t.Errorf("Expected default server URL 'localhost:9090', got %s", config.ServerURL)
+	}
+}

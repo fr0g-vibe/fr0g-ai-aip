@@ -215,3 +215,84 @@ func TestDeletePersona(t *testing.T) {
 		t.Error("Expected error when getting deleted persona")
 	}
 }
+
+func TestUpdatePersona(t *testing.T) {
+	// Reset default service for clean test
+	defaultService = NewService(storage.NewMemoryStorage())
+	
+	p := types.Persona{
+		Name:   "Update Test Expert",
+		Topic:  "Updating",
+		Prompt: "You are an updating expert.",
+	}
+	
+	err := CreatePersona(&p)
+	if err != nil {
+		t.Fatalf("Failed to create persona: %v", err)
+	}
+	
+	// Update the persona
+	p.Name = "Updated Expert"
+	err = UpdatePersona(p.ID, p)
+	if err != nil {
+		t.Fatalf("Failed to update persona: %v", err)
+	}
+	
+	// Get the updated persona
+	retrieved, err := GetPersona(p.ID)
+	if err != nil {
+		t.Fatalf("Failed to get updated persona: %v", err)
+	}
+	
+	if retrieved.Name != "Updated Expert" {
+		t.Errorf("Expected name 'Updated Expert', got %s", retrieved.Name)
+	}
+}
+
+func TestServiceValidation(t *testing.T) {
+	service := NewService(storage.NewMemoryStorage())
+	
+	// Test validation errors
+	tests := []struct {
+		name    string
+		persona types.Persona
+		wantErr bool
+	}{
+		{"missing name", types.Persona{Topic: "Test", Prompt: "Test"}, true},
+		{"missing topic", types.Persona{Name: "Test", Prompt: "Test"}, true},
+		{"missing prompt", types.Persona{Name: "Test", Topic: "Test"}, true},
+		{"valid persona", types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}, false},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := service.CreatePersona(&tt.persona)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CreatePersona() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestServiceErrorHandling(t *testing.T) {
+	service := NewService(storage.NewMemoryStorage())
+	
+	// Test get non-existent persona
+	_, err := service.GetPersona("nonexistent")
+	if err == nil {
+		t.Error("Expected error for non-existent persona")
+	}
+	
+	// Test update non-existent persona
+	p := types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}
+	err = service.UpdatePersona("nonexistent", p)
+	if err == nil {
+		t.Error("Expected error for updating non-existent persona")
+	}
+	
+	// Test delete non-existent persona
+	err = service.DeletePersona("nonexistent")
+	if err == nil {
+		t.Error("Expected error for deleting non-existent persona")
+	}
+}
