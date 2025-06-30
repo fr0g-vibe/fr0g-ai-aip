@@ -7,15 +7,18 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
-// FileStorage implements file-based storage for personas
+// FileStorage implements file-based storage for personas and identities
 type FileStorage struct {
-	dataDir string
-	mu      sync.RWMutex
+	dataDir       string
+	identitiesDir string
+	mu            sync.RWMutex
 }
 
 // NewFileStorage creates a new file storage instance
@@ -23,16 +26,23 @@ func NewFileStorage(dataDir string) (*FileStorage, error) {
 	if err := os.MkdirAll(dataDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create data directory: %v", err)
 	}
-	
+
+	identitiesDir := filepath.Join(dataDir, "identities")
+	if err := os.MkdirAll(identitiesDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create identities directory: %v", err)
+	}
+
 	return &FileStorage{
-		dataDir: dataDir,
+		dataDir:       dataDir,
+		identitiesDir: identitiesDir,
 	}, nil
 }
 
+// Persona operations
 func (f *FileStorage) Create(p *types.Persona) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	
+
 	if p == nil {
 		return fmt.Errorf("persona cannot be nil")
 	}
@@ -45,7 +55,7 @@ func (f *FileStorage) Create(p *types.Persona) error {
 	if p.Prompt == "" {
 		return fmt.Errorf("persona prompt is required")
 	}
-	
+
 	p.ID = f.generateID()
 	return f.writePersona(*p)
 }
@@ -53,19 +63,19 @@ func (f *FileStorage) Create(p *types.Persona) error {
 func (f *FileStorage) Get(id string) (types.Persona, error) {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
-	
+
 	return f.readPersona(id)
 }
 
 func (f *FileStorage) List() ([]types.Persona, error) {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
-	
+
 	files, err := os.ReadDir(f.dataDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read data directory: %v", err)
 	}
-	
+
 	var personas []types.Persona
 	for _, file := range files {
 		if filepath.Ext(file.Name()) == ".json" {
@@ -75,19 +85,19 @@ func (f *FileStorage) List() ([]types.Persona, error) {
 			}
 		}
 	}
-	
+
 	return personas, nil
 }
 
 func (f *FileStorage) Update(id string, p types.Persona) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	
+
 	// Check if persona exists
 	if _, err := f.readPersona(id); err != nil {
 		return fmt.Errorf("persona not found: %s", id)
 	}
-	
+
 	p.ID = id
 	return f.writePersona(p)
 }
@@ -95,15 +105,172 @@ func (f *FileStorage) Update(id string, p types.Persona) error {
 func (f *FileStorage) Delete(id string) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	
+
 	filePath := filepath.Join(f.dataDir, id+".json")
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return fmt.Errorf("persona not found: %s", id)
 	}
-	
+
 	return os.Remove(filePath)
 }
 
+// Identity operations
+func (f *FileStorage) CreateIdentity(i *types.Identity) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if i == nil {
+		return fmt.Errorf("identity cannot be nil")
+	}
+	if i.PersonaID == "" {
+		return fmt.Errorf("persona ID is required")
+	}
+	if i.Name == "" {
+		return fmt.Errorf("identity name is required")
+	}
+
+	// Verify persona exists
+	if _, err := f.readPersona(i.PersonaID); err != nil {
+		return fmt.Errorf("referenced persona not found: %s", i.PersonaID)
+	}
+
+	i.ID = f.generateID()
+	now := time.Now()
+	i.CreatedAt = now
+	i.UpdatedAt = now
+
+	// Set default values
+	if i.Attributes == nil {
+		i.Attributes = make(map[string]string)
+	}
+	if i.Preferences == nil {
+		i.Preferences = make(map[string]string)
+	}
+	if i.Tags == nil {
+		i.Tags = []string{}
+	}
+	if !i.IsActive {
+		i.IsActive = true
+	}
+
+	return f.writeIdentity(*i)
+}
+
+func (f *FileStorage) GetIdentity(id string) (types.Identity, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	return f.readIdentity(id)
+}
+
+func (f *FileStorage) ListIdentities(filter *types.IdentityFilter) ([]types.Identity, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	files, err := os.ReadDir(f.identitiesDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read identities directory: %v", err)
+	}
+
+	var identities []types.Identity
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".json" {
+			id := file.Name()[:len(file.Name())-5] // Remove .json extension
+			if i, err := f.readIdentity(id); err == nil {
+				// Apply filters
+				if filter != nil {
+					if filter.PersonaID != "" && i.PersonaID != filter.PersonaID {
+						continue
+					}
+					if filter.IsActive != nil && i.IsActive != *filter.IsActive {
+						continue
+					}
+					if len(filter.Tags) > 0 {
+						hasTag := false
+						for _, tag := range filter.Tags {
+							for _, identityTag := range i.Tags {
+								if identityTag == tag {
+									hasTag = true
+									break
+								}
+							}
+							if hasTag {
+								break
+							}
+						}
+						if !hasTag {
+							continue
+						}
+					}
+					if filter.Search != "" {
+						searchLower := strings.ToLower(filter.Search)
+						nameMatch := strings.Contains(strings.ToLower(i.Name), searchLower)
+						descMatch := strings.Contains(strings.ToLower(i.Description), searchLower)
+						if !nameMatch && !descMatch {
+							continue
+						}
+					}
+				}
+				identities = append(identities, i)
+			}
+		}
+	}
+
+	return identities, nil
+}
+
+func (f *FileStorage) UpdateIdentity(id string, i types.Identity) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	// Check if identity exists
+	if _, err := f.readIdentity(id); err != nil {
+		return fmt.Errorf("identity not found: %s", id)
+	}
+
+	// Verify persona exists
+	if _, err := f.readPersona(i.PersonaID); err != nil {
+		return fmt.Errorf("referenced persona not found: %s", i.PersonaID)
+	}
+
+	i.ID = id
+	i.UpdatedAt = time.Now()
+	return f.writeIdentity(i)
+}
+
+func (f *FileStorage) DeleteIdentity(id string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	filePath := filepath.Join(f.identitiesDir, id+".json")
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return fmt.Errorf("identity not found: %s", id)
+	}
+
+	return os.Remove(filePath)
+}
+
+func (f *FileStorage) GetIdentityWithPersona(id string) (types.IdentityWithPersona, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	i, err := f.readIdentity(id)
+	if err != nil {
+		return types.IdentityWithPersona{}, err
+	}
+
+	p, err := f.readPersona(i.PersonaID)
+	if err != nil {
+		return types.IdentityWithPersona{}, fmt.Errorf("referenced persona not found: %s", i.PersonaID)
+	}
+
+	return types.IdentityWithPersona{
+		Identity: i,
+		Persona:  p,
+	}, nil
+}
+
+// Helper methods
 func (f *FileStorage) generateID() string {
 	bytes := make([]byte, 8)
 	rand.Read(bytes)
@@ -119,12 +286,12 @@ func (f *FileStorage) readPersona(id string) (types.Persona, error) {
 		}
 		return types.Persona{}, fmt.Errorf("failed to read persona file: %v", err)
 	}
-	
+
 	var p types.Persona
 	if err := json.Unmarshal(data, &p); err != nil {
 		return types.Persona{}, fmt.Errorf("failed to parse persona data: %v", err)
 	}
-	
+
 	return p, nil
 }
 
@@ -134,6 +301,34 @@ func (f *FileStorage) writePersona(p types.Persona) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal persona data: %v", err)
 	}
-	
+
+	return os.WriteFile(filePath, data, 0644)
+}
+
+func (f *FileStorage) readIdentity(id string) (types.Identity, error) {
+	filePath := filepath.Join(f.identitiesDir, id+".json")
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return types.Identity{}, fmt.Errorf("identity not found: %s", id)
+		}
+		return types.Identity{}, fmt.Errorf("failed to read identity file: %v", err)
+	}
+
+	var i types.Identity
+	if err := json.Unmarshal(data, &i); err != nil {
+		return types.Identity{}, fmt.Errorf("failed to parse identity data: %v", err)
+	}
+
+	return i, nil
+}
+
+func (f *FileStorage) writeIdentity(i types.Identity) error {
+	filePath := filepath.Join(f.identitiesDir, i.ID+".json")
+	data, err := json.MarshalIndent(i, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal identity data: %v", err)
+	}
+
 	return os.WriteFile(filePath, data, 0644)
 }

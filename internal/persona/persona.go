@@ -2,7 +2,8 @@ package persona
 
 import (
 	"fmt"
-	
+	"time"
+
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/middleware"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
@@ -11,7 +12,7 @@ import (
 // Type alias for backward compatibility
 type Persona = types.Persona
 
-// Service provides persona management operations
+// Service provides persona and identity management operations
 type Service struct {
 	storage storage.Storage
 }
@@ -28,15 +29,15 @@ func (s *Service) CreatePersona(p *types.Persona) error {
 	if p == nil {
 		return fmt.Errorf("persona cannot be nil")
 	}
-	
+
 	// Sanitize input
 	middleware.SanitizePersona(p)
-	
+
 	// Validate input
 	if err := middleware.ValidatePersona(p); err != nil {
 		return err
 	}
-	
+
 	// Create persona
 	return s.storage.Create(p)
 }
@@ -60,14 +61,82 @@ func (s *Service) DeletePersona(id string) error {
 func (s *Service) UpdatePersona(id string, p types.Persona) error {
 	// Sanitize input
 	middleware.SanitizePersona(&p)
-	
+
 	// Validate input
 	if err := middleware.ValidatePersona(&p); err != nil {
 		return err
 	}
-	
+
 	// Update persona
 	return s.storage.Update(id, p)
+}
+
+// CreateIdentity creates a new identity with validation
+func (s *Service) CreateIdentity(i *types.Identity) error {
+	if i == nil {
+		return fmt.Errorf("identity cannot be nil")
+	}
+
+	// Validate that the referenced persona exists
+	if _, err := s.storage.Get(i.PersonaID); err != nil {
+		return fmt.Errorf("referenced persona not found: %v", err)
+	}
+
+	// Set timestamps
+	now := time.Now()
+	i.CreatedAt = now
+	i.UpdatedAt = now
+
+	// Set default values
+	if i.Attributes == nil {
+		i.Attributes = make(map[string]string)
+	}
+	if i.Preferences == nil {
+		i.Preferences = make(map[string]string)
+	}
+	if i.Tags == nil {
+		i.Tags = []string{}
+	}
+	if !i.IsActive {
+		i.IsActive = true // Default to active
+	}
+
+	// Create identity
+	return s.storage.CreateIdentity(i)
+}
+
+// GetIdentity retrieves an identity by ID
+func (s *Service) GetIdentity(id string) (types.Identity, error) {
+	return s.storage.GetIdentity(id)
+}
+
+// ListIdentities returns identities with optional filtering
+func (s *Service) ListIdentities(filter *types.IdentityFilter) ([]types.Identity, error) {
+	return s.storage.ListIdentities(filter)
+}
+
+// UpdateIdentity updates an existing identity with validation
+func (s *Service) UpdateIdentity(id string, i types.Identity) error {
+	// Validate that the referenced persona exists
+	if _, err := s.storage.Get(i.PersonaID); err != nil {
+		return fmt.Errorf("referenced persona not found: %v", err)
+	}
+
+	// Update timestamp
+	i.UpdatedAt = time.Now()
+
+	// Update identity
+	return s.storage.UpdateIdentity(id, i)
+}
+
+// DeleteIdentity removes an identity by ID
+func (s *Service) DeleteIdentity(id string) error {
+	return s.storage.DeleteIdentity(id)
+}
+
+// GetIdentityWithPersona retrieves an identity with its associated persona
+func (s *Service) GetIdentityWithPersona(id string) (types.IdentityWithPersona, error) {
+	return s.storage.GetIdentityWithPersona(id)
 }
 
 // Global service instance for backward compatibility

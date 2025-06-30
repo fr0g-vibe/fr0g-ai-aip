@@ -4,6 +4,8 @@ package persona;
 
 option go_package = "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb";
 
+import "google/protobuf/timestamp.proto";
+
 // Persona represents an AI persona with specific expertise
 message Persona {
   string id = 1;
@@ -14,7 +16,36 @@ message Persona {
   repeated string rag = 6;
 }
 
-// Request messages
+// Identity represents a persona-based identity with additional identifying attributes
+message Identity {
+  string id = 1;
+  string persona_id = 2;
+  string name = 3;
+  string description = 4;
+  map<string, string> attributes = 5;
+  map<string, string> preferences = 6;
+  string background = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  bool is_active = 10;
+  repeated string tags = 11;
+}
+
+// IdentityWithPersona combines an identity with its base persona
+message IdentityWithPersona {
+  Identity identity = 1;
+  Persona persona = 2;
+}
+
+// IdentityFilter represents filters for listing identities
+message IdentityFilter {
+  string persona_id = 1;
+  repeated string tags = 2;
+  bool is_active = 3;
+  string search = 4;
+}
+
+// Request messages for personas
 message CreatePersonaRequest {
   Persona persona = 1;
 }
@@ -34,7 +65,33 @@ message UpdatePersonaRequest {
   Persona persona = 2;
 }
 
-// Response messages
+// Request messages for identities
+message CreateIdentityRequest {
+  Identity identity = 1;
+}
+
+message GetIdentityRequest {
+  string id = 1;
+}
+
+message DeleteIdentityRequest {
+  string id = 1;
+}
+
+message ListIdentitiesRequest {
+  IdentityFilter filter = 1;
+}
+
+message UpdateIdentityRequest {
+  string id = 1;
+  Identity identity = 2;
+}
+
+message GetIdentityWithPersonaRequest {
+  string id = 1;
+}
+
+// Response messages for personas
 message CreatePersonaResponse {
   Persona persona = 1;
 }
@@ -53,11 +110,43 @@ message UpdatePersonaResponse {
   Persona persona = 1;
 }
 
-// PersonaService provides CRUD operations for AI personas
+// Response messages for identities
+message CreateIdentityResponse {
+  Identity identity = 1;
+}
+
+message GetIdentityResponse {
+  Identity identity = 1;
+}
+
+message DeleteIdentityResponse {}
+
+message ListIdentitiesResponse {
+  repeated Identity identities = 1;
+}
+
+message UpdateIdentityResponse {
+  Identity identity = 1;
+}
+
+message GetIdentityWithPersonaResponse {
+  IdentityWithPersona identity_with_persona = 1;
+}
+
+// PersonaService provides CRUD operations for AI personas and identities
 service PersonaService {
+  // Persona operations
   rpc CreatePersona(CreatePersonaRequest) returns (CreatePersonaResponse);
   rpc GetPersona(GetPersonaRequest) returns (GetPersonaResponse);
   rpc ListPersonas(ListPersonasRequest) returns (ListPersonasResponse);
   rpc UpdatePersona(UpdatePersonaRequest) returns (UpdatePersonaResponse);
   rpc DeletePersona(DeletePersonaRequest) returns (DeletePersonaResponse);
+  
+  // Identity operations
+  rpc CreateIdentity(CreateIdentityRequest) returns (CreateIdentityResponse);
+  rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
+  rpc ListIdentities(ListIdentitiesRequest) returns (ListIdentitiesResponse);
+  rpc UpdateIdentity(UpdateIdentityRequest) returns (UpdateIdentityResponse);
+  rpc DeleteIdentity(DeleteIdentityRequest) returns (DeleteIdentityResponse);
+  rpc GetIdentityWithPersona(GetIdentityWithPersonaRequest) returns (GetIdentityWithPersonaResponse);
 }

@@ -67,6 +67,19 @@ func ExecuteWithConfig(config Config) error {
 		return updatePersona(client)
 	case "serve":
 		return serveCommand()
+	// Identity commands
+	case "identity-list":
+		return listIdentities(client)
+	case "identity-create":
+		return createIdentity(client)
+	case "identity-get":
+		return getIdentity(client)
+	case "identity-delete":
+		return deleteIdentity(client)
+	case "identity-update":
+		return updateIdentity(client)
+	case "identity-get-with-persona":
+		return getIdentityWithPersona(client)
 	default:
 		printUsage()
 		return fmt.Errorf("unknown command: %s", command)
@@ -123,12 +136,13 @@ func printUsage() {
 	fmt.Println("DESCRIPTION:")
 	fmt.Println("  A customizable AI subject matter expert system that provides specialized")
 	fmt.Println("  AI personas for on-demand expertise in specific topics or domains.")
+	fmt.Println("  Now with identity management for creating personalized personas.")
 	fmt.Println()
 	fmt.Println("USAGE:")
 	fmt.Println("  fr0g-ai-aip [command] [options]")
 	fmt.Println("  fr0g-ai-aip [flags]")
 	fmt.Println()
-	fmt.Println("COMMANDS:")
+	fmt.Println("PERSONA COMMANDS:")
 	fmt.Println("  list                List all personas")
 	fmt.Println("  create              Create a new persona")
 	fmt.Println("    -name <name>        Persona name (required)")
@@ -140,6 +154,26 @@ func printUsage() {
 	fmt.Println("    -topic <topic>      Update persona topic")
 	fmt.Println("    -prompt <prompt>    Update system prompt")
 	fmt.Println("  delete <id>         Delete persona by ID")
+	fmt.Println()
+	fmt.Println("IDENTITY COMMANDS:")
+	fmt.Println("  identity-list       List all identities")
+	fmt.Println("  identity-create     Create a new identity")
+	fmt.Println("    -persona-id <id>    Persona ID (required)")
+	fmt.Println("    -name <name>        Identity name (required)")
+	fmt.Println("    -description <desc> Identity description")
+	fmt.Println("    -tags <tag1,tag2>   Comma-separated tags")
+	fmt.Println("    -background <story> Personal background story")
+	fmt.Println("  identity-get <id>   Get identity by ID")
+	fmt.Println("  identity-update <id> Update identity by ID")
+	fmt.Println("    -name <name>        Update identity name")
+	fmt.Println("    -description <desc> Update identity description")
+	fmt.Println("    -tags <tag1,tag2>   Update comma-separated tags")
+	fmt.Println("    -background <story> Update personal background story")
+	fmt.Println("    -active <true|false> Update active status")
+	fmt.Println("  identity-delete <id> Delete identity by ID")
+	fmt.Println("  identity-get-with-persona <id> Get identity with associated persona")
+	fmt.Println()
+	fmt.Println("SERVER COMMANDS:")
 	fmt.Println("  serve               Start gRPC server")
 	fmt.Println("  help                Show this help message")
 	fmt.Println()
@@ -180,6 +214,17 @@ func printUsage() {
 	fmt.Println()
 	fmt.Println("  # List all personas")
 	fmt.Println("  fr0g-ai-aip list")
+	fmt.Println()
+	fmt.Println("  # Create an identity based on a persona")
+	fmt.Println("  fr0g-ai-aip identity-create -persona-id <persona_id> -name \"John Doe\" \\")
+	fmt.Println("    -description \"Senior Go developer with 10 years experience\" \\")
+	fmt.Println("    -tags \"senior,backend,golang\" -background \"Started programming at age 12...\"")
+	fmt.Println()
+	fmt.Println("  # List all identities")
+	fmt.Println("  fr0g-ai-aip identity-list")
+	fmt.Println()
+	fmt.Println("  # Get identity with its associated persona")
+	fmt.Println("  fr0g-ai-aip identity-get-with-persona <identity_id>")
 	fmt.Println()
 	fmt.Println("  # Use local file storage")
 	fmt.Println("  FR0G_CLIENT_TYPE=local FR0G_STORAGE_TYPE=file fr0g-ai-aip list")
@@ -338,7 +383,7 @@ func deletePersona(c client.Client) error {
 // GetConfigFromEnv reads configuration from environment variables
 func GetConfigFromEnv() Config {
 	config := defaultConfig
-	
+
 	if clientType := os.Getenv("FR0G_CLIENT_TYPE"); clientType != "" {
 		config.ClientType = clientType
 	}
@@ -351,22 +396,235 @@ func GetConfigFromEnv() Config {
 	if serverURL := os.Getenv("FR0G_SERVER_URL"); serverURL != "" {
 		config.ServerURL = serverURL
 	}
-	
+
 	// Expand relative paths
 	if !filepath.IsAbs(config.DataDir) {
 		if abs, err := filepath.Abs(config.DataDir); err == nil {
 			config.DataDir = abs
 		}
 	}
-	
+
 	return config
 }
 
 func serveCommand() error {
 	fmt.Println("Starting gRPC server on port 9090...")
 	fmt.Println("Use Ctrl+C to stop the server")
-	
+
 	// Import the grpc package here to avoid circular imports
 	// We'll need to refactor this properly
 	return fmt.Errorf("serve command not yet implemented - use './bin/fr0g-ai-aip -grpc' instead")
+}
+
+// Identity management functions
+func listIdentities(c client.Client) error {
+	identities, err := c.ListIdentities(nil)
+	if err != nil {
+		return err
+	}
+
+	if len(identities) == 0 {
+		fmt.Println("No identities found")
+		return nil
+	}
+
+	fmt.Println("Identities:")
+	for _, i := range identities {
+		status := "Active"
+		if !i.IsActive {
+			status = "Inactive"
+		}
+		fmt.Printf("  ID: %s, Name: %s, Persona: %s, Status: %s\n",
+			i.ID, i.Name, i.PersonaID, status)
+		if i.Description != "" {
+			fmt.Printf("    Description: %s\n", i.Description)
+		}
+		if len(i.Tags) > 0 {
+			fmt.Printf("    Tags: %s\n", strings.Join(i.Tags, ", "))
+		}
+	}
+	return nil
+}
+
+func createIdentity(c client.Client) error {
+	fs := flag.NewFlagSet("identity-create", flag.ContinueOnError)
+	fs.Usage = func() {
+		fmt.Println("Usage: fr0g-ai-aip identity-create -persona-id <id> -name <name> [-description <desc>] [-tags <tag1,tag2>]")
+	}
+	personaID := fs.String("persona-id", "", "Persona ID (required)")
+	name := fs.String("name", "", "Identity name (required)")
+	description := fs.String("description", "", "Identity description")
+	tags := fs.String("tags", "", "Comma-separated tags")
+	background := fs.String("background", "", "Personal background story")
+
+	if err := fs.Parse(os.Args[2:]); err != nil {
+		return err
+	}
+
+	if *personaID == "" || *name == "" {
+		fs.Usage()
+		return fmt.Errorf("persona-id and name are required")
+	}
+
+	// Parse tags
+	var tagList []string
+	if *tags != "" {
+		tagList = strings.Split(*tags, ",")
+		for i, tag := range tagList {
+			tagList[i] = strings.TrimSpace(tag)
+		}
+	}
+
+	i := types.Identity{
+		PersonaID:   *personaID,
+		Name:        *name,
+		Description: *description,
+		Background:  *background,
+		Tags:        tagList,
+		IsActive:    true,
+	}
+
+	if err := c.CreateIdentity(&i); err != nil {
+		return fmt.Errorf("failed to create identity: %v", err)
+	}
+
+	fmt.Printf("Identity created successfully: %s\n", i.ID)
+	return nil
+}
+
+func getIdentity(c client.Client) error {
+	if len(os.Args) < 3 {
+		return fmt.Errorf("identity ID is required")
+	}
+
+	id := os.Args[2]
+	i, err := c.GetIdentity(id)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Identity: %s\n", i.ID)
+	fmt.Printf("  Name: %s\n", i.Name)
+	fmt.Printf("  Persona ID: %s\n", i.PersonaID)
+	fmt.Printf("  Description: %s\n", i.Description)
+	fmt.Printf("  Background: %s\n", i.Background)
+	fmt.Printf("  Status: %s\n", map[bool]string{true: "Active", false: "Inactive"}[i.IsActive])
+	fmt.Printf("  Created: %s\n", i.CreatedAt.Format("2006-01-02 15:04:05"))
+	fmt.Printf("  Updated: %s\n", i.UpdatedAt.Format("2006-01-02 15:04:05"))
+
+	if len(i.Tags) > 0 {
+		fmt.Printf("  Tags: %s\n", strings.Join(i.Tags, ", "))
+	}
+
+	if len(i.Attributes) > 0 {
+		fmt.Printf("  Attributes:\n")
+		for k, v := range i.Attributes {
+			fmt.Printf("    %s: %s\n", k, v)
+		}
+	}
+
+	if len(i.Preferences) > 0 {
+		fmt.Printf("  Preferences:\n")
+		for k, v := range i.Preferences {
+			fmt.Printf("    %s: %s\n", k, v)
+		}
+	}
+
+	return nil
+}
+
+func updateIdentity(c client.Client) error {
+	if len(os.Args) < 3 {
+		return fmt.Errorf("identity ID is required")
+	}
+
+	id := os.Args[2]
+
+	// Get existing identity
+	existing, err := c.GetIdentity(id)
+	if err != nil {
+		return err
+	}
+
+	fs := flag.NewFlagSet("identity-update", flag.ContinueOnError)
+	fs.Usage = func() {
+		fmt.Println("Usage: fr0g-ai-aip identity-update <id> [-name <name>] [-description <desc>] [-tags <tag1,tag2>] [-background <story>] [-active <true|false>]")
+	}
+	name := fs.String("name", "", "Identity name")
+	description := fs.String("description", "", "Identity description")
+	tags := fs.String("tags", "", "Comma-separated tags")
+	background := fs.String("background", "", "Personal background story")
+	active := fs.String("active", "", "Active status (true/false)")
+
+	if err := fs.Parse(os.Args[3:]); err != nil {
+		return err
+	}
+
+	// Update fields if provided
+	if *name != "" {
+		existing.Name = *name
+	}
+	if *description != "" {
+		existing.Description = *description
+	}
+	if *background != "" {
+		existing.Background = *background
+	}
+	if *tags != "" {
+		tagList := strings.Split(*tags, ",")
+		for i, tag := range tagList {
+			tagList[i] = strings.TrimSpace(tag)
+		}
+		existing.Tags = tagList
+	}
+	if *active != "" {
+		existing.IsActive = *active == "true"
+	}
+
+	if err := c.UpdateIdentity(id, existing); err != nil {
+		return fmt.Errorf("failed to update identity: %v", err)
+	}
+
+	fmt.Printf("Identity updated successfully: %s\n", id)
+	return nil
+}
+
+func deleteIdentity(c client.Client) error {
+	if len(os.Args) < 3 {
+		return fmt.Errorf("identity ID is required")
+	}
+
+	id := os.Args[2]
+	if err := c.DeleteIdentity(id); err != nil {
+		return err
+	}
+
+	fmt.Printf("Identity deleted successfully: %s\n", id)
+	return nil
+}
+
+func getIdentityWithPersona(c client.Client) error {
+	if len(os.Args) < 3 {
+		return fmt.Errorf("identity ID is required")
+	}
+
+	id := os.Args[2]
+	iwp, err := c.GetIdentityWithPersona(id)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Identity with Persona: %s\n", iwp.Identity.ID)
+	fmt.Printf("  Identity Name: %s\n", iwp.Identity.Name)
+	fmt.Printf("  Persona Name: %s\n", iwp.Persona.Name)
+	fmt.Printf("  Persona Topic: %s\n", iwp.Persona.Topic)
+	fmt.Printf("  Identity Description: %s\n", iwp.Identity.Description)
+	fmt.Printf("  Persona Prompt: %s\n", iwp.Persona.Prompt)
+	fmt.Printf("  Status: %s\n", map[bool]string{true: "Active", false: "Inactive"}[iwp.Identity.IsActive])
+
+	if len(iwp.Identity.Tags) > 0 {
+		fmt.Printf("  Tags: %s\n", strings.Join(iwp.Identity.Tags, ", "))
+	}
+
+	return nil
 }
