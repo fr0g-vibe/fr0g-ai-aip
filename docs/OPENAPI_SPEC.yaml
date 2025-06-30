@@ -8,10 +8,13 @@ info:
     - Creating and managing AI personas with specific expertise
     - Generating identities with rich demographic attributes  
     - Building diverse communities with configurable characteristics
+    - Random community generation with customizable parameters
     - Analyzing community dynamics and statistics
+    - CLI tools for batch generation and management
     
-    The system is designed for use with Model Context Protocol (MCP) and supports
-    both REST and gRPC interfaces.
+    The system supports both programmatic API access and command-line tools for
+    generating sample data, creating diverse communities, and managing personas.
+    Designed for use with Model Context Protocol (MCP) and supports both REST and gRPC interfaces.
   version: 1.0.0
   contact:
     name: fr0g-ai-aip
