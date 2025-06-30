@@ -4,6 +4,11 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
 func TestGetConfigFromEnv(t *testing.T) {
@@ -53,6 +58,194 @@ func TestGetConfigFromEnv(t *testing.T) {
 	}
 	if config.ServerURL != "http://example.com" {
 		t.Errorf("Expected server URL 'http://example.com', got %s", config.ServerURL)
+	}
+}
+
+func TestCreateSamplePersonas(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	service := persona.NewService(store)
+	
+	err := createSamplePersonas(service)
+	if err != nil {
+		t.Fatalf("failed to create sample personas: %v", err)
+	}
+	
+	personas, err := service.ListPersonas()
+	if err != nil {
+		t.Fatalf("failed to list personas: %v", err)
+	}
+	
+	if len(personas) == 0 {
+		t.Error("expected at least one persona to be created")
+	}
+	
+	// Check that personas have required fields
+	for _, p := range personas {
+		if p.Name == "" {
+			t.Error("persona name should not be empty")
+		}
+		if p.Topic == "" {
+			t.Error("persona topic should not be empty")
+		}
+		if p.Prompt == "" {
+			t.Error("persona prompt should not be empty")
+		}
+	}
+}
+
+func TestGenerateSampleIdentities(t *testing.T) {
+	// Create test personas
+	personas := []types.Persona{
+		{Id: "1", Name: "Expert 1", Topic: "Topic 1", Prompt: "Prompt 1"},
+		{Id: "2", Name: "Expert 2", Topic: "Topic 2", Prompt: "Prompt 2"},
+	}
+	
+	identities := generateSampleIdentities(personas)
+	
+	if len(identities) == 0 {
+		t.Error("expected at least one identity to be generated")
+	}
+	
+	// Check that identities have required fields
+	for _, identity := range identities {
+		if identity.Name == "" {
+			t.Error("identity name should not be empty")
+		}
+		if identity.PersonaId == "" {
+			t.Error("identity persona_id should not be empty")
+		}
+		if identity.Description == "" {
+			t.Error("identity description should not be empty")
+		}
+		
+		// Check that persona_id references a valid persona
+		validPersona := false
+		for _, p := range personas {
+			if p.Id == identity.PersonaId {
+				validPersona = true
+				break
+			}
+		}
+		if !validPersona {
+			t.Errorf("identity references invalid persona_id: %s", identity.PersonaId)
+		}
+		
+		// Check rich attributes
+		if identity.RichAttributes == nil {
+			t.Error("identity should have rich attributes")
+		} else {
+			if identity.RichAttributes.Demographics == nil {
+				t.Error("identity should have demographics")
+			}
+		}
+	}
+}
+
+func TestGetPersonaName(t *testing.T) {
+	personas := []types.Persona{
+		{Id: "1", Name: "Expert 1", Topic: "Topic 1", Prompt: "Prompt 1"},
+		{Id: "2", Name: "Expert 2", Topic: "Topic 2", Prompt: "Prompt 2"},
+	}
+	
+	name := getPersonaName(personas, "1")
+	if name != "Expert 1" {
+		t.Errorf("expected 'Expert 1', got %s", name)
+	}
+	
+	name = getPersonaName(personas, "nonexistent")
+	if name != "Unknown" {
+		t.Errorf("expected 'Unknown' for nonexistent persona, got %s", name)
+	}
+}
+
+func TestHandleGenerateIdentities(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	service := persona.NewService(store)
+	
+	config := Config{
+		ClientType:  "local",
+		StorageType: "memory",
+		Service:     service,
+	}
+	
+	// First create some sample personas
+	err := createSamplePersonas(service)
+	if err != nil {
+		t.Fatalf("failed to create sample personas: %v", err)
+	}
+	
+	err = handleGenerateIdentities(config)
+	if err != nil {
+		t.Fatalf("failed to generate identities: %v", err)
+	}
+	
+	// Check that identities were created
+	identities, err := service.ListIdentities(nil)
+	if err != nil {
+		t.Fatalf("failed to list identities: %v", err)
+	}
+	
+	if len(identities) == 0 {
+		t.Error("expected at least one identity to be created")
+	}
+}
+
+func TestHandleGenerateRandomCommunity(t *testing.T) {
+	store := storage.NewMemoryStorage()
+	service := persona.NewService(store)
+	
+	config := Config{
+		ClientType:  "local",
+		StorageType: "memory",
+		Service:     service,
+	}
+	
+	// Create sample personas first
+	err := createSamplePersonas(service)
+	if err != nil {
+		t.Fatalf("failed to create sample personas: %v", err)
+	}
+	
+	// Save original args
+	originalArgs := os.Args
+	defer func() { os.Args = originalArgs }()
+	
+	// Test community generation
+	os.Args = []string{
+		"fr0g-ai-aip", "generate-random-community",
+		"-size", "5",
+		"-name", "Test Community",
+		"-type", "demographic",
+		"-location", "San Francisco",
+		"-age-range", "25-45",
+	}
+	
+	err = handleGenerateRandomCommunity(config)
+	if err != nil {
+		t.Fatalf("failed to generate random community: %v", err)
+	}
+	
+	// Check that community was created
+	communities, err := service.ListCommunities(nil)
+	if err != nil {
+		t.Fatalf("failed to list communities: %v", err)
+	}
+	
+	if len(communities) == 0 {
+		t.Error("expected at least one community to be created")
+	}
+	
+	community := communities[0]
+	if community.Name != "Test Community" {
+		t.Errorf("expected community name 'Test Community', got %s", community.Name)
+	}
+	
+	if community.Size != 5 {
+		t.Errorf("expected community size 5, got %d", community.Size)
+	}
+	
+	if len(community.MemberIds) != 5 {
+		t.Errorf("expected 5 member IDs, got %d", len(community.MemberIds))
 	}
 }
 
