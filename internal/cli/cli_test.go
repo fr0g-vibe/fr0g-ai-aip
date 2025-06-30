@@ -124,3 +124,115 @@ func TestCreateClient(t *testing.T) {
 		})
 	}
 }
+
+func TestExecuteWithConfig_Help(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test help command
+	os.Args = []string{"fr0g-ai-aip", "help"}
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	err := ExecuteWithConfig(config)
+	if err != nil {
+		t.Errorf("Expected no error for help command, got %v", err)
+	}
+}
+
+func TestExecuteWithConfig_NoArgs(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test with no arguments (should show usage)
+	os.Args = []string{"fr0g-ai-aip"}
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	err := ExecuteWithConfig(config)
+	if err != nil {
+		t.Errorf("Expected no error for no args, got %v", err)
+	}
+}
+
+func TestExecuteWithConfig_UnknownCommand(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test unknown command
+	os.Args = []string{"fr0g-ai-aip", "unknown"}
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	err := ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for unknown command")
+	}
+}
+
+func TestExecuteWithConfig_CreateMissingArgs(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test create command with missing arguments
+	os.Args = []string{"fr0g-ai-aip", "create"}
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	err := ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for create command with missing args")
+	}
+}
+
+func TestExecuteWithConfig_GetMissingID(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test get command with missing ID
+	os.Args = []string{"fr0g-ai-aip", "get"}
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	err := ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for get command with missing ID")
+	}
+}
+
+func TestExecuteWithConfig_UpdateMissingID(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test update command with missing ID
+	os.Args = []string{"fr0g-ai-aip", "update"}
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	err := ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for update command with missing ID")
+	}
+}
+
+func TestExecuteWithConfig_DeleteMissingID(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test delete command with missing ID
+	os.Args = []string{"fr0g-ai-aip", "delete"}
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	err := ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for delete command with missing ID")
+	}
+}
+
+func TestServeCommand(t *testing.T) {
+	err := serveCommand()
+	if err == nil {
+		t.Error("Expected error for serve command (not implemented)")
+	}
+}
