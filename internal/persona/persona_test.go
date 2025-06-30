@@ -296,3 +296,77 @@ func TestServiceErrorHandling(t *testing.T) {
 		t.Error("Expected error for deleting non-existent persona")
 	}
 }
+
+func TestSetDefaultService(t *testing.T) {
+	// Test SetDefaultService function
+	store := storage.NewMemoryStorage()
+	service := NewService(store)
+	
+	SetDefaultService(service)
+	
+	// Verify the service was set by using a legacy function
+	p := types.Persona{Name: "Default Test", Topic: "Testing", Prompt: "Test"}
+	err := CreatePersona(&p)
+	if err != nil {
+		t.Fatalf("Failed to create persona with default service: %v", err)
+	}
+	
+	if p.ID == "" {
+		t.Error("Expected ID to be generated")
+	}
+}
+
+func TestLegacyFunctionsWithNilService(t *testing.T) {
+	// Reset default service to nil
+	defaultService = nil
+	
+	// Test that legacy functions create a default service when nil
+	p := types.Persona{Name: "Nil Test", Topic: "Testing", Prompt: "Test"}
+	err := CreatePersona(&p)
+	if err != nil {
+		t.Fatalf("Failed to create persona with nil default service: %v", err)
+	}
+	
+	// Verify default service was created
+	if defaultService == nil {
+		t.Error("Expected default service to be created")
+	}
+}
+
+func TestServiceWithComplexPersona(t *testing.T) {
+	service := NewService(storage.NewMemoryStorage())
+	
+	// Test persona with context and RAG
+	p := types.Persona{
+		Name:   "Complex Expert",
+		Topic:  "Complex Systems",
+		Prompt: "You are an expert in complex systems.",
+		Context: map[string]string{
+			"domain":     "systems engineering",
+			"experience": "20 years",
+		},
+		RAG: []string{
+			"systems thinking principles",
+			"complexity theory",
+			"emergent behavior patterns",
+		},
+	}
+	
+	err := service.CreatePersona(&p)
+	if err != nil {
+		t.Fatalf("Failed to create complex persona: %v", err)
+	}
+	
+	// Retrieve and verify
+	retrieved, err := service.GetPersona(p.ID)
+	if err != nil {
+		t.Fatalf("Failed to get complex persona: %v", err)
+	}
+	
+	if len(retrieved.Context) != 2 {
+		t.Errorf("Expected 2 context items, got %d", len(retrieved.Context))
+	}
+	if len(retrieved.RAG) != 3 {
+		t.Errorf("Expected 3 RAG items, got %d", len(retrieved.RAG))
+	}
+}

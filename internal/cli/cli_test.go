@@ -451,3 +451,126 @@ func TestGetConfigFromEnv_AllDefaults(t *testing.T) {
 		t.Errorf("Expected default server URL 'localhost:9090', got %s", config.ServerURL)
 	}
 }
+
+func TestExecute(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test Execute function (uses default config)
+	os.Args = []string{"fr0g-ai-aip", "help"}
+	
+	err := Execute()
+	if err != nil {
+		t.Errorf("Execute() failed: %v", err)
+	}
+}
+
+func TestPrintUsage(t *testing.T) {
+	// Test that printUsage doesn't panic
+	// We can't easily capture stdout, but we can ensure it runs
+	printUsage()
+}
+
+func TestCreateClient_RESTDefaults(t *testing.T) {
+	config := Config{
+		ClientType: "rest",
+		ServerURL:  "", // Empty should use some default
+	}
+	
+	client, err := createClient(config)
+	if err != nil {
+		t.Fatalf("Failed to create REST client: %v", err)
+	}
+	
+	if client == nil {
+		t.Error("Expected client to be created")
+	}
+}
+
+func TestExecuteWithConfig_CreateWithContext(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	// Test create command with all optional fields
+	os.Args = []string{"fr0g-ai-aip", "create", 
+		"-name", "Full Test Expert", 
+		"-topic", "Full Testing", 
+		"-prompt", "You are a comprehensive testing expert with full context."}
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	err := ExecuteWithConfig(config)
+	if err != nil {
+		t.Errorf("Expected no error for full create command, got %v", err)
+	}
+}
+
+func TestExecuteWithConfig_UpdatePartial(t *testing.T) {
+	// Save original args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+	
+	config := Config{ClientType: "local", StorageType: "memory"}
+	
+	// Create a persona first
+	os.Args = []string{"fr0g-ai-aip", "create", "-name", "Update Test", "-topic", "Testing", "-prompt", "Test prompt"}
+	err := ExecuteWithConfig(config)
+	if err != nil {
+		t.Fatalf("Create failed: %v", err)
+	}
+	
+	// Test partial update (only name)
+	os.Args = []string{"fr0g-ai-aip", "update", "nonexistent", "-name", "New Name"}
+	err = ExecuteWithConfig(config)
+	if err == nil {
+		t.Error("Expected error for updating non-existent persona")
+	}
+}
+
+func TestCreateClient_EdgeCases(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  Config
+		wantErr bool
+	}{
+		{
+			name: "grpc with custom URL",
+			config: Config{
+				ClientType: "grpc",
+				ServerURL:  "custom.example.com:9090",
+			},
+			wantErr: false,
+		},
+		{
+			name: "rest with empty URL",
+			config: Config{
+				ClientType: "rest",
+				ServerURL:  "",
+			},
+			wantErr: false,
+		},
+		{
+			name: "local with empty data dir",
+			config: Config{
+				ClientType:  "local",
+				StorageType: "file",
+				DataDir:     "",
+			},
+			wantErr: true, // Should fail with empty data dir
+		},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client, err := createClient(tt.config)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("createClient() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && client == nil {
+				t.Error("Expected client to be created")
+			}
+		})
+	}
+}

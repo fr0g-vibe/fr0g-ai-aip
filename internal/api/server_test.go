@@ -270,3 +270,63 @@ func TestPersonaHandler_PUT_NotFound(t *testing.T) {
 		t.Errorf("Expected status 400, got %d", w.Code)
 	}
 }
+
+func TestStartServer(t *testing.T) {
+	// Test that StartServer function exists and can be called
+	// We can't actually start a server in tests, but we can test the setup
+	go func() {
+		// This would normally block, so run in goroutine
+		StartServer("0") // Use port 0 for testing (will fail but that's expected)
+	}()
+	
+	// Give it a moment to attempt startup
+	// The function should exist and be callable
+}
+
+func TestPersonaHandler_URLParsing(t *testing.T) {
+	// Test URL parsing edge cases
+	tests := []struct {
+		path       string
+		expectCode int
+	}{
+		{"/personas/", http.StatusBadRequest},
+		{"/personas/valid-id", http.StatusNotFound}, // ID doesn't exist
+		{"/personas/123", http.StatusNotFound},      // ID doesn't exist
+	}
+	
+	// Setup test service
+	store := storage.NewMemoryStorage()
+	persona.SetDefaultService(persona.NewService(store))
+	
+	for _, tt := range tests {
+		req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+		w := httptest.NewRecorder()
+		
+		personaHandler(w, req)
+		
+		if w.Code != tt.expectCode {
+			t.Errorf("Path %s: expected status %d, got %d", tt.path, tt.expectCode, w.Code)
+		}
+	}
+}
+
+func TestPersonasHandler_EmptyList(t *testing.T) {
+	// Setup test service with empty storage
+	store := storage.NewMemoryStorage()
+	persona.SetDefaultService(persona.NewService(store))
+	
+	req := httptest.NewRequest(http.MethodGet, "/personas", nil)
+	w := httptest.NewRecorder()
+	
+	personasHandler(w, req)
+	
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+	
+	var personas []types.Persona
+	json.NewDecoder(w.Body).Decode(&personas)
+	if len(personas) != 0 {
+		t.Errorf("Expected empty list, got %d personas", len(personas))
+	}
+}

@@ -274,3 +274,83 @@ func TestHandleUpdatePersona_MissingPersona(t *testing.T) {
 		t.Errorf("Expected status 400, got %d", w.Code)
 	}
 }
+
+func TestStartGRPCServer(t *testing.T) {
+	// Test that StartGRPCServer function exists and can be called
+	// We can't actually start a server in tests, but we can test the setup
+	go func() {
+		// This would normally block, so run in goroutine
+		StartGRPCServer("0") // Use port 0 for testing (will fail but that's expected)
+	}()
+	
+	// Give it a moment to attempt startup
+	// The function should exist and be callable
+}
+
+func TestGRPCHandlers_AllMethods(t *testing.T) {
+	setupTestService()
+	
+	// Test all handler methods exist and respond to invalid methods correctly
+	endpoints := []string{
+		"/PersonaService/CreatePersona",
+		"/PersonaService/GetPersona", 
+		"/PersonaService/ListPersonas",
+		"/PersonaService/UpdatePersona",
+		"/PersonaService/DeletePersona",
+	}
+	
+	for _, endpoint := range endpoints {
+		req := httptest.NewRequest(http.MethodGet, endpoint, nil) // Wrong method
+		w := httptest.NewRecorder()
+		
+		switch endpoint {
+		case "/PersonaService/CreatePersona":
+			handleCreatePersona(w, req)
+		case "/PersonaService/GetPersona":
+			handleGetPersona(w, req)
+		case "/PersonaService/ListPersonas":
+			handleListPersonas(w, req)
+		case "/PersonaService/UpdatePersona":
+			handleUpdatePersona(w, req)
+		case "/PersonaService/DeletePersona":
+			handleDeletePersona(w, req)
+		}
+		
+		if w.Code != http.StatusMethodNotAllowed {
+			t.Errorf("Endpoint %s: expected status 405, got %d", endpoint, w.Code)
+		}
+	}
+}
+
+func TestHandleCreatePersona_ValidationErrors(t *testing.T) {
+	setupTestService()
+	
+	tests := []struct {
+		name    string
+		persona *Persona
+		wantErr bool
+	}{
+		{"missing name", &Persona{Topic: "Test", Prompt: "Test"}, true},
+		{"missing topic", &Persona{Name: "Test", Prompt: "Test"}, true},
+		{"missing prompt", &Persona{Name: "Test", Topic: "Test"}, true},
+		{"valid persona", &Persona{Name: "Test", Topic: "Test", Prompt: "Test"}, false},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := CreatePersonaRequest{Persona: tt.persona}
+			body, _ := json.Marshal(req)
+			httpReq := httptest.NewRequest(http.MethodPost, "/PersonaService/CreatePersona", bytes.NewBuffer(body))
+			w := httptest.NewRecorder()
+			
+			handleCreatePersona(w, httpReq)
+			
+			if tt.wantErr && w.Code == http.StatusOK {
+				t.Error("Expected error but got success")
+			}
+			if !tt.wantErr && w.Code != http.StatusOK {
+				t.Errorf("Expected success but got status %d", w.Code)
+			}
+		})
+	}
+}
