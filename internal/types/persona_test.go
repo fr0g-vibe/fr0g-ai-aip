@@ -115,7 +115,7 @@ func TestPersonaEmptyFields(t *testing.T) {
 func TestPersonaJSONEdgeCases(t *testing.T) {
 	// Test with special characters in strings
 	p := Persona{
-		ID:     "special-chars-id",
+		Id:     "special-chars-id",
 		Name:   "Test \"Expert\" with 'quotes'",
 		Topic:  "Testing\nwith\nnewlines",
 		Prompt: "You are a testing expert with unicode: 🚀 and symbols: @#$%",

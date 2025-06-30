@@ -17,7 +17,7 @@ func TestMemoryStorage_Create(t *testing.T) {
 		Context: map[string]string{
 			"domain": "testing",
 		},
-		RAG: []string{"test-doc1", "test-doc2"},
+		Rag: []string{"test-doc1", "test-doc2"},
 	}
 	
 	err := storage.Create(p)
@@ -25,12 +25,12 @@ func TestMemoryStorage_Create(t *testing.T) {
 		t.Fatalf("Failed to create persona: %v", err)
 	}
 	
-	if p.ID == "" {
+	if p.Id == "" {
 		t.Error("Expected persona ID to be generated")
 	}
 	
 	// Verify the persona was stored correctly
-	retrieved, err := storage.Get(p.ID)
+	retrieved, err := storage.Get(p.Id)
 	if err != nil {
 		t.Fatalf("Failed to retrieve created persona: %v", err)
 	}
@@ -41,8 +41,8 @@ func TestMemoryStorage_Create(t *testing.T) {
 	if len(retrieved.Context) != len(p.Context) {
 		t.Errorf("Expected context length %d, got %d", len(p.Context), len(retrieved.Context))
 	}
-	if len(retrieved.RAG) != len(p.RAG) {
-		t.Errorf("Expected RAG length %d, got %d", len(p.RAG), len(retrieved.RAG))
+	if len(retrieved.Rag) != len(p.Rag) {
+		t.Errorf("Expected RAG length %d, got %d", len(p.Rag), len(retrieved.Rag))
 	}
 }
 
@@ -63,7 +63,7 @@ func TestMemoryStorage_CreateValidation(t *testing.T) {
 		{"empty prompt", &types.Persona{Name: "Test", Topic: "Test", Prompt: ""}, true},
 		{"valid persona", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}, false},
 		{"valid with context", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", Context: map[string]string{"key": "value"}}, false},
-		{"valid with RAG", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", RAG: []string{"doc1"}}, false},
+		{"valid with RAG", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", Rag: []string{"doc1"}}, false},
 	}
 	
 	for _, tt := range tests {
@@ -95,7 +95,7 @@ func TestMemoryStorage_CRUD(t *testing.T) {
 	}
 	
 	// Read
-	retrieved, err := storage.Get(p.ID)
+	retrieved, err := storage.Get(p.Id)
 	if err != nil {
 		t.Fatalf("Get failed: %v", err)
 	}
@@ -105,21 +105,21 @@ func TestMemoryStorage_CRUD(t *testing.T) {
 	
 	// Update
 	retrieved.Name = "Updated Name"
-	if err := storage.Update(p.ID, retrieved); err != nil {
+	if err := storage.Update(p.Id, retrieved); err != nil {
 		t.Fatalf("Update failed: %v", err)
 	}
 	
-	updated, _ := storage.Get(p.ID)
+	updated, _ := storage.Get(p.Id)
 	if updated.Name != "Updated Name" {
 		t.Errorf("Expected updated name, got %s", updated.Name)
 	}
 	
 	// Delete
-	if err := storage.Delete(p.ID); err != nil {
+	if err := storage.Delete(p.Id); err != nil {
 		t.Fatalf("Delete failed: %v", err)
 	}
 	
-	_, err = storage.Get(p.ID)
+	_, err = storage.Get(p.Id)
 	if err == nil {
 		t.Error("Expected error after delete")
 	}
@@ -156,7 +156,7 @@ func BenchmarkMemoryStorage_Get(b *testing.B) {
 	
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		storage.Get(personas[i%1000].ID)
+		storage.Get(personas[i%1000].Id)
 	}
 }
 
@@ -185,7 +185,7 @@ func TestMemoryStorage_ConcurrentAccess(t *testing.T) {
 			}
 			
 			// Read
-			_, err = storage.Get(p.ID)
+			_, err = storage.Get(p.Id)
 			if err != nil {
 				t.Errorf("Concurrent get failed: %v", err)
 				return
@@ -193,7 +193,7 @@ func TestMemoryStorage_ConcurrentAccess(t *testing.T) {
 			
 			// Update
 			p.Name = fmt.Sprintf("Updated Concurrent Test %d", id)
-			err = storage.Update(p.ID, *p)
+			err = storage.Update(p.Id, *p)
 			if err != nil {
 				t.Errorf("Concurrent update failed: %v", err)
 				return

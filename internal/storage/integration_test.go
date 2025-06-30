@@ -44,7 +44,7 @@ func testStorageOperations(t *testing.T, storage Storage) {
 		if err != nil {
 			t.Fatalf("Failed to create persona %s: %v", p.Name, err)
 		}
-		if p.ID == "" {
+		if p.Id == "" {
 			t.Errorf("Expected ID to be generated for persona %s", p.Name)
 		}
 	}
@@ -60,9 +60,9 @@ func testStorageOperations(t *testing.T, storage Storage) {
 	
 	// Get each persona and verify
 	for _, p := range personas {
-		retrieved, err := storage.Get(p.ID)
+		retrieved, err := storage.Get(p.Id)
 		if err != nil {
-			t.Fatalf("Failed to get persona %s: %v", p.ID, err)
+			t.Fatalf("Failed to get persona %s: %v", p.Id, err)
 		}
 		if retrieved.Name != p.Name {
 			t.Errorf("Expected name %s, got %s", p.Name, retrieved.Name)
@@ -71,13 +71,13 @@ func testStorageOperations(t *testing.T, storage Storage) {
 	
 	// Update first persona
 	personas[0].Name = "Updated Expert 1"
-	err = storage.Update(personas[0].ID, *personas[0])
+	err = storage.Update(personas[0].Id, *personas[0])
 	if err != nil {
 		t.Fatalf("Failed to update persona: %v", err)
 	}
 	
 	// Verify update
-	updated, err := storage.Get(personas[0].ID)
+	updated, err := storage.Get(personas[0].Id)
 	if err != nil {
 		t.Fatalf("Failed to get updated persona: %v", err)
 	}
@@ -86,13 +86,13 @@ func testStorageOperations(t *testing.T, storage Storage) {
 	}
 	
 	// Delete second persona
-	err = storage.Delete(personas[1].ID)
+	err = storage.Delete(personas[1].Id)
 	if err != nil {
 		t.Fatalf("Failed to delete persona: %v", err)
 	}
 	
 	// Verify deletion
-	_, err = storage.Get(personas[1].ID)
+	_, err = storage.Get(personas[1].Id)
 	if err == nil {
 		t.Error("Expected error when getting deleted persona")
 	}
@@ -166,14 +166,14 @@ func TestMemoryStorageConcurrency(t *testing.T) {
 				}
 				
 				// Read
-				if _, err := storage.Get(p.ID); err != nil {
+				if _, err := storage.Get(p.Id); err != nil {
 					t.Errorf("Concurrent get failed: %v", err)
 					return
 				}
 				
 				// Update
 				p.Name = fmt.Sprintf("Updated %d-%d", id, j)
-				if err := storage.Update(p.ID, *p); err != nil {
+				if err := storage.Update(p.Id, *p); err != nil {
 					t.Errorf("Concurrent update failed: %v", err)
 					return
 				}

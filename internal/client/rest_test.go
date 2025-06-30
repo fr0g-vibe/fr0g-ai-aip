@@ -20,7 +20,7 @@ func TestRESTClient_Create(t *testing.T) {
 		
 		var p types.Persona
 		json.NewDecoder(r.Body).Decode(&p)
-		p.ID = "test-id"
+		p.Id = "test-id"
 		
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(p)
@@ -39,8 +39,8 @@ func TestRESTClient_Create(t *testing.T) {
 		t.Fatalf("Create failed: %v", err)
 	}
 	
-	if p.ID != "test-id" {
-		t.Errorf("Expected ID 'test-id', got %s", p.ID)
+	if p.Id != "test-id" {
+		t.Errorf("Expected ID 'test-id', got %s", p.Id)
 	}
 }
 
@@ -53,7 +53,7 @@ func TestRESTClient_Get(t *testing.T) {
 		}
 		
 		p := types.Persona{
-			ID:     "test-id",
+			Id:     "test-id",
 			Name:   "Test Persona",
 			Topic:  "Testing",
 			Prompt: "Test prompt",
@@ -83,8 +83,8 @@ func TestRESTClient_List(t *testing.T) {
 		}
 		
 		personas := []types.Persona{
-			{ID: "1", Name: "Expert 1", Topic: "Topic 1", Prompt: "Prompt 1"},
-			{ID: "2", Name: "Expert 2", Topic: "Topic 2", Prompt: "Prompt 2"},
+			{Id: "1", Name: "Expert 1", Topic: "Topic 1", Prompt: "Prompt 1"},
+			{Id: "2", Name: "Expert 2", Topic: "Topic 2", Prompt: "Prompt 2"},
 		}
 		
 		json.NewEncoder(w).Encode(personas)
@@ -118,7 +118,7 @@ func TestRESTClient_Update(t *testing.T) {
 	
 	client := NewRESTClient(server.URL)
 	p := types.Persona{
-		ID:     "test-id",
+		Id:     "test-id",
 		Name:   "Updated Name",
 		Topic:  "Updated Topic",
 		Prompt: "Updated prompt",
@@ -340,7 +340,7 @@ func TestRESTClient_ComplexPersona(t *testing.T) {
 		} else if r.Method == "GET" && r.URL.Path == "/personas/complex-id" {
 			w.WriteHeader(http.StatusOK)
 			p = types.Persona{
-				ID:     "complex-id",
+				Id:     "complex-id",
 				Name:   "Complex Expert 🚀",
 				Topic:  "Complex Systems\nWith Newlines",
 				Prompt: "You are an expert with special chars: @#$%",
@@ -349,7 +349,7 @@ func TestRESTClient_ComplexPersona(t *testing.T) {
 					"newlines": "line1\nline2",
 					"tabs":     "col1\tcol2",
 				},
-				RAG: []string{
+				Rag: []string{
 					"doc with spaces.txt",
 					"unicode-doc-🚀.md",
 					"special@chars.pdf",
@@ -376,7 +376,7 @@ func TestRESTClient_ComplexPersona(t *testing.T) {
 			"newlines": "line1\nline2",
 			"tabs":     "col1\tcol2",
 		},
-		RAG: []string{
+		Rag: []string{
 			"doc with spaces.txt",
 			"unicode-doc-🚀.md", 
 			"special@chars.pdf",
