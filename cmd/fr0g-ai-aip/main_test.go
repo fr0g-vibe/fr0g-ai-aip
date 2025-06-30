@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/config"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 )
 
 func TestAppValidateConfig(t *testing.T) {

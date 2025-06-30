@@ -11,6 +11,7 @@ import (
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/config"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/middleware"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
 
@@ -507,10 +508,15 @@ func StartServer(port string) error {
 		Security: config.SecurityConfig{
 			EnableAuth: false,
 		},
+		Storage: config.StorageConfig{
+			Type: "memory",
+		},
 	}
 	
-	// Use legacy global service
-	server := NewServer(cfg, nil)
+	// Create a default service for legacy usage
+	store := storage.NewMemoryStorage()
+	service := persona.NewService(store)
+	server := NewServer(cfg, service)
 	return server.Start()
 }
 
