@@ -126,3 +126,8 @@ func (r *RESTClient) Delete(id string) error {
 	
 	return nil
 }
+
+func (r *RESTClient) Close() error {
+	// REST client doesn't need cleanup
+	return nil
+}

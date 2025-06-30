@@ -36,3 +36,8 @@ func (l *LocalClient) Update(id string, p types.Persona) error {
 func (l *LocalClient) Delete(id string) error {
 	return l.storage.Delete(id)
 }
+
+func (l *LocalClient) Close() error {
+	// Local client doesn't need cleanup
+	return nil
+}
