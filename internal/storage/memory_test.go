@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
