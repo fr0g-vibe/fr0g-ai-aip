@@ -45,6 +45,40 @@ test: proto-if-needed
 test-coverage: proto-if-needed
 	go test -cover ./...
 
+# Run tests with detailed coverage report
+test-coverage-detailed: proto-if-needed
+	go test -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: coverage.html"
+
+# Run tests with verbose output
+test-verbose: proto-if-needed
+	go test -v ./...
+
+# Run tests for specific package
+test-storage: proto-if-needed
+	go test -v ./internal/storage/...
+
+test-persona: proto-if-needed
+	go test -v ./internal/persona/...
+
+test-client: proto-if-needed
+	go test -v ./internal/client/...
+
+test-grpc: proto-if-needed
+	go test -v ./internal/grpc/...
+
+test-main: proto-if-needed
+	go test -v ./cmd/fr0g-ai-aip/...
+
+# Run tests with race detection
+test-race: proto-if-needed
+	go test -race ./...
+
+# Run benchmarks
+test-bench: proto-if-needed
+	go test -bench=. ./...
+
 # Clean build artifacts
 clean:
 	rm -rf bin/

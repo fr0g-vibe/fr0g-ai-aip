@@ -187,7 +187,7 @@ func TestPersonaJSONInvalidCases(t *testing.T) {
 		{
 			name:     "Invalid field type",
 			jsonData: `{"id": 123, "name": "Test"}`,
-			wantErr:  false, // JSON will convert number to string
+			wantErr:  true, // JSON cannot unmarshal number into string field
 		},
 		{
 			name:     "Empty JSON object",
