@@ -327,6 +327,7 @@ func getPersonaName(personas []types.Persona, personaId string) string {
 		}
 	}
 	return "Unknown"
+}
 
 func createClient(config Config) (client.Client, error) {
 	switch config.ClientType {
