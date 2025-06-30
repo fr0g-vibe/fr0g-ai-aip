@@ -127,6 +127,10 @@ docs: proto-if-needed
 docs-serve: docs
 	@echo "Starting documentation server on http://localhost:6060"
 	@echo "Visit http://localhost:6060/pkg/github.com/fr0g-vibe/fr0g-ai-aip/ for package docs"
+	@if ! command -v godoc >/dev/null 2>&1; then \
+		echo "Installing godoc..."; \
+		go install golang.org/x/tools/cmd/godoc@latest; \
+	fi
 	godoc -http=:6060
 
 # Generate OpenAPI documentation
