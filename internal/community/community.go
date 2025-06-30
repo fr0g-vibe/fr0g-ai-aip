@@ -800,7 +800,7 @@ func (s *Service) GetCommunityStats(communityId string) (*types.CommunityStats, 
 	// Calculate active members (activity_level > 0.5)
 	activeCount := 0
 	for _, member := range members {
-		if activity, ok := member.RichAttributes["activity_level"].(float64); ok && activity > 0.5 {
+		if member.RichAttributes != nil && member.RichAttributes.ActivityLevel > 0.5 {
 			activeCount++
 		}
 	}
@@ -809,8 +809,8 @@ func (s *Service) GetCommunityStats(communityId string) (*types.CommunityStats, 
 	// Calculate gender ratio
 	genderCount := make(map[string]int)
 	for _, member := range members {
-		if gender, ok := member.RichAttributes["gender"].(string); ok {
-			genderCount[gender]++
+		if member.RichAttributes != nil && member.RichAttributes.Gender != "" {
+			genderCount[member.RichAttributes.Gender]++
 		}
 	}
 	
@@ -824,8 +824,8 @@ func (s *Service) GetCommunityStats(communityId string) (*types.CommunityStats, 
 	totalActivity := 0.0
 	activityCount := 0
 	for _, member := range members {
-		if activity, ok := member.RichAttributes["activity_level"].(float64); ok {
-			totalActivity += activity
+		if member.RichAttributes != nil {
+			totalActivity += member.RichAttributes.ActivityLevel
 			activityCount++
 		}
 	}
