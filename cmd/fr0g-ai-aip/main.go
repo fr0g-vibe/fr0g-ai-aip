@@ -54,6 +54,7 @@ func (app *App) RunCLI() error {
 		StorageType: app.config.Storage.Type,
 		DataDir:     app.config.Storage.DataDir,
 		ServerURL:   app.config.Client.ServerURL,
+		Service:     app.service,
 	}
 	return cli.ExecuteWithConfig(cliConfig)
 }

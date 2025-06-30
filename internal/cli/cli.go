@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/client"
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
@@ -20,6 +21,7 @@ type Config struct {
 	StorageType string // "memory", "file"
 	DataDir     string
 	ServerURL   string
+	Service     interface{} // persona.Service interface
 }
 
 var defaultConfig = Config{
@@ -48,6 +50,11 @@ func ExecuteWithConfig(config Config) error {
 	if command == "help" || command == "-h" || command == "--help" {
 		printUsage()
 		return nil
+	}
+
+	// Handle generate-identities command (requires direct service access)
+	if command == "generate-identities" {
+		return handleGenerateIdentities(config)
 	}
 
 	// Create client based on configuration
@@ -92,6 +99,234 @@ func ExecuteWithConfig(config Config) error {
 		return fmt.Errorf("unknown command: %s", command)
 	}
 }
+
+func handleGenerateIdentities(config Config) error {
+	if config.Service == nil {
+		return fmt.Errorf("service not available for identity generation")
+	}
+
+	// Type assert to get the persona service
+	service, ok := config.Service.(*persona.Service)
+	if !ok {
+		return fmt.Errorf("invalid service type for identity generation")
+	}
+
+	fmt.Println("Generating diverse set of sample identities...")
+
+	// First, ensure we have some personas to work with
+	personas, err := service.ListPersonas()
+	if err != nil {
+		return fmt.Errorf("failed to list personas: %v", err)
+	}
+
+	if len(personas) == 0 {
+		fmt.Println("No personas found. Creating sample personas first...")
+		if err := createSamplePersonas(service); err != nil {
+			return fmt.Errorf("failed to create sample personas: %v", err)
+		}
+		personas, err = service.ListPersonas()
+		if err != nil {
+			return fmt.Errorf("failed to list personas after creation: %v", err)
+		}
+	}
+
+	// Generate diverse identities
+	identities := generateSampleIdentities(personas)
+	
+	created := 0
+	for _, identity := range identities {
+		if err := service.CreateIdentity(&identity); err != nil {
+			fmt.Printf("Warning: Failed to create identity %s: %v\n", identity.Name, err)
+			continue
+		}
+		created++
+		fmt.Printf("Created identity: %s (based on %s persona)\n", identity.Name, getPersonaName(personas, identity.PersonaId))
+	}
+
+	fmt.Printf("\nSuccessfully created %d identities out of %d attempted.\n", created, len(identities))
+	return nil
+}
+
+func createSamplePersonas(service *persona.Service) error {
+	samplePersonas := []types.Persona{
+		{
+			Name:   "Tech Expert",
+			Topic:  "Technology",
+			Prompt: "You are a technology expert with deep knowledge of software development, AI, and emerging technologies.",
+			Context: map[string]string{
+				"experience": "15 years",
+				"specialty":  "software architecture",
+			},
+		},
+		{
+			Name:   "Healthcare Professional",
+			Topic:  "Healthcare",
+			Prompt: "You are a healthcare professional with expertise in medical practices, patient care, and health policy.",
+			Context: map[string]string{
+				"experience": "12 years",
+				"specialty":  "primary care",
+			},
+		},
+		{
+			Name:   "Education Specialist",
+			Topic:  "Education",
+			Prompt: "You are an education specialist with knowledge of teaching methods, curriculum development, and student engagement.",
+			Context: map[string]string{
+				"experience": "10 years",
+				"specialty":  "K-12 education",
+			},
+		},
+		{
+			Name:   "Business Analyst",
+			Topic:  "Business",
+			Prompt: "You are a business analyst with expertise in market research, strategy development, and organizational management.",
+			Context: map[string]string{
+				"experience": "8 years",
+				"specialty":  "strategic planning",
+			},
+		},
+	}
+
+	for _, persona := range samplePersonas {
+		if err := service.CreatePersona(&persona); err != nil {
+			return fmt.Errorf("failed to create persona %s: %v", persona.Name, err)
+		}
+		fmt.Printf("Created persona: %s\n", persona.Name)
+	}
+
+	return nil
+}
+
+func generateSampleIdentities(personas []types.Persona) []types.Identity {
+	identities := []types.Identity{}
+
+	// Sample names and attributes for diverse identities
+	sampleData := []struct {
+		name        string
+		description string
+		age         int32
+		gender      string
+		political   string
+		education   string
+		location    string
+		interests   []string
+	}{
+		{
+			name:        "Alex Chen",
+			description: "Software engineer passionate about AI and machine learning",
+			age:         28,
+			gender:      "male",
+			political:   "liberal",
+			education:   "bachelor",
+			location:    "San Francisco",
+			interests:   []string{"technology", "gaming", "music"},
+		},
+		{
+			name:        "Maria Rodriguez",
+			description: "Nurse practitioner focused on community health",
+			age:         35,
+			gender:      "female",
+			political:   "moderate",
+			education:   "master",
+			location:    "Austin",
+			interests:   []string{"healthcare", "fitness", "cooking"},
+		},
+		{
+			name:        "Jordan Smith",
+			description: "High school teacher specializing in STEM education",
+			age:         42,
+			gender:      "non-binary",
+			political:   "liberal",
+			education:   "master",
+			location:    "Portland",
+			interests:   []string{"education", "science", "reading"},
+		},
+		{
+			name:        "Robert Johnson",
+			description: "Business consultant with expertise in small business development",
+			age:         51,
+			gender:      "male",
+			political:   "conservative",
+			education:   "graduate",
+			location:    "Dallas",
+			interests:   []string{"business", "golf", "travel"},
+		},
+		{
+			name:        "Sarah Kim",
+			description: "UX designer focused on accessible technology",
+			age:         29,
+			gender:      "female",
+			political:   "very_liberal",
+			education:   "bachelor",
+			location:    "Seattle",
+			interests:   []string{"design", "technology", "art"},
+		},
+		{
+			name:        "Michael Brown",
+			description: "Emergency room physician",
+			age:         38,
+			gender:      "male",
+			political:   "moderate",
+			education:   "graduate",
+			location:    "Chicago",
+			interests:   []string{"medicine", "sports", "photography"},
+		},
+		{
+			name:        "Emily Davis",
+			description: "Elementary school principal",
+			age:         45,
+			gender:      "female",
+			political:   "liberal",
+			education:   "master",
+			location:    "Denver",
+			interests:   []string{"education", "gardening", "community"},
+		},
+		{
+			name:        "David Wilson",
+			description: "Marketing director for tech startups",
+			age:         33,
+			gender:      "male",
+			political:   "conservative",
+			education:   "bachelor",
+			location:    "Miami",
+			interests:   []string{"marketing", "business", "fitness"},
+		},
+	}
+
+	// Create identities by cycling through personas
+	for i, data := range sampleData {
+		persona := personas[i%len(personas)]
+		
+		identity := types.Identity{
+			PersonaId:   persona.Id,
+			Name:        data.name,
+			Description: data.description,
+			Background:  fmt.Sprintf("Generated identity based on %s persona", persona.Name),
+			RichAttributes: &types.RichAttributes{
+				Age:              data.age,
+				Gender:           data.gender,
+				PoliticalLeaning: data.political,
+				Education:        data.education,
+				Interests:        data.interests,
+				ActivityLevel:    0.7, // Default activity level
+			},
+			Tags:     []string{"generated", "sample", persona.Topic},
+			IsActive: true,
+		}
+
+		identities = append(identities, identity)
+	}
+
+	return identities
+}
+
+func getPersonaName(personas []types.Persona, personaId string) string {
+	for _, persona := range personas {
+		if persona.Id == personaId {
+			return persona.Name
+		}
+	}
+	return "Unknown"
 
 func createClient(config Config) (client.Client, error) {
 	switch config.ClientType {
@@ -181,6 +416,7 @@ func printUsage() {
 	fmt.Println("  identity-get-with-persona <id> Get identity with associated persona")
 	fmt.Println()
 	fmt.Println("GENERATION COMMANDS:")
+	fmt.Println("  generate-identities   Generate a diverse set of sample identities")
 	fmt.Println("  generate-identity     Generate a random identity based on a persona")
 	fmt.Println("    -persona-id <id>      Persona ID (required)")
 	fmt.Println("    -name <name>          Identity name (optional, auto-generated if not provided)")
@@ -242,6 +478,9 @@ func printUsage() {
 	fmt.Println()
 	fmt.Println("  # Get identity with its associated persona")
 	fmt.Println("  fr0g-ai-aip identity-get-with-persona <identity_id>")
+	fmt.Println()
+	fmt.Println("  # Generate a diverse set of sample identities")
+	fmt.Println("  fr0g-ai-aip generate-identities")
 	fmt.Println()
 	fmt.Println("  # Generate a random identity")
 	fmt.Println("  fr0g-ai-aip generate-identity -persona-id <persona_id> -name \"Alex Chen\"")
