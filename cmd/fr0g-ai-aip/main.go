@@ -95,21 +95,31 @@ func main() {
 			log.Fatalf("Failed to start gRPC server: %v", err)
 		}
 	} else {
-		// Check if no flags were provided - if so, start gRPC server by default
-		if !*serverMode && !*grpcMode {
-			*grpcMode = true
+		// Check if CLI commands are provided
+		hasCliCommand := len(os.Args) > 1 && !flag.Parsed()
+		if hasCliCommand {
+			// Parse flags first to handle any CLI flags
+			flag.Parse()
 		}
 		
-		if *grpcMode {
-			fmt.Printf("Starting fr0g-ai-aip gRPC server on port %s (storage: %s)\n", *grpcPort, *storageType)
-			if err := grpcserver.StartGRPCServer(*grpcPort); err != nil {
-				log.Fatalf("Failed to start gRPC server: %v", err)
-			}
-		} else {
+		// Check if this is a CLI command (not server mode)
+		if len(flag.Args()) > 0 {
 			// CLI mode - use environment configuration
 			config := cli.GetConfigFromEnv()
 			if err := cli.ExecuteWithConfig(config); err != nil {
 				log.Fatalf("CLI error: %v", err)
+			}
+		} else {
+			// No CLI command provided - start gRPC server by default
+			if !*serverMode && !*grpcMode {
+				*grpcMode = true
+			}
+			
+			if *grpcMode {
+				fmt.Printf("Starting fr0g-ai-aip gRPC server on port %s (storage: %s)\n", *grpcPort, *storageType)
+				if err := grpcserver.StartGRPCServer(*grpcPort); err != nil {
+					log.Fatalf("Failed to start gRPC server: %v", err)
+				}
 			}
 		}
 	}
