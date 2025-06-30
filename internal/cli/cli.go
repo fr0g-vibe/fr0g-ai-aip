@@ -303,12 +303,20 @@ func generateSampleIdentities(personas []types.Persona) []types.Identity {
 			Description: data.description,
 			Background:  fmt.Sprintf("Generated identity based on %s persona", persona.Name),
 			RichAttributes: &types.RichAttributes{
-				Age:              data.age,
-				Gender:           data.gender,
-				PoliticalLeaning: data.political,
-				Education:        data.education,
-				Interests:        data.interests,
-				ActivityLevel:    0.7, // Default activity level
+				Demographics: &types.Demographics{
+					Age:    data.age,
+					Gender: data.gender,
+					Location: &types.Location{
+						City:       data.location,
+						UrbanRural: "urban",
+					},
+					Education: data.education,
+				},
+				Psychographics: &types.Psychographics{
+					PoliticalLeaning: data.political,
+					Interests:        data.interests,
+				},
+				ActivityLevel: 0.7, // Default activity level
 			},
 			Tags:     []string{"generated", "sample", persona.Topic},
 			IsActive: true,
