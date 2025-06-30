@@ -463,3 +463,160 @@ func TestServiceConcurrentOperations(t *testing.T) {
 		t.Errorf("Expected 5 personas, got %d", len(personas))
 	}
 }
+
+func TestServiceWithFileStorage(t *testing.T) {
+	tmpDir := t.TempDir()
+	fileStorage, err := storage.NewFileStorage(tmpDir)
+	if err != nil {
+		t.Fatalf("Failed to create file storage: %v", err)
+	}
+	
+	service := NewService(fileStorage)
+	
+	// Test service with file storage backend
+	p := types.Persona{
+		Name:   "File Storage Expert",
+		Topic:  "File Storage",
+		Prompt: "You are a file storage expert.",
+		Context: map[string]string{
+			"backend": "file",
+		},
+		RAG: []string{"file-doc1", "file-doc2"},
+	}
+	
+	err = service.CreatePersona(&p)
+	if err != nil {
+		t.Fatalf("Failed to create persona with file storage: %v", err)
+	}
+	
+	// Verify persistence
+	retrieved, err := service.GetPersona(p.ID)
+	if err != nil {
+		t.Fatalf("Failed to get persona from file storage: %v", err)
+	}
+	
+	if retrieved.Name != p.Name {
+		t.Errorf("Expected name %s, got %s", p.Name, retrieved.Name)
+	}
+	if retrieved.Context["backend"] != "file" {
+		t.Error("Expected context to be preserved in file storage")
+	}
+}
+
+func TestServiceEdgeCases(t *testing.T) {
+	service := NewService(storage.NewMemoryStorage())
+	
+	// Test with very long strings
+	longString := fmt.Sprintf("%0*d", 1000, 0) // 1000 character string of zeros
+	p := types.Persona{
+		Name:   "Long String Test",
+		Topic:  "Long Strings",
+		Prompt: longString,
+		Context: map[string]string{
+			"long_key": longString,
+		},
+		RAG: []string{longString},
+	}
+	
+	err := service.CreatePersona(&p)
+	if err != nil {
+		t.Fatalf("Failed to create persona with long strings: %v", err)
+	}
+	
+	// Verify long strings are preserved
+	retrieved, err := service.GetPersona(p.ID)
+	if err != nil {
+		t.Fatalf("Failed to get persona with long strings: %v", err)
+	}
+	
+	if len(retrieved.Prompt) != 1000 {
+		t.Errorf("Expected prompt length 1000, got %d", len(retrieved.Prompt))
+	}
+}
+
+func TestServiceStorageErrors(t *testing.T) {
+	// Create a mock storage that returns errors
+	mockStorage := &errorStorage{}
+	service := NewService(mockStorage)
+	
+	p := types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}
+	
+	// Test create error
+	err := service.CreatePersona(&p)
+	if err == nil {
+		t.Error("Expected error from mock storage")
+	}
+	
+	// Test get error
+	_, err = service.GetPersona("test-id")
+	if err == nil {
+		t.Error("Expected error from mock storage")
+	}
+	
+	// Test list error
+	_, err = service.ListPersonas()
+	if err == nil {
+		t.Error("Expected error from mock storage")
+	}
+	
+	// Test update error
+	err = service.UpdatePersona("test-id", p)
+	if err == nil {
+		t.Error("Expected error from mock storage")
+	}
+	
+	// Test delete error
+	err = service.DeletePersona("test-id")
+	if err == nil {
+		t.Error("Expected error from mock storage")
+	}
+}
+
+// Mock storage that always returns errors
+type errorStorage struct{}
+
+func (e *errorStorage) Create(p *types.Persona) error {
+	return fmt.Errorf("mock create error")
+}
+
+func (e *errorStorage) Get(id string) (types.Persona, error) {
+	return types.Persona{}, fmt.Errorf("mock get error")
+}
+
+func (e *errorStorage) List() ([]types.Persona, error) {
+	return nil, fmt.Errorf("mock list error")
+}
+
+func (e *errorStorage) Update(id string, p types.Persona) error {
+	return fmt.Errorf("mock update error")
+}
+
+func (e *errorStorage) Delete(id string) error {
+	return fmt.Errorf("mock delete error")
+}
+
+func TestServiceNewService(t *testing.T) {
+	memStorage := storage.NewMemoryStorage()
+	service := NewService(memStorage)
+	
+	if service == nil {
+		t.Error("Expected non-nil service")
+	}
+	
+	// Test that service uses the provided storage
+	p := types.Persona{Name: "Storage Test", Topic: "Testing", Prompt: "Test"}
+	err := service.CreatePersona(&p)
+	if err != nil {
+		t.Fatalf("CreatePersona failed: %v", err)
+	}
+	
+	// Verify it was stored in the provided storage
+	retrieved, err := memStorage.Get(p.ID)
+	if err != nil {
+		t.Fatalf("Direct storage get failed: %v", err)
+	}
+	
+	if retrieved.Name != p.Name {
+		t.Errorf("Expected name %s, got %s", p.Name, retrieved.Name)
+	}
+}

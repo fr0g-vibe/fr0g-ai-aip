@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
@@ -186,5 +187,235 @@ func TestRESTClient_ErrorHandling(t *testing.T) {
 	err = client.Delete("test-id")
 	if err == nil {
 		t.Error("Expected error for Delete")
+	}
+}
+
+func TestRESTClient_InvalidJSON(t *testing.T) {
+	// Mock server returning invalid JSON
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("invalid json"))
+	}))
+	defer server.Close()
+	
+	client := NewRESTClient(server.URL)
+	
+	// Test Get with invalid JSON
+	_, err := client.Get("test-id")
+	if err == nil {
+		t.Error("Expected error for invalid JSON")
+	}
+	
+	// Test List with invalid JSON
+	_, err = client.List()
+	if err == nil {
+		t.Error("Expected error for invalid JSON")
+	}
+}
+
+func TestRESTClient_NetworkErrors(t *testing.T) {
+	// Use invalid URL to trigger network errors
+	client := NewRESTClient("http://invalid-url-that-does-not-exist:99999")
+	
+	// Test Create network error
+	p := &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}
+	err := client.Create(p)
+	if err == nil {
+		t.Error("Expected network error for Create")
+	}
+	
+	// Test Get network error
+	_, err = client.Get("test-id")
+	if err == nil {
+		t.Error("Expected network error for Get")
+	}
+	
+	// Test List network error
+	_, err = client.List()
+	if err == nil {
+		t.Error("Expected network error for List")
+	}
+	
+	// Test Update network error
+	err = client.Update("test-id", types.Persona{})
+	if err == nil {
+		t.Error("Expected network error for Update")
+	}
+	
+	// Test Delete network error
+	err = client.Delete("test-id")
+	if err == nil {
+		t.Error("Expected network error for Delete")
+	}
+}
+
+func TestRESTClient_MarshalErrors(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+	
+	client := NewRESTClient(server.URL)
+	
+	// Test Create with unmarshalable data (channels can't be marshaled)
+	p := &types.Persona{
+		Name:   "Test",
+		Topic:  "Test", 
+		Prompt: "Test",
+		Context: map[string]string{
+			"test": string([]byte{0xff, 0xfe, 0xfd}), // Invalid UTF-8
+		},
+	}
+	
+	// This should still work as JSON can handle most strings
+	err := client.Create(p)
+	if err != nil {
+		t.Logf("Create with special characters: %v", err)
+	}
+}
+
+func TestRESTClient_StatusCodes(t *testing.T) {
+	testCases := []struct {
+		name       string
+		statusCode int
+		wantErr    bool
+	}{
+		{"OK", http.StatusOK, false},
+		{"Created", http.StatusCreated, false},
+		{"NoContent", http.StatusNoContent, false},
+		{"BadRequest", http.StatusBadRequest, true},
+		{"NotFound", http.StatusNotFound, true},
+		{"InternalServerError", http.StatusInternalServerError, true},
+	}
+	
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tc.statusCode)
+				if tc.statusCode == http.StatusOK || tc.statusCode == http.StatusCreated {
+					// Return valid JSON for successful responses
+					if strings.Contains(r.URL.Path, "/personas/") && r.Method == "GET" {
+						// Single persona
+						p := types.Persona{ID: "test", Name: "Test", Topic: "Test", Prompt: "Test"}
+						json.NewEncoder(w).Encode(p)
+					} else if r.URL.Path == "/personas" && r.Method == "GET" {
+						// List of personas
+						personas := []types.Persona{{ID: "test", Name: "Test", Topic: "Test", Prompt: "Test"}}
+						json.NewEncoder(w).Encode(personas)
+					} else if r.Method == "POST" {
+						// Created persona
+						var p types.Persona
+						json.NewDecoder(r.Body).Decode(&p)
+						p.ID = "created-id"
+						json.NewEncoder(w).Encode(p)
+					}
+				}
+			}))
+			defer server.Close()
+			
+			client := NewRESTClient(server.URL)
+			
+			// Test Get
+			_, err := client.Get("test-id")
+			if (err != nil) != tc.wantErr {
+				t.Errorf("Get() error = %v, wantErr %v", err, tc.wantErr)
+			}
+			
+			// Test List
+			_, err = client.List()
+			if (err != nil) != tc.wantErr {
+				t.Errorf("List() error = %v, wantErr %v", err, tc.wantErr)
+			}
+			
+			// Test Create
+			p := &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}
+			err = client.Create(p)
+			if (err != nil) != tc.wantErr {
+				t.Errorf("Create() error = %v, wantErr %v", err, tc.wantErr)
+			}
+			
+			// Test Update
+			err = client.Update("test-id", types.Persona{Name: "Updated", Topic: "Updated", Prompt: "Updated"})
+			if (err != nil) != tc.wantErr {
+				t.Errorf("Update() error = %v, wantErr %v", err, tc.wantErr)
+			}
+			
+			// Test Delete
+			err = client.Delete("test-id")
+			if (err != nil) != tc.wantErr {
+				t.Errorf("Delete() error = %v, wantErr %v", err, tc.wantErr)
+			}
+		})
+	}
+}
+
+func TestRESTClient_ComplexPersona(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var p types.Persona
+		if r.Method == "POST" || r.Method == "PUT" {
+			json.NewDecoder(r.Body).Decode(&p)
+			if r.Method == "POST" {
+				p.ID = "complex-id"
+			}
+		} else {
+			p = types.Persona{
+				ID:     "complex-id",
+				Name:   "Complex Expert 🚀",
+				Topic:  "Complex Systems\nWith Newlines",
+				Prompt: "You are an expert with special chars: @#$%",
+				Context: map[string]string{
+					"unicode":  "🎯💡",
+					"newlines": "line1\nline2",
+					"tabs":     "col1\tcol2",
+				},
+				RAG: []string{
+					"doc with spaces.txt",
+					"unicode-doc-🚀.md",
+					"special@chars.pdf",
+				},
+			}
+		}
+		
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(p)
+	}))
+	defer server.Close()
+	
+	client := NewRESTClient(server.URL)
+	
+	// Test complex persona creation
+	complexPersona := &types.Persona{
+		Name:   "Complex Expert 🚀",
+		Topic:  "Complex Systems\nWith Newlines", 
+		Prompt: "You are an expert with special chars: @#$%",
+		Context: map[string]string{
+			"unicode":  "🎯💡",
+			"newlines": "line1\nline2",
+			"tabs":     "col1\tcol2",
+		},
+		RAG: []string{
+			"doc with spaces.txt",
+			"unicode-doc-🚀.md", 
+			"special@chars.pdf",
+		},
+	}
+	
+	err := client.Create(complexPersona)
+	if err != nil {
+		t.Fatalf("Create complex persona failed: %v", err)
+	}
+	
+	// Test getting complex persona
+	retrieved, err := client.Get("complex-id")
+	if err != nil {
+		t.Fatalf("Get complex persona failed: %v", err)
+	}
+	
+	if !strings.Contains(retrieved.Name, "🚀") {
+		t.Error("Expected unicode characters to be preserved")
+	}
+	
+	if !strings.Contains(retrieved.Topic, "\n") {
+		t.Error("Expected newlines to be preserved")
 	}
 }
