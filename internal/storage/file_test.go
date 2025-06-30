@@ -110,10 +110,16 @@ func TestFileStorage_CreateValidation(t *testing.T) {
 		persona *types.Persona
 		wantErr bool
 	}{
+		{"nil persona", nil, true},
 		{"missing name", &types.Persona{Topic: "Test", Prompt: "Test"}, true},
+		{"empty name", &types.Persona{Name: "", Topic: "Test", Prompt: "Test"}, true},
 		{"missing topic", &types.Persona{Name: "Test", Prompt: "Test"}, true},
+		{"empty topic", &types.Persona{Name: "Test", Topic: "", Prompt: "Test"}, true},
 		{"missing prompt", &types.Persona{Name: "Test", Topic: "Test"}, true},
+		{"empty prompt", &types.Persona{Name: "Test", Topic: "Test", Prompt: ""}, true},
 		{"valid persona", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}, false},
+		{"valid with context", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", Context: map[string]string{"key": "value"}}, false},
+		{"valid with RAG", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", RAG: []string{"doc1"}}, false},
 	}
 	
 	for _, tt := range tests {
@@ -166,17 +172,37 @@ func TestFileStorage_ListWithCorruptedFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	storage, _ := NewFileStorage(tmpDir)
 	
+	// Create a valid persona first
+	validPersona := &types.Persona{
+		Name:   "Valid Persona",
+		Topic:  "Testing",
+		Prompt: "Valid prompt",
+	}
+	storage.Create(validPersona)
+	
 	// Create a corrupted JSON file
 	corruptedFile := filepath.Join(tmpDir, "corrupted.json")
 	os.WriteFile(corruptedFile, []byte("invalid json"), 0644)
 	
-	// List should still work, just skip the corrupted file
+	// Create a non-JSON file
+	nonJSONFile := filepath.Join(tmpDir, "notjson.txt")
+	os.WriteFile(nonJSONFile, []byte("not json"), 0644)
+	
+	// Create a file with wrong extension
+	wrongExtFile := filepath.Join(tmpDir, "wrong.xml")
+	os.WriteFile(wrongExtFile, []byte(`{"name": "test"}`), 0644)
+	
+	// List should still work and return only valid personas
 	personas, err := storage.List()
 	if err != nil {
 		t.Fatalf("List failed: %v", err)
 	}
 	
-	if len(personas) != 0 {
-		t.Errorf("Expected 0 personas (corrupted file should be skipped), got %d", len(personas))
+	if len(personas) != 1 {
+		t.Errorf("Expected 1 valid persona, got %d", len(personas))
+	}
+	
+	if personas[0].Name != "Valid Persona" {
+		t.Errorf("Expected valid persona name 'Valid Persona', got %s", personas[0].Name)
 	}
 }

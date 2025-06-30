@@ -32,9 +32,21 @@ func TestLocalClient_CRUD(t *testing.T) {
 	client := NewLocalClient(storage)
 	
 	// Create
-	p := &types.Persona{Name: "CRUD Test", Topic: "Testing", Prompt: "Test"}
+	p := &types.Persona{
+		Name:   "CRUD Test",
+		Topic:  "Testing",
+		Prompt: "Test prompt",
+		Context: map[string]string{
+			"test": "value",
+		},
+		RAG: []string{"doc1", "doc2"},
+	}
 	if err := client.Create(p); err != nil {
 		t.Fatalf("Create failed: %v", err)
+	}
+	
+	if p.ID == "" {
+		t.Error("Expected ID to be generated")
 	}
 	
 	// Read
@@ -44,6 +56,12 @@ func TestLocalClient_CRUD(t *testing.T) {
 	}
 	if retrieved.Name != p.Name {
 		t.Errorf("Expected name %s, got %s", p.Name, retrieved.Name)
+	}
+	if len(retrieved.Context) != len(p.Context) {
+		t.Errorf("Expected context length %d, got %d", len(p.Context), len(retrieved.Context))
+	}
+	if len(retrieved.RAG) != len(p.RAG) {
+		t.Errorf("Expected RAG length %d, got %d", len(p.RAG), len(retrieved.RAG))
 	}
 	
 	// List
@@ -56,9 +74,22 @@ func TestLocalClient_CRUD(t *testing.T) {
 	}
 	
 	// Update
-	retrieved.Name = "Updated"
+	retrieved.Name = "Updated CRUD Test"
+	retrieved.Context["updated"] = "true"
 	if err := client.Update(p.ID, retrieved); err != nil {
 		t.Fatalf("Update failed: %v", err)
+	}
+	
+	// Verify update
+	updated, err := client.Get(p.ID)
+	if err != nil {
+		t.Fatalf("Get after update failed: %v", err)
+	}
+	if updated.Name != "Updated CRUD Test" {
+		t.Errorf("Expected updated name 'Updated CRUD Test', got %s", updated.Name)
+	}
+	if updated.Context["updated"] != "true" {
+		t.Error("Expected context to be updated")
 	}
 	
 	// Delete
@@ -69,6 +100,15 @@ func TestLocalClient_CRUD(t *testing.T) {
 	_, err = client.Get(p.ID)
 	if err == nil {
 		t.Error("Expected error after delete")
+	}
+	
+	// Verify list is empty after delete
+	finalList, err := client.List()
+	if err != nil {
+		t.Fatalf("Final list failed: %v", err)
+	}
+	if len(finalList) != 0 {
+		t.Errorf("Expected 0 personas after delete, got %d", len(finalList))
 	}
 }
 

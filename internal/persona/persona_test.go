@@ -256,18 +256,24 @@ func TestServiceValidation(t *testing.T) {
 	// Test validation errors
 	tests := []struct {
 		name    string
-		persona types.Persona
+		persona *types.Persona
 		wantErr bool
 	}{
-		{"missing name", types.Persona{Topic: "Test", Prompt: "Test"}, true},
-		{"missing topic", types.Persona{Name: "Test", Prompt: "Test"}, true},
-		{"missing prompt", types.Persona{Name: "Test", Topic: "Test"}, true},
-		{"valid persona", types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}, false},
+		{"nil persona", nil, true},
+		{"missing name", &types.Persona{Topic: "Test", Prompt: "Test"}, true},
+		{"empty name", &types.Persona{Name: "", Topic: "Test", Prompt: "Test"}, true},
+		{"missing topic", &types.Persona{Name: "Test", Prompt: "Test"}, true},
+		{"empty topic", &types.Persona{Name: "Test", Topic: "", Prompt: "Test"}, true},
+		{"missing prompt", &types.Persona{Name: "Test", Topic: "Test"}, true},
+		{"empty prompt", &types.Persona{Name: "Test", Topic: "Test", Prompt: ""}, true},
+		{"valid persona", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}, false},
+		{"valid with context", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", Context: map[string]string{"key": "value"}}, false},
+		{"valid with RAG", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", RAG: []string{"doc1"}}, false},
 	}
 	
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := service.CreatePersona(&tt.persona)
+			err := service.CreatePersona(tt.persona)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreatePersona() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -382,8 +388,14 @@ func TestLegacyFunctionsCoverage(t *testing.T) {
 	p2 := types.Persona{Name: "Legacy 2", Topic: "Testing", Prompt: "Test"}
 	
 	// Create multiple personas
-	CreatePersona(&p1)
-	CreatePersona(&p2)
+	err := CreatePersona(&p1)
+	if err != nil {
+		t.Fatalf("CreatePersona failed: %v", err)
+	}
+	err = CreatePersona(&p2)
+	if err != nil {
+		t.Fatalf("CreatePersona failed: %v", err)
+	}
 	
 	// List all
 	list := ListPersonas()
@@ -393,16 +405,25 @@ func TestLegacyFunctionsCoverage(t *testing.T) {
 	
 	// Update one
 	p1.Name = "Updated Legacy 1"
-	UpdatePersona(p1.ID, p1)
+	err = UpdatePersona(p1.ID, p1)
+	if err != nil {
+		t.Fatalf("UpdatePersona failed: %v", err)
+	}
 	
 	// Get updated
-	retrieved, _ := GetPersona(p1.ID)
+	retrieved, err := GetPersona(p1.ID)
+	if err != nil {
+		t.Fatalf("GetPersona failed: %v", err)
+	}
 	if retrieved.Name != "Updated Legacy 1" {
 		t.Errorf("Expected updated name, got %s", retrieved.Name)
 	}
 	
 	// Delete one
-	DeletePersona(p2.ID)
+	err = DeletePersona(p2.ID)
+	if err != nil {
+		t.Fatalf("DeletePersona failed: %v", err)
+	}
 	
 	// Verify final count
 	finalList := ListPersonas()

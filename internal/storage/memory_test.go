@@ -14,6 +14,10 @@ func TestMemoryStorage_Create(t *testing.T) {
 		Name:   "Test Expert",
 		Topic:  "Testing",
 		Prompt: "You are a testing expert.",
+		Context: map[string]string{
+			"domain": "testing",
+		},
+		RAG: []string{"test-doc1", "test-doc2"},
 	}
 	
 	err := storage.Create(p)
@@ -23,6 +27,22 @@ func TestMemoryStorage_Create(t *testing.T) {
 	
 	if p.ID == "" {
 		t.Error("Expected persona ID to be generated")
+	}
+	
+	// Verify the persona was stored correctly
+	retrieved, err := storage.Get(p.ID)
+	if err != nil {
+		t.Fatalf("Failed to retrieve created persona: %v", err)
+	}
+	
+	if retrieved.Name != p.Name {
+		t.Errorf("Expected name %s, got %s", p.Name, retrieved.Name)
+	}
+	if len(retrieved.Context) != len(p.Context) {
+		t.Errorf("Expected context length %d, got %d", len(p.Context), len(retrieved.Context))
+	}
+	if len(retrieved.RAG) != len(p.RAG) {
+		t.Errorf("Expected RAG length %d, got %d", len(p.RAG), len(retrieved.RAG))
 	}
 }
 
@@ -34,10 +54,16 @@ func TestMemoryStorage_CreateValidation(t *testing.T) {
 		persona *types.Persona
 		wantErr bool
 	}{
+		{"nil persona", nil, true},
 		{"missing name", &types.Persona{Topic: "Test", Prompt: "Test"}, true},
+		{"empty name", &types.Persona{Name: "", Topic: "Test", Prompt: "Test"}, true},
 		{"missing topic", &types.Persona{Name: "Test", Prompt: "Test"}, true},
+		{"empty topic", &types.Persona{Name: "Test", Topic: "", Prompt: "Test"}, true},
 		{"missing prompt", &types.Persona{Name: "Test", Topic: "Test"}, true},
+		{"empty prompt", &types.Persona{Name: "Test", Topic: "Test", Prompt: ""}, true},
 		{"valid persona", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test"}, false},
+		{"valid with context", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", Context: map[string]string{"key": "value"}}, false},
+		{"valid with RAG", &types.Persona{Name: "Test", Topic: "Test", Prompt: "Test", RAG: []string{"doc1"}}, false},
 	}
 	
 	for _, tt := range tests {
@@ -138,21 +164,45 @@ func TestMemoryStorage_ConcurrentAccess(t *testing.T) {
 	storage := NewMemoryStorage()
 	
 	// Test concurrent writes
-	done := make(chan bool, 10)
-	for i := 0; i < 10; i++ {
+	numGoroutines := 20
+	done := make(chan bool, numGoroutines)
+	
+	for i := 0; i < numGoroutines; i++ {
 		go func(id int) {
+			defer func() { done <- true }()
+			
 			p := &types.Persona{
 				Name:   fmt.Sprintf("Concurrent Test %d", id),
 				Topic:  "Concurrency",
 				Prompt: "You are a concurrency expert.",
 			}
-			storage.Create(p)
-			done <- true
+			
+			// Create
+			err := storage.Create(p)
+			if err != nil {
+				t.Errorf("Concurrent create failed: %v", err)
+				return
+			}
+			
+			// Read
+			_, err = storage.Get(p.ID)
+			if err != nil {
+				t.Errorf("Concurrent get failed: %v", err)
+				return
+			}
+			
+			// Update
+			p.Name = fmt.Sprintf("Updated Concurrent Test %d", id)
+			err = storage.Update(p.ID, *p)
+			if err != nil {
+				t.Errorf("Concurrent update failed: %v", err)
+				return
+			}
 		}(i)
 	}
 	
 	// Wait for all goroutines
-	for i := 0; i < 10; i++ {
+	for i := 0; i < numGoroutines; i++ {
 		<-done
 	}
 	
@@ -161,7 +211,7 @@ func TestMemoryStorage_ConcurrentAccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("List failed: %v", err)
 	}
-	if len(personas) != 10 {
-		t.Errorf("Expected 10 personas, got %d", len(personas))
+	if len(personas) != numGoroutines {
+		t.Errorf("Expected %d personas, got %d", numGoroutines, len(personas))
 	}
 }
