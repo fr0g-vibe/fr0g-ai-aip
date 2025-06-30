@@ -337,6 +337,26 @@ func (s *Service) GetIdentityWithPersona(id string) (types.IdentityWithPersona, 
 	return s.storage.GetIdentityWithPersona(id)
 }
 
+// GetCommunity retrieves a community by ID
+func (s *Service) GetCommunity(id string) (types.Community, error) {
+	return s.storage.GetCommunity(id)
+}
+
+// ListCommunities returns communities with optional filtering
+func (s *Service) ListCommunities(filter *types.CommunityFilter) ([]types.Community, error) {
+	return s.storage.ListCommunities(filter)
+}
+
+// UpdateCommunity updates an existing community
+func (s *Service) UpdateCommunity(id string, community types.Community) error {
+	return s.storage.UpdateCommunity(id, community)
+}
+
+// DeleteCommunity removes a community
+func (s *Service) DeleteCommunity(id string) error {
+	return s.storage.DeleteCommunity(id)
+}
+
 // Global service instance for backward compatibility
 var defaultService *Service
 

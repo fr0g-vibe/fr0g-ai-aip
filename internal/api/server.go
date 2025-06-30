@@ -3,9 +3,11 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/fr0g-vibe/fr0g-ai-aip/internal/community"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/config"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/middleware"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
@@ -241,10 +243,23 @@ func (s *Server) identitiesHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		
-		// TODO: Implement identity creation
+		// Create identity
+		identity := &types.Identity{
+			PersonaId:   req.PersonaID,
+			Name:        req.Name,
+			Description: req.Description,
+			Background:  req.Background,
+			Tags:        req.Tags,
+		}
+		
+		if err := s.service.CreateIdentity(identity); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(map[string]string{"message": "Identity creation not yet implemented"})
+		json.NewEncoder(w).Encode(identity)
 		
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -261,25 +276,60 @@ func (s *Server) identityHandler(w http.ResponseWriter, r *http.Request) {
 	
 	// Handle special endpoints
 	if path == "with-persona" {
-		// TODO: Implement get identity with persona
+		// Get all identities with personas
+		identities, err := s.service.GetStorage().ListIdentities(nil)
+		if err != nil {
+			http.Error(w, "Failed to list identities", http.StatusInternalServerError)
+			return
+		}
+		
+		var identitiesWithPersonas []types.IdentityWithPersona
+		for _, identity := range identities {
+			persona, err := s.service.GetPersona(identity.PersonaId)
+			if err != nil {
+				continue // Skip if persona not found
+			}
+			identitiesWithPersonas = append(identitiesWithPersonas, types.IdentityWithPersona{
+				Identity: identity,
+				Persona:  persona,
+			})
+		}
+		
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Identity with persona not yet implemented"})
+		json.NewEncoder(w).Encode(identitiesWithPersonas)
 		return
 	}
 	
 	switch r.Method {
 	case http.MethodGet:
-		// TODO: Implement get identity
+		identity, err := s.service.GetIdentity(path)
+		if err != nil {
+			http.Error(w, "Identity not found", http.StatusNotFound)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Get identity not yet implemented", "id": path})
+		json.NewEncoder(w).Encode(identity)
 		
 	case http.MethodPut:
-		// TODO: Implement update identity
+		var identity types.Identity
+		if err := json.NewDecoder(r.Body).Decode(&identity); err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		
+		if err := s.service.UpdateIdentity(path, identity); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Update identity not yet implemented", "id": path})
+		json.NewEncoder(w).Encode(identity)
 		
 	case http.MethodDelete:
-		// TODO: Implement delete identity
+		if err := s.service.DeleteIdentity(path); err != nil {
+			http.Error(w, "Identity not found", http.StatusNotFound)
+			return
+		}
 		w.WriteHeader(http.StatusNoContent)
 		
 	default:
@@ -299,9 +349,15 @@ func (s *Server) communitiesHandler(w http.ResponseWriter, r *http.Request) {
 			filter.Search = search
 		}
 		
-		// TODO: Implement community service methods
+		// Get communities from storage
+		communities, err := s.service.GetStorage().ListCommunities(filter)
+		if err != nil {
+			http.Error(w, "Failed to list communities", http.StatusInternalServerError)
+			return
+		}
+		
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode([]types.Community{})
+		json.NewEncoder(w).Encode(communities)
 		
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -318,25 +374,57 @@ func (s *Server) communityHandler(w http.ResponseWriter, r *http.Request) {
 	
 	// Handle special endpoints
 	if path == "stats" {
-		// TODO: Implement get community stats
+		http.Error(w, "Community stats endpoint should be accessed via /communities/{id}/stats", http.StatusBadRequest)
+		return
+	}
+	
+	// Handle stats endpoint with proper path parsing
+	if len(path) > 6 && path[len(path)-6:] == "/stats" {
+		communityId := path[:len(path)-6]
+		
+		// Create community service instance
+		communityService := s.getCommunityService()
+		stats, err := communityService.GetCommunityStats(communityId)
+		if err != nil {
+			http.Error(w, "Failed to get community stats", http.StatusNotFound)
+			return
+		}
+		
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Community stats not yet implemented"})
+		json.NewEncoder(w).Encode(stats)
 		return
 	}
 	
 	switch r.Method {
 	case http.MethodGet:
-		// TODO: Implement get community
+		community, err := s.service.GetStorage().GetCommunity(path)
+		if err != nil {
+			http.Error(w, "Community not found", http.StatusNotFound)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Get community not yet implemented", "id": path})
+		json.NewEncoder(w).Encode(community)
 		
 	case http.MethodPut:
-		// TODO: Implement update community
+		var community types.Community
+		if err := json.NewDecoder(r.Body).Decode(&community); err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+		
+		if err := s.service.GetStorage().UpdateCommunity(path, community); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"message": "Update community not yet implemented", "id": path})
+		json.NewEncoder(w).Encode(community)
 		
 	case http.MethodDelete:
-		// TODO: Implement delete community
+		if err := s.service.GetStorage().DeleteCommunity(path); err != nil {
+			http.Error(w, "Community not found", http.StatusNotFound)
+			return
+		}
 		w.WriteHeader(http.StatusNoContent)
 		
 	default:
@@ -363,10 +451,25 @@ func (s *Server) generateCommunityHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	
-	// TODO: Implement community generation
+	// Create community service instance
+	communityService := s.getCommunityService()
+	
+	// Generate community
+	community, err := communityService.GenerateCommunity(
+		req.GenerationConfig,
+		req.Name,
+		req.Description,
+		req.Type,
+		req.TargetSize,
+	)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to generate community: %v", err), http.StatusBadRequest)
+		return
+	}
+	
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Community generation not yet implemented"})
+	json.NewEncoder(w).Encode(community)
 }
 
 // StartServer starts the HTTP API server (legacy function for backward compatibility)
@@ -385,6 +488,11 @@ func StartServer(port string) error {
 	// Use legacy global service
 	server := NewServer(cfg, nil)
 	return server.Start()
+}
+
+// getCommunityService creates a community service instance
+func (s *Server) getCommunityService() *community.Service {
+	return community.NewService(s.service.GetStorage())
 }
 
 // StartServerWithConfig starts the HTTP server with full configuration
