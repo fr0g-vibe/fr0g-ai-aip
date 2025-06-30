@@ -18,6 +18,7 @@ import (
 // FileStorage implements file-based storage for personas and identities
 type FileStorage struct {
 	dataDir        string
+	personasDir    string
 	identitiesDir  string
 	communitiesDir string
 	mu             sync.RWMutex
@@ -27,6 +28,11 @@ type FileStorage struct {
 func NewFileStorage(dataDir string) (*FileStorage, error) {
 	if err := os.MkdirAll(dataDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create data directory: %v", err)
+	}
+
+	personasDir := filepath.Join(dataDir, "personas")
+	if err := os.MkdirAll(personasDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create personas directory: %v", err)
 	}
 
 	identitiesDir := filepath.Join(dataDir, "identities")
@@ -41,6 +47,7 @@ func NewFileStorage(dataDir string) (*FileStorage, error) {
 
 	return &FileStorage{
 		dataDir:        dataDir,
+		personasDir:    personasDir,
 		identitiesDir:  identitiesDir,
 		communitiesDir: communitiesDir,
 	}, nil
@@ -79,9 +86,9 @@ func (f *FileStorage) List() ([]types.Persona, error) {
 	f.mu.RLock()
 	defer f.mu.RUnlock()
 
-	files, err := os.ReadDir(f.dataDir)
+	files, err := os.ReadDir(f.personasDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read data directory: %v", err)
+		return nil, fmt.Errorf("failed to read personas directory: %v", err)
 	}
 
 	var personas []types.Persona
@@ -114,7 +121,7 @@ func (f *FileStorage) Delete(id string) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	filePath := filepath.Join(f.dataDir, id+".json")
+	filePath := filepath.Join(f.personasDir, id+".json")
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return fmt.Errorf("persona not found: %s", id)
 	}
@@ -283,7 +290,7 @@ func (f *FileStorage) generateID() string {
 }
 
 func (f *FileStorage) readPersona(id string) (types.Persona, error) {
-	filePath := filepath.Join(f.dataDir, id+".json")
+	filePath := filepath.Join(f.personasDir, id+".json")
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -301,7 +308,7 @@ func (f *FileStorage) readPersona(id string) (types.Persona, error) {
 }
 
 func (f *FileStorage) writePersona(p types.Persona) error {
-	filePath := filepath.Join(f.dataDir, p.Id+".json")
+	filePath := filepath.Join(f.personasDir, p.Id+".json")
 	data, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal persona data: %v", err)
