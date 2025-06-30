@@ -94,7 +94,7 @@ func (s *PersonaServer) CreatePersona(ctx context.Context, req *pb.CreatePersona
 	}
 
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		return nil, status.Errorf(codes.InvalidArgument, "failed to create persona: %v", err)
 	}
 
 	return &pb.CreatePersonaResponse{
@@ -126,7 +126,7 @@ func (s *PersonaServer) GetPersona(ctx context.Context, req *pb.GetPersonaReques
 	}
 
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, err.Error())
+		return nil, status.Errorf(codes.NotFound, "persona not found: %v", err)
 	}
 
 	return &pb.GetPersonaResponse{
@@ -202,7 +202,7 @@ func (s *PersonaServer) UpdatePersona(ctx context.Context, req *pb.UpdatePersona
 	}
 
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		return nil, status.Errorf(codes.InvalidArgument, "failed to update persona: %v", err)
 	}
 
 	return &pb.UpdatePersonaResponse{
@@ -232,7 +232,7 @@ func (s *PersonaServer) DeletePersona(ctx context.Context, req *pb.DeletePersona
 	}
 
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, err.Error())
+		return nil, status.Errorf(codes.NotFound, "failed to delete persona: %v", err)
 	}
 
 	return &pb.DeletePersonaResponse{}, nil
@@ -250,7 +250,7 @@ func (s *PersonaServer) CreateIdentity(ctx context.Context, req *pb.CreateIdenti
 	if s.service != nil {
 		err := s.service.CreateIdentity(identity)
 		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, err.Error())
+			return nil, status.Errorf(codes.InvalidArgument, "failed to create identity: %v", err)
 		}
 	} else {
 		return nil, status.Errorf(codes.Unimplemented, "identity service not available")
@@ -269,7 +269,7 @@ func (s *PersonaServer) GetIdentity(ctx context.Context, req *pb.GetIdentityRequ
 
 	identity, err := s.service.GetIdentity(req.Id)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, err.Error())
+		return nil, status.Errorf(codes.NotFound, "identity not found: %v", err)
 	}
 
 	return &pb.GetIdentityResponse{
@@ -316,7 +316,7 @@ func (s *PersonaServer) UpdateIdentity(ctx context.Context, req *pb.UpdateIdenti
 
 	err := s.service.UpdateIdentity(req.Id, *req.Identity)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		return nil, status.Errorf(codes.InvalidArgument, "failed to update identity: %v", err)
 	}
 
 	return &pb.UpdateIdentityResponse{
@@ -332,7 +332,7 @@ func (s *PersonaServer) DeleteIdentity(ctx context.Context, req *pb.DeleteIdenti
 
 	err := s.service.DeleteIdentity(req.Id)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, err.Error())
+		return nil, status.Errorf(codes.NotFound, "failed to delete identity: %v", err)
 	}
 
 	return &pb.DeleteIdentityResponse{}, nil
