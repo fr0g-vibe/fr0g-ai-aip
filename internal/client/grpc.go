@@ -52,7 +52,7 @@ func (g *GRPCClient) Create(p *types.Persona) error {
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
 			Context: p.Context,
-			Rag:     p.RAG,
+			Rag:     p.Rag,
 		},
 	}
 
@@ -62,7 +62,7 @@ func (g *GRPCClient) Create(p *types.Persona) error {
 	}
 
 	// Update the persona with the returned ID
-	p.ID = resp.Persona.Id
+	p.Id = resp.Persona.Id
 	return nil
 }
 
@@ -78,12 +78,12 @@ func (g *GRPCClient) Get(id string) (types.Persona, error) {
 	}
 
 	return types.Persona{
-		ID:      resp.Persona.Id,
+		Id:      resp.Persona.Id,
 		Name:    resp.Persona.Name,
 		Topic:   resp.Persona.Topic,
 		Prompt:  resp.Persona.Prompt,
 		Context: resp.Persona.Context,
-		RAG:     resp.Persona.Rag,
+		Rag:     resp.Persona.Rag,
 	}, nil
 }
 
@@ -101,12 +101,12 @@ func (g *GRPCClient) List() ([]types.Persona, error) {
 	var personas []types.Persona
 	for _, p := range resp.Personas {
 		personas = append(personas, types.Persona{
-			ID:      p.Id,
+			Id:      p.Id,
 			Name:    p.Name,
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
 			Context: p.Context,
-			RAG:     p.Rag,
+			Rag:     p.Rag,
 		})
 	}
 
@@ -124,7 +124,7 @@ func (g *GRPCClient) Update(id string, p types.Persona) error {
 			Topic:   p.Topic,
 			Prompt:  p.Prompt,
 			Context: p.Context,
-			Rag:     p.RAG,
+			Rag:     p.Rag,
 		},
 	}
 
@@ -157,12 +157,10 @@ func (g *GRPCClient) CreateIdentity(i *types.Identity) error {
 
 	req := &pb.CreateIdentityRequest{
 		Identity: &pb.Identity{
-			PersonaId:   i.PersonaID,
+			PersonaId:   i.PersonaId,
 			Name:        i.Name,
 			Description: i.Description,
-			Attributes:  i.Attributes,
-			Preferences: i.Preferences,
-			Background:  i.Background,
+			RichAttributes: i.RichAttributes,
 			IsActive:    i.IsActive,
 			Tags:        i.Tags,
 		},
@@ -174,7 +172,7 @@ func (g *GRPCClient) CreateIdentity(i *types.Identity) error {
 	}
 
 	// Update the identity with the returned ID
-	i.ID = resp.Identity.Id
+	i.Id = resp.Identity.Id
 	return nil
 }
 
@@ -190,15 +188,13 @@ func (g *GRPCClient) GetIdentity(id string) (types.Identity, error) {
 	}
 
 	return types.Identity{
-		ID:          resp.Identity.Id,
-		PersonaID:   resp.Identity.PersonaId,
+		Id:          resp.Identity.Id,
+		PersonaId:   resp.Identity.PersonaId,
 		Name:        resp.Identity.Name,
 		Description: resp.Identity.Description,
-		Attributes:  resp.Identity.Attributes,
-		Preferences: resp.Identity.Preferences,
-		Background:  resp.Identity.Background,
-		CreatedAt:   resp.Identity.CreatedAt.AsTime(),
-		UpdatedAt:   resp.Identity.UpdatedAt.AsTime(),
+		RichAttributes: resp.Identity.RichAttributes,
+		CreatedAt:   resp.Identity.CreatedAt,
+		UpdatedAt:   resp.Identity.UpdatedAt,
 		IsActive:    resp.Identity.IsActive,
 		Tags:        resp.Identity.Tags,
 	}, nil
@@ -213,8 +209,10 @@ func (g *GRPCClient) ListIdentities(filter *types.IdentityFilter) ([]types.Ident
 		pbFilter = &pb.IdentityFilter{
 			PersonaId: filter.PersonaID,
 			Tags:      filter.Tags,
-			IsActive:  filter.IsActive != nil && *filter.IsActive,
 			Search:    filter.Search,
+		}
+		if filter.IsActive != nil {
+			pbFilter.IsActive = filter.IsActive
 		}
 	}
 
@@ -228,15 +226,13 @@ func (g *GRPCClient) ListIdentities(filter *types.IdentityFilter) ([]types.Ident
 	var identities []types.Identity
 	for _, i := range resp.Identities {
 		identities = append(identities, types.Identity{
-			ID:          i.Id,
-			PersonaID:   i.PersonaId,
+			Id:          i.Id,
+			PersonaId:   i.PersonaId,
 			Name:        i.Name,
 			Description: i.Description,
-			Attributes:  i.Attributes,
-			Preferences: i.Preferences,
-			Background:  i.Background,
-			CreatedAt:   i.CreatedAt.AsTime(),
-			UpdatedAt:   i.UpdatedAt.AsTime(),
+			RichAttributes: i.RichAttributes,
+			CreatedAt:   i.CreatedAt,
+			UpdatedAt:   i.UpdatedAt,
 			IsActive:    i.IsActive,
 			Tags:        i.Tags,
 		})
@@ -252,12 +248,10 @@ func (g *GRPCClient) UpdateIdentity(id string, i types.Identity) error {
 	req := &pb.UpdateIdentityRequest{
 		Id: id,
 		Identity: &pb.Identity{
-			PersonaId:   i.PersonaID,
+			PersonaId:   i.PersonaId,
 			Name:        i.Name,
 			Description: i.Description,
-			Attributes:  i.Attributes,
-			Preferences: i.Preferences,
-			Background:  i.Background,
+			RichAttributes: i.RichAttributes,
 			IsActive:    i.IsActive,
 			Tags:        i.Tags,
 		},
@@ -297,26 +291,24 @@ func (g *GRPCClient) GetIdentityWithPersona(id string) (types.IdentityWithPerson
 	}
 
 	identity := types.Identity{
-		ID:          resp.IdentityWithPersona.Identity.Id,
-		PersonaID:   resp.IdentityWithPersona.Identity.PersonaId,
+		Id:          resp.IdentityWithPersona.Identity.Id,
+		PersonaId:   resp.IdentityWithPersona.Identity.PersonaId,
 		Name:        resp.IdentityWithPersona.Identity.Name,
 		Description: resp.IdentityWithPersona.Identity.Description,
-		Attributes:  resp.IdentityWithPersona.Identity.Attributes,
-		Preferences: resp.IdentityWithPersona.Identity.Preferences,
-		Background:  resp.IdentityWithPersona.Identity.Background,
-		CreatedAt:   resp.IdentityWithPersona.Identity.CreatedAt.AsTime(),
-		UpdatedAt:   resp.IdentityWithPersona.Identity.UpdatedAt.AsTime(),
+		RichAttributes: resp.IdentityWithPersona.Identity.RichAttributes,
+		CreatedAt:   resp.IdentityWithPersona.Identity.CreatedAt,
+		UpdatedAt:   resp.IdentityWithPersona.Identity.UpdatedAt,
 		IsActive:    resp.IdentityWithPersona.Identity.IsActive,
 		Tags:        resp.IdentityWithPersona.Identity.Tags,
 	}
 
 	persona := types.Persona{
-		ID:      resp.IdentityWithPersona.Persona.Id,
+		Id:      resp.IdentityWithPersona.Persona.Id,
 		Name:    resp.IdentityWithPersona.Persona.Name,
 		Topic:   resp.IdentityWithPersona.Persona.Topic,
 		Prompt:  resp.IdentityWithPersona.Persona.Prompt,
 		Context: resp.IdentityWithPersona.Persona.Context,
-		RAG:     resp.IdentityWithPersona.Persona.Rag,
+		Rag:     resp.IdentityWithPersona.Persona.Rag,
 	}
 
 	return types.IdentityWithPersona{
