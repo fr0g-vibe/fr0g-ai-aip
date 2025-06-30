@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"reflect"
 	"sort"
 	"time"
 
@@ -110,35 +111,42 @@ func (s *Service) generateMembers(config types.CommunityGenerationConfig, count 
 
 		// Generate rich attributes based on community config
 		richAttrs := s.generateRichAttributes(config, i, count)
-		identity.RichAttributes = &types.RichAttributes{
-			Age:                 int32(richAttrs["age"].(int)),
-			Gender:              richAttrs["gender"].(string),
-			PoliticalLeaning:    richAttrs["political_leaning"].(string),
-			SocioeconomicStatus: richAttrs["socioeconomic_status"].(string),
-			Education:           richAttrs["education"].(string),
-			ActivityLevel:       richAttrs["activity_level"].(float64),
+		
+		// Create RichAttributes with available fields
+		identity.RichAttributes = &types.RichAttributes{}
+		
+		// Set age if the field exists
+		if age, ok := richAttrs["age"].(int); ok {
+			if hasField(identity.RichAttributes, "Age") {
+				setField(identity.RichAttributes, "Age", int32(age))
+			}
 		}
 		
-		// Handle location separately as it's a complex type
+		// Set other attributes using a generic approach
+		if gender, ok := richAttrs["gender"].(string); ok {
+			setStringField(identity.RichAttributes, "Gender", gender)
+		}
+		if political, ok := richAttrs["political_leaning"].(string); ok {
+			setStringField(identity.RichAttributes, "PoliticalLeaning", political)
+		}
+		if socioeconomic, ok := richAttrs["socioeconomic_status"].(string); ok {
+			setStringField(identity.RichAttributes, "SocioeconomicStatus", socioeconomic)
+		}
+		if education, ok := richAttrs["education"].(string); ok {
+			setStringField(identity.RichAttributes, "Education", education)
+		}
+		if activity, ok := richAttrs["activity_level"].(float64); ok {
+			setFloatField(identity.RichAttributes, "ActivityLevel", activity)
+		}
+		
+		// Handle location if supported
 		if loc, ok := richAttrs["location"].(map[string]interface{}); ok {
-			identity.RichAttributes.Location = &types.Location{}
-			if city, ok := loc["city"].(string); ok {
-				identity.RichAttributes.Location.City = city
-			}
-			if locType, ok := loc["type"].(string); ok {
-				identity.RichAttributes.Location.Type = locType
-			}
-			if urban, ok := loc["urban"].(bool); ok {
-				identity.RichAttributes.Location.Urban = urban
-			}
-			if timezone, ok := loc["timezone"].(string); ok {
-				identity.RichAttributes.Location.Timezone = timezone
-			}
+			setLocationField(identity.RichAttributes, loc)
 		}
 		
-		// Handle interests as repeated field
+		// Handle interests if supported
 		if interests, ok := richAttrs["interests"].([]string); ok {
-			identity.RichAttributes.Interests = interests
+			setStringSliceField(identity.RichAttributes, "Interests", interests)
 		}
 
 		members = append(members, identity)
@@ -490,24 +498,25 @@ func (s *Service) calculateAttributeDiversity(members []types.Identity, attribut
 		var val interface{}
 		switch attribute {
 		case "age":
-			val = int(member.RichAttributes.Age)
+			val = getFieldValue(member.RichAttributes, "Age")
 		case "political_leaning":
-			val = member.RichAttributes.PoliticalLeaning
+			val = getFieldValue(member.RichAttributes, "PoliticalLeaning")
 		case "gender":
-			val = member.RichAttributes.Gender
+			val = getFieldValue(member.RichAttributes, "Gender")
 		case "education":
-			val = member.RichAttributes.Education
+			val = getFieldValue(member.RichAttributes, "Education")
 		case "socioeconomic_status":
-			val = member.RichAttributes.SocioeconomicStatus
+			val = getFieldValue(member.RichAttributes, "SocioeconomicStatus")
 		case "location":
-			if member.RichAttributes.Location != nil {
-				val = member.RichAttributes.Location.City
+			location := getFieldValue(member.RichAttributes, "Location")
+			if location != nil {
+				val = getFieldValue(location, "City")
 			}
 		default:
 			continue
 		}
 		
-		if val != nil && val != "" {
+		if val != nil && val != "" && val != int32(0) && val != 0 {
 			values[val]++
 		}
 	}
@@ -542,10 +551,13 @@ func (s *Service) calculateInterestDiversity(members []types.Identity) float64 {
 	totalInterests := 0
 
 	for _, member := range members {
-		if member.RichAttributes != nil && len(member.RichAttributes.Interests) > 0 {
-			for _, interest := range member.RichAttributes.Interests {
-				allInterests[interest]++
-				totalInterests++
+		if member.RichAttributes != nil {
+			interests := getFieldValue(member.RichAttributes, "Interests")
+			if interestSlice, ok := interests.([]string); ok && len(interestSlice) > 0 {
+				for _, interest := range interestSlice {
+					allInterests[interest]++
+					totalInterests++
+				}
 			}
 		}
 	}
@@ -609,25 +621,39 @@ func (s *Service) calculateMemberSimilarity(member1, member2 types.Identity) flo
 
 	// Age similarity
 	if member1.RichAttributes != nil && member2.RichAttributes != nil {
-		age1 := int(member1.RichAttributes.Age)
-		age2 := int(member2.RichAttributes.Age)
-		ageDiff := math.Abs(float64(age1 - age2))
-		ageSim := math.Max(0, 1.0-ageDiff/50.0) // Normalize by 50-year span
-		similarities = append(similarities, ageSim)
+		age1Val := getFieldValue(member1.RichAttributes, "Age")
+		age2Val := getFieldValue(member2.RichAttributes, "Age")
+		if age1Val != nil && age2Val != nil {
+			age1 := convertToInt(age1Val)
+			age2 := convertToInt(age2Val)
+			ageDiff := math.Abs(float64(age1 - age2))
+			ageSim := math.Max(0, 1.0-ageDiff/50.0) // Normalize by 50-year span
+			similarities = append(similarities, ageSim)
+		}
 	}
 
 	// Political similarity
-	if member1.RichAttributes != nil && member2.RichAttributes != nil &&
-		member1.RichAttributes.PoliticalLeaning != "" && member2.RichAttributes.PoliticalLeaning != "" {
-		polSim := s.calculatePoliticalSimilarity(member1.RichAttributes.PoliticalLeaning, member2.RichAttributes.PoliticalLeaning)
-		similarities = append(similarities, polSim)
+	if member1.RichAttributes != nil && member2.RichAttributes != nil {
+		pol1Val := getFieldValue(member1.RichAttributes, "PoliticalLeaning")
+		pol2Val := getFieldValue(member2.RichAttributes, "PoliticalLeaning")
+		if pol1Str, ok1 := pol1Val.(string); ok1 && pol1Str != "" {
+			if pol2Str, ok2 := pol2Val.(string); ok2 && pol2Str != "" {
+				polSim := s.calculatePoliticalSimilarity(pol1Str, pol2Str)
+				similarities = append(similarities, polSim)
+			}
+		}
 	}
 
 	// Interest similarity
-	if member1.RichAttributes != nil && member2.RichAttributes != nil &&
-		len(member1.RichAttributes.Interests) > 0 && len(member2.RichAttributes.Interests) > 0 {
-		intSim := s.calculateInterestSimilarity(member1.RichAttributes.Interests, member2.RichAttributes.Interests)
-		similarities = append(similarities, intSim)
+	if member1.RichAttributes != nil && member2.RichAttributes != nil {
+		int1Val := getFieldValue(member1.RichAttributes, "Interests")
+		int2Val := getFieldValue(member2.RichAttributes, "Interests")
+		if int1Slice, ok1 := int1Val.([]string); ok1 && len(int1Slice) > 0 {
+			if int2Slice, ok2 := int2Val.([]string); ok2 && len(int2Slice) > 0 {
+				intSim := s.calculateInterestSimilarity(int1Slice, int2Slice)
+				similarities = append(similarities, intSim)
+			}
+		}
 	}
 
 	if len(similarities) == 0 {
@@ -701,8 +727,12 @@ func (s *Service) calculateAverageAge(members []types.Identity) float64 {
 	
 	for _, member := range members {
 		if member.RichAttributes != nil {
-			total += float64(member.RichAttributes.Age)
-			count++
+			ageVal := getFieldValue(member.RichAttributes, "Age")
+			if ageVal != nil {
+				age := convertToInt(ageVal)
+				total += float64(age)
+				count++
+			}
 		}
 	}
 	
@@ -718,9 +748,12 @@ func (s *Service) calculatePoliticalDistribution(members []types.Identity) map[s
 	total := 0
 	
 	for _, member := range members {
-		if member.RichAttributes != nil && member.RichAttributes.PoliticalLeaning != "" {
-			distribution[member.RichAttributes.PoliticalLeaning]++
-			total++
+		if member.RichAttributes != nil {
+			polVal := getFieldValue(member.RichAttributes, "PoliticalLeaning")
+			if polStr, ok := polVal.(string); ok && polStr != "" {
+				distribution[polStr]++
+				total++
+			}
 		}
 	}
 	
@@ -736,11 +769,18 @@ func (s *Service) calculateLocationSpread(members []types.Identity) map[string]i
 	locations := make(map[string]int)
 	
 	for _, member := range members {
-		if member.RichAttributes != nil && member.RichAttributes.Location != nil {
-			if member.RichAttributes.Location.City != "" {
-				locations[member.RichAttributes.Location.City]++
-			} else if member.RichAttributes.Location.Type != "" {
-				locations[member.RichAttributes.Location.Type]++
+		if member.RichAttributes != nil {
+			locationVal := getFieldValue(member.RichAttributes, "Location")
+			if locationVal != nil {
+				cityVal := getFieldValue(locationVal, "City")
+				if cityStr, ok := cityVal.(string); ok && cityStr != "" {
+					locations[cityStr]++
+				} else {
+					typeVal := getFieldValue(locationVal, "Type")
+					if typeStr, ok := typeVal.(string); ok && typeStr != "" {
+						locations[typeStr]++
+					}
+				}
 			}
 		}
 	}
@@ -800,8 +840,11 @@ func (s *Service) GetCommunityStats(communityId string) (*types.CommunityStats, 
 	// Calculate active members (activity_level > 0.5)
 	activeCount := 0
 	for _, member := range members {
-		if member.RichAttributes != nil && member.RichAttributes.ActivityLevel > 0.5 {
-			activeCount++
+		if member.RichAttributes != nil {
+			activityVal := getFieldValue(member.RichAttributes, "ActivityLevel")
+			if activityFloat, ok := activityVal.(float64); ok && activityFloat > 0.5 {
+				activeCount++
+			}
 		}
 	}
 	stats.ActiveMembers = activeCount
@@ -809,8 +852,11 @@ func (s *Service) GetCommunityStats(communityId string) (*types.CommunityStats, 
 	// Calculate gender ratio
 	genderCount := make(map[string]int)
 	for _, member := range members {
-		if member.RichAttributes != nil && member.RichAttributes.Gender != "" {
-			genderCount[member.RichAttributes.Gender]++
+		if member.RichAttributes != nil {
+			genderVal := getFieldValue(member.RichAttributes, "Gender")
+			if genderStr, ok := genderVal.(string); ok && genderStr != "" {
+				genderCount[genderStr]++
+			}
 		}
 	}
 	
@@ -825,8 +871,11 @@ func (s *Service) GetCommunityStats(communityId string) (*types.CommunityStats, 
 	activityCount := 0
 	for _, member := range members {
 		if member.RichAttributes != nil {
-			totalActivity += member.RichAttributes.ActivityLevel
-			activityCount++
+			activityVal := getFieldValue(member.RichAttributes, "ActivityLevel")
+			if activityFloat, ok := activityVal.(float64); ok {
+				totalActivity += activityFloat
+				activityCount++
+			}
 		}
 	}
 	if activityCount > 0 {
@@ -914,4 +963,127 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// Helper functions to safely set fields on protobuf structs using reflection
+func hasField(v interface{}, fieldName string) bool {
+	val := reflect.ValueOf(v)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if val.Kind() != reflect.Struct {
+		return false
+	}
+	return val.FieldByName(fieldName).IsValid()
+}
+
+func setField(v interface{}, fieldName string, value interface{}) {
+	val := reflect.ValueOf(v)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if val.Kind() != reflect.Struct {
+		return
+	}
+	field := val.FieldByName(fieldName)
+	if field.IsValid() && field.CanSet() {
+		fieldValue := reflect.ValueOf(value)
+		if field.Type() == fieldValue.Type() {
+			field.Set(fieldValue)
+		}
+	}
+}
+
+func setStringField(v interface{}, fieldName string, value string) {
+	setField(v, fieldName, value)
+}
+
+func setFloatField(v interface{}, fieldName string, value float64) {
+	setField(v, fieldName, value)
+}
+
+func setStringSliceField(v interface{}, fieldName string, value []string) {
+	setField(v, fieldName, value)
+}
+
+func setLocationField(richAttrs *types.RichAttributes, loc map[string]interface{}) {
+	// Try to set location using reflection
+	val := reflect.ValueOf(richAttrs)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	locationField := val.FieldByName("Location")
+	if locationField.IsValid() && locationField.CanSet() {
+		// Create a new Location struct if the field exists
+		locationType := locationField.Type()
+		if locationType.Kind() == reflect.Ptr {
+			locationType = locationType.Elem()
+		}
+		
+		newLocation := reflect.New(locationType)
+		locationValue := newLocation.Elem()
+		
+		// Set location fields if they exist
+		if city, ok := loc["city"].(string); ok {
+			cityField := locationValue.FieldByName("City")
+			if cityField.IsValid() && cityField.CanSet() {
+				cityField.SetString(city)
+			}
+		}
+		if locType, ok := loc["type"].(string); ok {
+			typeField := locationValue.FieldByName("Type")
+			if typeField.IsValid() && typeField.CanSet() {
+				typeField.SetString(locType)
+			}
+		}
+		if urban, ok := loc["urban"].(bool); ok {
+			urbanField := locationValue.FieldByName("Urban")
+			if urbanField.IsValid() && urbanField.CanSet() {
+				urbanField.SetBool(urban)
+			}
+		}
+		if timezone, ok := loc["timezone"].(string); ok {
+			timezoneField := locationValue.FieldByName("Timezone")
+			if timezoneField.IsValid() && timezoneField.CanSet() {
+				timezoneField.SetString(timezone)
+			}
+		}
+		
+		locationField.Set(newLocation)
+	}
+}
+
+func getFieldValue(v interface{}, fieldName string) interface{} {
+	val := reflect.ValueOf(v)
+	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return nil
+		}
+		val = val.Elem()
+	}
+	if val.Kind() != reflect.Struct {
+		return nil
+	}
+	field := val.FieldByName(fieldName)
+	if !field.IsValid() {
+		return nil
+	}
+	return field.Interface()
+}
+
+func convertToInt(v interface{}) int {
+	switch val := v.(type) {
+	case int:
+		return val
+	case int32:
+		return int(val)
+	case int64:
+		return int(val)
+	case float64:
+		return int(val)
+	case float32:
+		return int(val)
+	default:
+		return 0
+	}
 }
