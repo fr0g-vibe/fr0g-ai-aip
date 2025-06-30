@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/client"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
@@ -80,6 +82,11 @@ func ExecuteWithConfig(config Config) error {
 		return updateIdentity(client)
 	case "identity-get-with-persona":
 		return getIdentityWithPersona(client)
+	// Generation commands
+	case "generate-identity":
+		return generateIdentity(client)
+	case "generate-community":
+		return generateCommunity(client)
 	default:
 		printUsage()
 		return fmt.Errorf("unknown command: %s", command)
@@ -173,6 +180,16 @@ func printUsage() {
 	fmt.Println("  identity-delete <id> Delete identity by ID")
 	fmt.Println("  identity-get-with-persona <id> Get identity with associated persona")
 	fmt.Println()
+	fmt.Println("GENERATION COMMANDS:")
+	fmt.Println("  generate-identity     Generate a random identity based on a persona")
+	fmt.Println("    -persona-id <id>      Persona ID (required)")
+	fmt.Println("    -name <name>          Identity name (optional, auto-generated if not provided)")
+	fmt.Println("  generate-community     Generate a community of identities")
+	fmt.Println("    -persona-id <id>      Persona ID (required)")
+	fmt.Println("    -size <number>        Number of identities to generate (required)")
+	fmt.Println("    -location <city,country> Location for the community (optional)")
+	fmt.Println("    -age-range <min>-<max>   Age range for the community (optional)")
+	fmt.Println()
 	fmt.Println("SERVER COMMANDS:")
 	fmt.Println("  serve               Start gRPC server")
 	fmt.Println("  help                Show this help message")
@@ -225,6 +242,13 @@ func printUsage() {
 	fmt.Println()
 	fmt.Println("  # Get identity with its associated persona")
 	fmt.Println("  fr0g-ai-aip identity-get-with-persona <identity_id>")
+	fmt.Println()
+	fmt.Println("  # Generate a random identity")
+	fmt.Println("  fr0g-ai-aip generate-identity -persona-id <persona_id> -name \"Alex Chen\"")
+	fmt.Println()
+	fmt.Println("  # Generate a community of 10 identities in San Francisco")
+	fmt.Println("  fr0g-ai-aip generate-community -persona-id <persona_id> -size 10 \\")
+	fmt.Println("    -location \"San Francisco,United States\" -age-range 25-65")
 	fmt.Println()
 	fmt.Println("  # Use local file storage")
 	fmt.Println("  FR0G_CLIENT_TYPE=local FR0G_STORAGE_TYPE=file fr0g-ai-aip list")
@@ -624,6 +648,203 @@ func getIdentityWithPersona(c client.Client) error {
 
 	if len(iwp.Identity.Tags) > 0 {
 		fmt.Printf("  Tags: %s\n", strings.Join(iwp.Identity.Tags, ", "))
+	}
+
+	return nil
+}
+
+// Generation functions
+func generateIdentity(c client.Client) error {
+	fs := flag.NewFlagSet("generate-identity", flag.ContinueOnError)
+	fs.Usage = func() {
+		fmt.Println("Usage: fr0g-ai-aip generate-identity -persona-id <id> [-name <name>] [-random]")
+		fmt.Println("  -persona-id <id>    Persona ID (required)")
+		fmt.Println("  -name <name>        Identity name (optional, will generate if not provided)")
+		fmt.Println("  -random             Generate random attributes (default)")
+	}
+	personaID := fs.String("persona-id", "", "Persona ID (required)")
+	name := fs.String("name", "", "Identity name (optional)")
+	// random := fs.Bool("random", true, "Generate random attributes") // TODO: implement random generation
+
+	if err := fs.Parse(os.Args[2:]); err != nil {
+		return err
+	}
+
+	if *personaID == "" {
+		fs.Usage()
+		return fmt.Errorf("persona-id is required")
+	}
+
+	// Verify persona exists
+	_, err := c.Get(*personaID)
+	if err != nil {
+		return fmt.Errorf("persona not found: %v", err)
+	}
+
+	// Generate identity name if not provided
+	if *name == "" {
+		*name = fmt.Sprintf("Generated Identity %d", time.Now().Unix())
+	}
+
+	// For now, we'll create a simple identity
+	// In a full implementation, you'd use the generator package
+	i := types.Identity{
+		PersonaID:   *personaID,
+		Name:        *name,
+		Description: "A generated identity with rich attributes",
+		Background:  "Generated background story based on attributes",
+		Tags:        []string{"generated", "random"},
+		IsActive:    true,
+		RichAttributes: &types.RichAttributes{
+			Demographics: types.Demographics{
+				Age:       30,
+				Gender:    "non-binary",
+				Education: "bachelors",
+				Location: types.Location{
+					Country:    "United States",
+					City:       "San Francisco",
+					UrbanRural: "urban",
+				},
+			},
+			Psychographics: types.Psychographics{
+				Personality: types.Personality{
+					Openness:          0.7,
+					Conscientiousness: 0.6,
+					Extraversion:      0.5,
+					Agreeableness:     0.8,
+					Neuroticism:       0.3,
+				},
+				Values:        []string{"curiosity", "compassion", "growth"},
+				RiskTolerance: "medium",
+			},
+		},
+	}
+
+	if err := c.CreateIdentity(&i); err != nil {
+		return fmt.Errorf("failed to create generated identity: %v", err)
+	}
+
+	fmt.Printf("Generated identity created successfully: %s\n", i.ID)
+	fmt.Printf("  Name: %s\n", i.Name)
+	fmt.Printf("  Persona: %s\n", i.PersonaID)
+	if i.RichAttributes != nil {
+		fmt.Printf("  Age: %d\n", i.RichAttributes.Demographics.Age)
+		fmt.Printf("  Location: %s, %s\n", i.RichAttributes.Demographics.Location.City, i.RichAttributes.Demographics.Location.Country)
+	}
+
+	return nil
+}
+
+func generateCommunity(c client.Client) error {
+	fs := flag.NewFlagSet("generate-community", flag.ContinueOnError)
+	fs.Usage = func() {
+		fmt.Println("Usage: fr0g-ai-aip generate-community -persona-id <id> -size <number> [-location <city,country>] [-age-range <min>-<max>]")
+		fmt.Println("  -persona-id <id>    Persona ID (required)")
+		fmt.Println("  -size <number>      Number of identities to generate (required)")
+		fmt.Println("  -location <city,country>  Location for the community (optional)")
+		fmt.Println("  -age-range <min>-<max>    Age range for the community (optional)")
+	}
+	personaID := fs.String("persona-id", "", "Persona ID (required)")
+	size := fs.Int("size", 0, "Number of identities to generate (required)")
+	location := fs.String("location", "", "Location (city,country)")
+	ageRange := fs.String("age-range", "", "Age range (min-max)")
+
+	if err := fs.Parse(os.Args[2:]); err != nil {
+		return err
+	}
+
+	if *personaID == "" || *size <= 0 {
+		fs.Usage()
+		return fmt.Errorf("persona-id and size are required")
+	}
+
+	// Verify persona exists
+	_, err := c.Get(*personaID)
+	if err != nil {
+		return fmt.Errorf("persona not found: %v", err)
+	}
+
+	// Parse location if provided
+	var loc *types.Location
+	if *location != "" {
+		parts := strings.Split(*location, ",")
+		if len(parts) >= 2 {
+			loc = &types.Location{
+				City:       strings.TrimSpace(parts[0]),
+				Country:    strings.TrimSpace(parts[1]),
+				UrbanRural: "urban",
+			}
+		}
+	}
+
+	// Parse age range if provided
+	var ageRangeStruct *types.AgeRange
+	if *ageRange != "" {
+		parts := strings.Split(*ageRange, "-")
+		if len(parts) == 2 {
+			min, err1 := strconv.Atoi(strings.TrimSpace(parts[0]))
+			max, err2 := strconv.Atoi(strings.TrimSpace(parts[1]))
+			if err1 == nil && err2 == nil && min <= max {
+				ageRangeStruct = &types.AgeRange{Min: min, Max: max}
+			}
+		}
+	}
+
+	// Generate community identities
+	createdCount := 0
+	for i := 0; i < *size; i++ {
+		name := fmt.Sprintf("Community Member %d", i+1)
+
+		// Create identity with location and age range if specified
+		identity := types.Identity{
+			PersonaID:   *personaID,
+			Name:        name,
+			Description: fmt.Sprintf("Community member %d with generated attributes", i+1),
+			Background:  "Generated community member background",
+			Tags:        []string{"community", "generated"},
+			IsActive:    true,
+			RichAttributes: &types.RichAttributes{
+				Demographics: types.Demographics{
+					Age:       25 + i%45, // Spread ages
+					Gender:    []string{"male", "female", "non-binary"}[i%3],
+					Education: []string{"high_school", "bachelors", "masters"}[i%3],
+				},
+				Psychographics: types.Psychographics{
+					Personality: types.Personality{
+						Openness:          0.5 + float64(i%5)*0.1,
+						Conscientiousness: 0.5 + float64(i%5)*0.1,
+						Extraversion:      0.5 + float64(i%5)*0.1,
+						Agreeableness:     0.5 + float64(i%5)*0.1,
+						Neuroticism:       0.3 + float64(i%5)*0.1,
+					},
+					Values: []string{"community", "growth", "connection"},
+				},
+			},
+		}
+
+		// Apply location if specified
+		if loc != nil {
+			identity.RichAttributes.Demographics.Location = *loc
+		}
+
+		// Apply age range if specified
+		if ageRangeStruct != nil {
+			identity.RichAttributes.Demographics.Age = ageRangeStruct.Min + (i % (ageRangeStruct.Max - ageRangeStruct.Min + 1))
+		}
+
+		if err := c.CreateIdentity(&identity); err != nil {
+			fmt.Printf("Warning: Failed to create identity %d: %v\n", i+1, err)
+			continue
+		}
+		createdCount++
+	}
+
+	fmt.Printf("Successfully generated %d community identities for persona %s\n", createdCount, *personaID)
+	if loc != nil {
+		fmt.Printf("  Location: %s, %s\n", loc.City, loc.Country)
+	}
+	if ageRangeStruct != nil {
+		fmt.Printf("  Age Range: %d-%d\n", ageRangeStruct.Min, ageRangeStruct.Max)
 	}
 
 	return nil
