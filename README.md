@@ -161,33 +161,26 @@ The project maintains comprehensive test coverage across all packages:
 
 ### Running Tests
 
-Run all tests:
 ```bash
+# Run all tests
 make test
-```
 
-Run tests with coverage report:
-```bash
+# Run tests with coverage report
 make test-coverage
-```
 
-Generate detailed HTML coverage report:
-```bash
+# Generate detailed HTML coverage report
 make test-coverage-detailed
-```
 
-Run tests with verbose output:
-```bash
+# Run gRPC-specific coverage with detailed report
+make test-coverage-verbose-grpc
+
+# Run tests with verbose output
 make test-verbose
-```
 
-Run tests with race detection:
-```bash
+# Run tests with race detection
 make test-race
-```
 
-Run benchmarks:
-```bash
+# Run benchmarks
 make test-bench
 ```
 
@@ -211,6 +204,57 @@ The test suite includes:
 - `integration_test.go` files test cross-package functionality
 - Mock servers and storage implementations for isolated testing
 - Comprehensive validation of error conditions and edge cases
+
+## Development
+
+### Available Make Targets
+
+```bash
+# Building
+make build              # Build the application (no external deps)
+make build-with-grpc    # Build with full gRPC support
+make clean              # Clean build artifacts
+
+# Protocol Buffers
+make proto              # Force generate protobuf code
+make proto-if-needed    # Generate protobuf code only if missing
+
+# Testing
+make test               # Run tests
+make test-coverage      # Run tests with coverage
+make test-coverage-detailed # Generate HTML coverage report
+make test-coverage-verbose-grpc # Detailed gRPC coverage
+make test-verbose       # Run tests with verbose output
+make test-race          # Run tests with race detection
+make test-bench         # Run benchmarks
+
+# Running
+make run-server         # Run HTTP REST API server
+make run-grpc           # Run gRPC server
+make run-both           # Run both HTTP and gRPC servers
+make run-cli            # Show CLI help
+
+# Dependencies and Tools
+make deps               # Install/update dependencies
+make install-proto-tools # Install protobuf generation tools
+make fmt                # Format code
+
+# Help
+make help               # Show all available targets
+```
+
+### Code Quality
+
+```bash
+# Format code
+make fmt
+
+# Install dependencies
+make deps
+
+# Note: Linting requires external tools not included in this Makefile
+# You can install golangci-lint separately if needed
+```
 
 ## Contributing
 
