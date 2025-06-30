@@ -14,16 +14,18 @@ import (
 
 // MemoryStorage implements in-memory storage for personas and identities
 type MemoryStorage struct {
-	personas   map[string]types.Persona
-	identities map[string]types.Identity
-	mu         sync.RWMutex
+	personas    map[string]types.Persona
+	identities  map[string]types.Identity
+	communities map[string]types.Community
+	mu          sync.RWMutex
 }
 
 // NewMemoryStorage creates a new in-memory storage instance
 func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{
-		personas:   make(map[string]types.Persona),
-		identities: make(map[string]types.Identity),
+		personas:    make(map[string]types.Persona),
+		identities:  make(map[string]types.Identity),
+		communities: make(map[string]types.Community),
 	}
 }
 
@@ -249,4 +251,132 @@ func (m *MemoryStorage) GetIdentityWithPersona(id string) (types.IdentityWithPer
 		Identity: i,
 		Persona:  p,
 	}, nil
+}
+
+// Community operations
+func (m *MemoryStorage) CreateCommunity(c *types.Community) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if c == nil {
+		return fmt.Errorf("community cannot be nil")
+	}
+	if c.Name == "" {
+		return fmt.Errorf("community name is required")
+	}
+	if c.Type == "" {
+		return fmt.Errorf("community type is required")
+	}
+
+	if c.Id == "" {
+		c.Id = generateID()
+	}
+	
+	// Initialize empty slices if nil
+	if c.MemberIds == nil {
+		c.MemberIds = []string{}
+	}
+	if c.Tags == nil {
+		c.Tags = []string{}
+	}
+	if c.Attributes == nil {
+		c.Attributes = make(map[string]interface{})
+	}
+
+	m.communities[c.Id] = *c
+	return nil
+}
+
+func (m *MemoryStorage) GetCommunity(id string) (types.Community, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	c, exists := m.communities[id]
+	if !exists {
+		return types.Community{}, fmt.Errorf("community not found: %s", id)
+	}
+	return c, nil
+}
+
+func (m *MemoryStorage) ListCommunities(filter *types.CommunityFilter) ([]types.Community, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	var result []types.Community
+
+	for _, c := range m.communities {
+		// Apply filters
+		if filter != nil {
+			if filter.Type != "" && c.Type != filter.Type {
+				continue
+			}
+			if filter.IsActive != nil && c.IsActive != *filter.IsActive {
+				continue
+			}
+			if filter.MinSize != nil && c.Size < *filter.MinSize {
+				continue
+			}
+			if filter.MaxSize != nil && c.Size > *filter.MaxSize {
+				continue
+			}
+			if filter.MinDiversity != nil && c.Diversity < *filter.MinDiversity {
+				continue
+			}
+			if filter.MaxDiversity != nil && c.Diversity > *filter.MaxDiversity {
+				continue
+			}
+			if len(filter.Tags) > 0 {
+				hasTag := false
+				for _, tag := range filter.Tags {
+					for _, communityTag := range c.Tags {
+						if communityTag == tag {
+							hasTag = true
+							break
+						}
+					}
+					if hasTag {
+						break
+					}
+				}
+				if !hasTag {
+					continue
+				}
+			}
+			if filter.Search != "" {
+				searchLower := strings.ToLower(filter.Search)
+				nameMatch := strings.Contains(strings.ToLower(c.Name), searchLower)
+				descMatch := strings.Contains(strings.ToLower(c.Description), searchLower)
+				if !nameMatch && !descMatch {
+					continue
+				}
+			}
+		}
+		result = append(result, c)
+	}
+
+	return result, nil
+}
+
+func (m *MemoryStorage) UpdateCommunity(id string, c types.Community) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if _, exists := m.communities[id]; !exists {
+		return fmt.Errorf("community not found: %s", id)
+	}
+
+	c.Id = id
+	m.communities[id] = c
+	return nil
+}
+
+func (m *MemoryStorage) DeleteCommunity(id string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if _, exists := m.communities[id]; !exists {
+		return fmt.Errorf("community not found: %s", id)
+	}
+	delete(m.communities, id)
+	return nil
 }

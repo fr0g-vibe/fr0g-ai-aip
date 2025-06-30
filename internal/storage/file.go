@@ -17,9 +17,10 @@ import (
 
 // FileStorage implements file-based storage for personas and identities
 type FileStorage struct {
-	dataDir       string
-	identitiesDir string
-	mu            sync.RWMutex
+	dataDir        string
+	identitiesDir  string
+	communitiesDir string
+	mu             sync.RWMutex
 }
 
 // NewFileStorage creates a new file storage instance
@@ -33,9 +34,15 @@ func NewFileStorage(dataDir string) (*FileStorage, error) {
 		return nil, fmt.Errorf("failed to create identities directory: %v", err)
 	}
 
+	communitiesDir := filepath.Join(dataDir, "communities")
+	if err := os.MkdirAll(communitiesDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create communities directory: %v", err)
+	}
+
 	return &FileStorage{
-		dataDir:       dataDir,
-		identitiesDir: identitiesDir,
+		dataDir:        dataDir,
+		identitiesDir:  identitiesDir,
+		communitiesDir: communitiesDir,
 	}, nil
 }
 
@@ -298,6 +305,167 @@ func (f *FileStorage) writePersona(p types.Persona) error {
 	data, err := json.MarshalIndent(p, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal persona data: %v", err)
+	}
+
+	return os.WriteFile(filePath, data, 0644)
+}
+
+// Community operations
+func (f *FileStorage) CreateCommunity(c *types.Community) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if c == nil {
+		return fmt.Errorf("community cannot be nil")
+	}
+	if c.Name == "" {
+		return fmt.Errorf("community name is required")
+	}
+	if c.Type == "" {
+		return fmt.Errorf("community type is required")
+	}
+
+	if c.Id == "" {
+		c.Id = f.generateID()
+	}
+
+	// Initialize empty slices if nil
+	if c.MemberIds == nil {
+		c.MemberIds = []string{}
+	}
+	if c.Tags == nil {
+		c.Tags = []string{}
+	}
+	if c.Attributes == nil {
+		c.Attributes = make(map[string]interface{})
+	}
+
+	return f.writeCommunity(*c)
+}
+
+func (f *FileStorage) GetCommunity(id string) (types.Community, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	return f.readCommunity(id)
+}
+
+func (f *FileStorage) ListCommunities(filter *types.CommunityFilter) ([]types.Community, error) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	files, err := os.ReadDir(f.communitiesDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read communities directory: %v", err)
+	}
+
+	var communities []types.Community
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".json" {
+			id := file.Name()[:len(file.Name())-5] // Remove .json extension
+			if c, err := f.readCommunity(id); err == nil {
+				// Apply filters
+				if filter != nil {
+					if filter.Type != "" && c.Type != filter.Type {
+						continue
+					}
+					if filter.IsActive != nil && c.IsActive != *filter.IsActive {
+						continue
+					}
+					if filter.MinSize != nil && c.Size < *filter.MinSize {
+						continue
+					}
+					if filter.MaxSize != nil && c.Size > *filter.MaxSize {
+						continue
+					}
+					if filter.MinDiversity != nil && c.Diversity < *filter.MinDiversity {
+						continue
+					}
+					if filter.MaxDiversity != nil && c.Diversity > *filter.MaxDiversity {
+						continue
+					}
+					if len(filter.Tags) > 0 {
+						hasTag := false
+						for _, tag := range filter.Tags {
+							for _, communityTag := range c.Tags {
+								if communityTag == tag {
+									hasTag = true
+									break
+								}
+							}
+							if hasTag {
+								break
+							}
+						}
+						if !hasTag {
+							continue
+						}
+					}
+					if filter.Search != "" {
+						searchLower := strings.ToLower(filter.Search)
+						nameMatch := strings.Contains(strings.ToLower(c.Name), searchLower)
+						descMatch := strings.Contains(strings.ToLower(c.Description), searchLower)
+						if !nameMatch && !descMatch {
+							continue
+						}
+					}
+				}
+				communities = append(communities, c)
+			}
+		}
+	}
+
+	return communities, nil
+}
+
+func (f *FileStorage) UpdateCommunity(id string, c types.Community) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	// Check if community exists
+	if _, err := f.readCommunity(id); err != nil {
+		return fmt.Errorf("community not found: %s", id)
+	}
+
+	c.Id = id
+	return f.writeCommunity(c)
+}
+
+func (f *FileStorage) DeleteCommunity(id string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	filePath := filepath.Join(f.communitiesDir, id+".json")
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return fmt.Errorf("community not found: %s", id)
+	}
+
+	return os.Remove(filePath)
+}
+
+func (f *FileStorage) readCommunity(id string) (types.Community, error) {
+	filePath := filepath.Join(f.communitiesDir, id+".json")
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return types.Community{}, fmt.Errorf("community not found: %s", id)
+		}
+		return types.Community{}, fmt.Errorf("failed to read community file: %v", err)
+	}
+
+	var c types.Community
+	if err := json.Unmarshal(data, &c); err != nil {
+		return types.Community{}, fmt.Errorf("failed to parse community data: %v", err)
+	}
+
+	return c, nil
+}
+
+func (f *FileStorage) writeCommunity(c types.Community) error {
+	filePath := filepath.Join(f.communitiesDir, c.Id+".json")
+	data, err := json.MarshalIndent(c, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal community data: %v", err)
 	}
 
 	return os.WriteFile(filePath, data, 0644)
