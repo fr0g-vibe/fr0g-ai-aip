@@ -123,15 +123,6 @@ docs: proto-if-needed
 	done
 	@echo "Documentation generated in docs/generated/"
 
-# Serve documentation locally
-docs-serve: docs
-	@echo "Starting documentation server on http://localhost:6060"
-	@echo "Visit http://localhost:6060/pkg/github.com/fr0g-vibe/fr0g-ai-aip/ for package docs"
-	@if ! PATH="$(shell go env GOPATH)/bin:$$PATH" command -v godoc >/dev/null 2>&1; then \
-		echo "Installing godoc..."; \
-		go install golang.org/x/tools/cmd/godoc@latest; \
-	fi
-	PATH="$(shell go env GOPATH)/bin:$$PATH" godoc -http=:6060
 
 # Generate OpenAPI documentation
 docs-openapi:
@@ -171,7 +162,6 @@ help:
 	@echo ""
 	@echo "Documentation:"
 	@echo "  docs               - Generate all documentation"
-	@echo "  docs-serve         - Serve documentation locally (port 6060)"
 	@echo "  docs-openapi       - Show OpenAPI documentation info"
 	@echo "  docs-mcp           - Show MCP integration documentation info"
 	@echo ""
