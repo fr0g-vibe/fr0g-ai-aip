@@ -23,7 +23,7 @@ var defaultConfig = Config{
 	ClientType:  "local",
 	StorageType: "memory",
 	DataDir:     "./data",
-	ServerURL:   "localhost:8080", // For REST, or "localhost:9090" for gRPC
+	ServerURL:   "http://localhost:8080", // For REST, or "localhost:9090" for gRPC
 }
 
 // Execute runs the CLI interface
@@ -85,11 +85,10 @@ func createClient(config Config) (client.Client, error) {
 	case "rest":
 		return client.NewRESTClient(config.ServerURL), nil
 	case "grpc":
-		// Extract address from server URL or use default
+		// Use gRPC-specific default or extract from config
 		address := "localhost:9090"
-		if config.ServerURL != "" {
-			// Convert HTTP URL to gRPC address if needed
-			// For now, assume ServerURL contains the gRPC address
+		if config.ServerURL != "" && config.ServerURL != "http://localhost:8080" {
+			// If a custom server URL is provided and it's not the REST default, use it
 			address = config.ServerURL
 		}
 		return client.NewGRPCClient(address)
