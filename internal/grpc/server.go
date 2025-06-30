@@ -13,7 +13,6 @@ import (
 	pb "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // PersonaServer implements the gRPC PersonaService
@@ -288,8 +287,7 @@ func (s *PersonaServer) ListIdentities(ctx context.Context, req *pb.ListIdentiti
 			Search:    req.Filter.Search,
 		}
 		if req.Filter.IsActive != nil {
-			isActive := *req.Filter.IsActive
-			filter.IsActive = &isActive
+			filter.IsActive = req.Filter.IsActive
 		}
 	}
 
