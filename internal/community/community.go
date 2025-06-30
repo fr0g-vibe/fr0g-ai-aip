@@ -103,8 +103,8 @@ func (s *Service) generateMembers(config types.CommunityGenerationConfig, count 
 			Name:        s.generateName(),
 			Description: fmt.Sprintf("Community member based on %s persona", persona.Name),
 			IsActive:    true,
-			CreatedAt:   timestamppb.New(now),
-			UpdatedAt:   timestamppb.New(now),
+			CreatedAt:   now,
+			UpdatedAt:   now,
 			Tags:        []string{"community-generated"},
 		}
 

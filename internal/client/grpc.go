@@ -187,14 +187,22 @@ func (g *GRPCClient) GetIdentity(id string) (types.Identity, error) {
 		return types.Identity{}, fmt.Errorf("failed to get identity: %v", err)
 	}
 
+	var createdAt, updatedAt time.Time
+	if resp.Identity.CreatedAt != nil {
+		createdAt = resp.Identity.CreatedAt.AsTime()
+	}
+	if resp.Identity.UpdatedAt != nil {
+		updatedAt = resp.Identity.UpdatedAt.AsTime()
+	}
+
 	return types.Identity{
 		Id:          resp.Identity.Id,
 		PersonaId:   resp.Identity.PersonaId,
 		Name:        resp.Identity.Name,
 		Description: resp.Identity.Description,
 		RichAttributes: resp.Identity.RichAttributes,
-		CreatedAt:   resp.Identity.CreatedAt,
-		UpdatedAt:   resp.Identity.UpdatedAt,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 		IsActive:    resp.Identity.IsActive,
 		Tags:        resp.Identity.Tags,
 	}, nil
@@ -225,14 +233,22 @@ func (g *GRPCClient) ListIdentities(filter *types.IdentityFilter) ([]types.Ident
 
 	var identities []types.Identity
 	for _, i := range resp.Identities {
+		var createdAt, updatedAt time.Time
+		if i.CreatedAt != nil {
+			createdAt = i.CreatedAt.AsTime()
+		}
+		if i.UpdatedAt != nil {
+			updatedAt = i.UpdatedAt.AsTime()
+		}
+
 		identities = append(identities, types.Identity{
 			Id:          i.Id,
 			PersonaId:   i.PersonaId,
 			Name:        i.Name,
 			Description: i.Description,
 			RichAttributes: i.RichAttributes,
-			CreatedAt:   i.CreatedAt,
-			UpdatedAt:   i.UpdatedAt,
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
 			IsActive:    i.IsActive,
 			Tags:        i.Tags,
 		})
@@ -290,14 +306,22 @@ func (g *GRPCClient) GetIdentityWithPersona(id string) (types.IdentityWithPerson
 		return types.IdentityWithPersona{}, fmt.Errorf("failed to get identity with persona: %v", err)
 	}
 
+	var createdAt, updatedAt time.Time
+	if resp.IdentityWithPersona.Identity.CreatedAt != nil {
+		createdAt = resp.IdentityWithPersona.Identity.CreatedAt.AsTime()
+	}
+	if resp.IdentityWithPersona.Identity.UpdatedAt != nil {
+		updatedAt = resp.IdentityWithPersona.Identity.UpdatedAt.AsTime()
+	}
+
 	identity := types.Identity{
 		Id:          resp.IdentityWithPersona.Identity.Id,
 		PersonaId:   resp.IdentityWithPersona.Identity.PersonaId,
 		Name:        resp.IdentityWithPersona.Identity.Name,
 		Description: resp.IdentityWithPersona.Identity.Description,
 		RichAttributes: resp.IdentityWithPersona.Identity.RichAttributes,
-		CreatedAt:   resp.IdentityWithPersona.Identity.CreatedAt,
-		UpdatedAt:   resp.IdentityWithPersona.Identity.UpdatedAt,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
 		IsActive:    resp.IdentityWithPersona.Identity.IsActive,
 		Tags:        resp.IdentityWithPersona.Identity.Tags,
 	}

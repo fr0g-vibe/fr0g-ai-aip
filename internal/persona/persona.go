@@ -285,8 +285,8 @@ func (s *Service) CreateIdentity(i *types.Identity) error {
 
 	// Set timestamps
 	now := time.Now()
-	i.CreatedAt = timestamppb.New(now)
-	i.UpdatedAt = timestamppb.New(now)
+	i.CreatedAt = now
+	i.UpdatedAt = now
 
 	// Set default values
 	if i.RichAttributes == nil {
@@ -321,7 +321,7 @@ func (s *Service) UpdateIdentity(id string, i types.Identity) error {
 	}
 
 	// Update timestamp
-	i.UpdatedAt = timestamppb.New(time.Now())
+	i.UpdatedAt = time.Now()
 
 	// Update identity
 	return s.storage.UpdateIdentity(id, i)
