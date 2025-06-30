@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pb "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb"
+	pb "github.com/fr0g-vibe/fr0g-ai-aip/internal/grpc/pb/proto"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/persona"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
 )
