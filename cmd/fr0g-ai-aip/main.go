@@ -50,6 +50,14 @@ func main() {
 		
 		// Set default service for API handlers
 		persona.SetDefaultService(persona.NewService(store))
+	} else {
+		// For CLI mode, also initialize default service with file storage for persistence
+		store, err := storage.NewFileStorage("./data")
+		if err != nil {
+			log.Printf("Warning: Failed to initialize file storage, using memory: %v", err)
+			store = storage.NewMemoryStorage()
+		}
+		persona.SetDefaultService(persona.NewService(store))
 	}
 
 	// If both server modes are requested, run them concurrently

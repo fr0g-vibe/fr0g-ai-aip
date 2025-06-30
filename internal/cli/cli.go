@@ -21,7 +21,7 @@ type Config struct {
 
 var defaultConfig = Config{
 	ClientType:  "local",
-	StorageType: "memory",
+	StorageType: "file", // Changed to file for persistence
 	DataDir:     "./data",
 	ServerURL:   "http://localhost:8080", // For REST, or "localhost:9090" for gRPC
 }
@@ -257,7 +257,7 @@ func deletePersona(c client.Client) error {
 // GetConfigFromEnv reads configuration from environment variables
 func GetConfigFromEnv() Config {
 	config := defaultConfig
-
+	
 	if clientType := os.Getenv("FR0G_CLIENT_TYPE"); clientType != "" {
 		config.ClientType = clientType
 	}
@@ -270,13 +270,13 @@ func GetConfigFromEnv() Config {
 	if serverURL := os.Getenv("FR0G_SERVER_URL"); serverURL != "" {
 		config.ServerURL = serverURL
 	}
-
+	
 	// Expand relative paths
 	if !filepath.IsAbs(config.DataDir) {
 		if abs, err := filepath.Abs(config.DataDir); err == nil {
 			config.DataDir = abs
 		}
 	}
-
+	
 	return config
 }
