@@ -30,6 +30,11 @@ func NewApp() (*App, error) {
 		return nil, fmt.Errorf("invalid configuration: %v", err)
 	}
 	
+	// Add port conflict validation
+	if cfg.HTTP.Port == cfg.GRPC.Port {
+		return nil, fmt.Errorf("HTTP and gRPC ports cannot be the same: %s", cfg.HTTP.Port)
+	}
+	
 	// Initialize storage
 	store, err := createStorage(cfg.Storage)
 	if err != nil {
@@ -55,6 +60,9 @@ func (app *App) RunCLI() error {
 
 // RunServers runs the HTTP and/or gRPC servers
 func (app *App) RunServers(httpMode, grpcMode bool) error {
+	// Print startup banner
+	app.printStartupBanner()
+	
 	// Handle graceful shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
@@ -113,14 +121,34 @@ func (app *App) RunServers(httpMode, grpcMode bool) error {
 	return nil
 }
 
+// printStartupBanner displays a startup banner with configuration info
+func (app *App) printStartupBanner() {
+	fmt.Println("🐸 fr0g-ai-aip - AI Personas Management System")
+	fmt.Printf("   Version: 1.0.0\n")
+	fmt.Printf("   Storage: %s", app.config.Storage.Type)
+	if app.config.Storage.Type == "file" {
+		fmt.Printf(" (%s)", app.config.Storage.DataDir)
+	}
+	fmt.Println()
+	fmt.Println("   Ready to manage your AI personas!")
+	fmt.Println()
+}
+
 func createStorage(cfg config.StorageConfig) (storage.Storage, error) {
 	switch cfg.Type {
 	case "memory":
 		return storage.NewMemoryStorage(), nil
 	case "file":
-		return storage.NewFileStorage(cfg.DataDir)
+		if cfg.DataDir == "" {
+			return nil, fmt.Errorf("data directory is required for file storage")
+		}
+		store, err := storage.NewFileStorage(cfg.DataDir)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize file storage at %s: %v", cfg.DataDir, err)
+		}
+		return store, nil
 	default:
-		return nil, fmt.Errorf("unknown storage type: %s", cfg.Type)
+		return nil, fmt.Errorf("unsupported storage type '%s' (supported: memory, file)", cfg.Type)
 	}
 }
 

@@ -53,3 +53,58 @@ logging:
 # SECURITY_API_KEY=your-secret-key
 # LOG_LEVEL=debug
 # LOG_FORMAT=json
+# fr0g-ai-aip Configuration Example
+# Copy this file to config.yaml and modify as needed
+
+# HTTP Server Configuration
+http:
+  port: "8080"
+  read_timeout: 30s
+  write_timeout: 30s
+  shutdown_timeout: 10s
+  enable_tls: false
+  cert_file: ""
+  key_file: ""
+
+# gRPC Server Configuration
+grpc:
+  port: "9090"
+  max_recv_msg_size: 4194304  # 4MB
+  max_send_msg_size: 4194304  # 4MB
+  connection_timeout: 30s
+  enable_tls: false
+  cert_file: ""
+  key_file: ""
+
+# Storage Configuration
+storage:
+  type: "file"  # Options: memory, file
+  data_dir: "./data"  # Only used when type is "file"
+
+# Client Configuration
+client:
+  type: "grpc"  # Options: local, rest, grpc
+  server_url: "localhost:9090"  # Only used for rest/grpc clients
+  timeout: 30s
+
+# Security Configuration
+security:
+  enable_auth: false
+  api_key: ""
+
+# Logging Configuration
+logging:
+  level: "info"  # Options: debug, info, warn, error
+  format: "text"  # Options: text, json
+
+# Environment Variables Override Examples:
+# FR0G_HTTP_PORT=8080
+# FR0G_GRPC_PORT=9090
+# FR0G_STORAGE_TYPE=file
+# FR0G_DATA_DIR=/var/lib/fr0g-ai-aip
+# FR0G_CLIENT_TYPE=rest
+# FR0G_SERVER_URL=https://api.example.com
+# FR0G_SECURITY_ENABLE_AUTH=true
+# FR0G_SECURITY_API_KEY=your-secret-key
+# FR0G_LOG_LEVEL=debug
+# FR0G_LOG_FORMAT=json

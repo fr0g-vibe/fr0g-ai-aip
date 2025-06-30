@@ -29,7 +29,8 @@ var defaultConfig = Config{
 
 // Execute runs the CLI interface
 func Execute() error {
-	return ExecuteWithConfig(defaultConfig)
+	config := GetConfigFromEnv() // Use environment variables
+	return ExecuteWithConfig(config)
 }
 
 // ExecuteWithConfig runs the CLI interface with the given configuration
@@ -108,7 +109,7 @@ func createClient(config Config) (client.Client, error) {
 		}
 		grpcClient, err := client.NewGRPCClient(address)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create gRPC client: %v", err)
+			return nil, fmt.Errorf("failed to create gRPC client for %s: %v\nTip: Make sure the gRPC server is running", address, err)
 		}
 		return grpcClient, nil
 	default:
@@ -212,15 +213,20 @@ func listPersonas(c client.Client) error {
 }
 
 func createPersona(c client.Client) error {
-	fs := flag.NewFlagSet("create", flag.ExitOnError)
+	fs := flag.NewFlagSet("create", flag.ContinueOnError)
+	fs.Usage = func() {
+		fmt.Println("Usage: fr0g-ai-aip create -name <name> -topic <topic> -prompt <prompt>")
+	}
 	name := fs.String("name", "", "Persona name")
 	topic := fs.String("topic", "", "Persona topic/expertise")
 	prompt := fs.String("prompt", "", "System prompt")
 
-	fs.Parse(os.Args[2:])
+	if err := fs.Parse(os.Args[2:]); err != nil {
+		return err
+	}
 
 	if *name == "" || *topic == "" || *prompt == "" {
-		fmt.Println("Usage: fr0g-ai-aip create -name <name> -topic <topic> -prompt <prompt>")
+		fs.Usage()
 		return fmt.Errorf("missing required parameters")
 	}
 
@@ -277,12 +283,17 @@ func updatePersona(c client.Client) error {
 
 	id := os.Args[2]
 
-	fs := flag.NewFlagSet("update", flag.ExitOnError)
+	fs := flag.NewFlagSet("update", flag.ContinueOnError)
+	fs.Usage = func() {
+		fmt.Println("Usage: fr0g-ai-aip update <id> -name <name> -topic <topic> -prompt <prompt>")
+	}
 	name := fs.String("name", "", "Persona name")
 	topic := fs.String("topic", "", "Persona topic/expertise")
 	prompt := fs.String("prompt", "", "System prompt")
 
-	fs.Parse(os.Args[3:])
+	if err := fs.Parse(os.Args[3:]); err != nil {
+		return err
+	}
 
 	// Get existing persona first
 	existing, err := c.Get(id)

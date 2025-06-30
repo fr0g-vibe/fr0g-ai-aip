@@ -9,4 +9,5 @@ type Client interface {
 	List() ([]types.Persona, error)
 	Update(id string, p types.Persona) error
 	Delete(id string) error
+	Close() error // Add this for proper cleanup
 }

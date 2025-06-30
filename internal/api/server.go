@@ -79,13 +79,17 @@ func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
 		"status":    "ok",
 		"timestamp": time.Now().UTC().Format(time.RFC3339),
 		"version":   "1.0.0", // This could be injected at build time
+		"storage":   s.config.Storage.Type,
 	}
 	
 	// Check storage health
-	if _, err := s.service.ListPersonas(); err != nil {
+	if personas, err := s.service.ListPersonas(); err != nil {
 		health["status"] = "degraded"
 		health["storage_error"] = err.Error()
 		w.WriteHeader(http.StatusServiceUnavailable)
+	} else {
+		// Add storage stats
+		health["persona_count"] = len(personas)
 	}
 	
 	json.NewEncoder(w).Encode(health)
