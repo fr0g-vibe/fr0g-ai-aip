@@ -9,6 +9,7 @@ import (
 
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/storage"
 	"github.com/fr0g-vibe/fr0g-ai-aip/internal/types"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Service provides community generation and management functionality
@@ -95,19 +96,50 @@ func (s *Service) generateMembers(config types.CommunityGenerationConfig, count 
 		persona := s.selectPersonaByWeight(personas, config.PersonaWeights)
 
 		// Generate identity attributes
+		now := time.Now()
 		identity := types.Identity{
 			Id:          generateID(),
 			PersonaId:   persona.Id,
 			Name:        s.generateName(),
 			Description: fmt.Sprintf("Community member based on %s persona", persona.Name),
 			IsActive:    true,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			CreatedAt:   timestamppb.New(now),
+			UpdatedAt:   timestamppb.New(now),
 			Tags:        []string{"community-generated"},
 		}
 
 		// Generate rich attributes based on community config
-		identity.RichAttributes = s.generateRichAttributes(config, i, count)
+		richAttrs := s.generateRichAttributes(config, i, count)
+		identity.RichAttributes = &types.RichAttributes{
+			Age:                 int32(richAttrs["age"].(int)),
+			Gender:              richAttrs["gender"].(string),
+			PoliticalLeaning:    richAttrs["political_leaning"].(string),
+			SocioeconomicStatus: richAttrs["socioeconomic_status"].(string),
+			Education:           richAttrs["education"].(string),
+			ActivityLevel:       richAttrs["activity_level"].(float64),
+		}
+		
+		// Handle location separately as it's a complex type
+		if loc, ok := richAttrs["location"].(map[string]interface{}); ok {
+			identity.RichAttributes.Location = &types.Location{}
+			if city, ok := loc["city"].(string); ok {
+				identity.RichAttributes.Location.City = city
+			}
+			if locType, ok := loc["type"].(string); ok {
+				identity.RichAttributes.Location.Type = locType
+			}
+			if urban, ok := loc["urban"].(bool); ok {
+				identity.RichAttributes.Location.Urban = urban
+			}
+			if timezone, ok := loc["timezone"].(string); ok {
+				identity.RichAttributes.Location.Timezone = timezone
+			}
+		}
+		
+		// Handle interests as repeated field
+		if interests, ok := richAttrs["interests"].([]string); ok {
+			identity.RichAttributes.Interests = interests
+		}
 
 		members = append(members, identity)
 	}
@@ -576,28 +608,26 @@ func (s *Service) calculateMemberSimilarity(member1, member2 types.Identity) flo
 	similarities := make([]float64, 0)
 
 	// Age similarity
-	if age1, ok1 := member1.RichAttributes["age"].(int); ok1 {
-		if age2, ok2 := member2.RichAttributes["age"].(int); ok2 {
-			ageDiff := math.Abs(float64(age1 - age2))
-			ageSim := math.Max(0, 1.0-ageDiff/50.0) // Normalize by 50-year span
-			similarities = append(similarities, ageSim)
-		}
+	if member1.RichAttributes != nil && member2.RichAttributes != nil {
+		age1 := int(member1.RichAttributes.Age)
+		age2 := int(member2.RichAttributes.Age)
+		ageDiff := math.Abs(float64(age1 - age2))
+		ageSim := math.Max(0, 1.0-ageDiff/50.0) // Normalize by 50-year span
+		similarities = append(similarities, ageSim)
 	}
 
 	// Political similarity
-	if pol1, ok1 := member1.RichAttributes["political_leaning"].(string); ok1 {
-		if pol2, ok2 := member2.RichAttributes["political_leaning"].(string); ok2 {
-			polSim := s.calculatePoliticalSimilarity(pol1, pol2)
-			similarities = append(similarities, polSim)
-		}
+	if member1.RichAttributes != nil && member2.RichAttributes != nil &&
+		member1.RichAttributes.PoliticalLeaning != "" && member2.RichAttributes.PoliticalLeaning != "" {
+		polSim := s.calculatePoliticalSimilarity(member1.RichAttributes.PoliticalLeaning, member2.RichAttributes.PoliticalLeaning)
+		similarities = append(similarities, polSim)
 	}
 
 	// Interest similarity
-	if int1, ok1 := member1.RichAttributes["interests"].([]string); ok1 {
-		if int2, ok2 := member2.RichAttributes["interests"].([]string); ok2 {
-			intSim := s.calculateInterestSimilarity(int1, int2)
-			similarities = append(similarities, intSim)
-		}
+	if member1.RichAttributes != nil && member2.RichAttributes != nil &&
+		len(member1.RichAttributes.Interests) > 0 && len(member2.RichAttributes.Interests) > 0 {
+		intSim := s.calculateInterestSimilarity(member1.RichAttributes.Interests, member2.RichAttributes.Interests)
+		similarities = append(similarities, intSim)
 	}
 
 	if len(similarities) == 0 {
@@ -670,8 +700,8 @@ func (s *Service) calculateAverageAge(members []types.Identity) float64 {
 	count := 0
 	
 	for _, member := range members {
-		if age, ok := member.RichAttributes["age"].(int); ok {
-			total += float64(age)
+		if member.RichAttributes != nil {
+			total += float64(member.RichAttributes.Age)
 			count++
 		}
 	}
@@ -688,8 +718,8 @@ func (s *Service) calculatePoliticalDistribution(members []types.Identity) map[s
 	total := 0
 	
 	for _, member := range members {
-		if pol, ok := member.RichAttributes["political_leaning"].(string); ok {
-			distribution[pol]++
+		if member.RichAttributes != nil && member.RichAttributes.PoliticalLeaning != "" {
+			distribution[member.RichAttributes.PoliticalLeaning]++
 			total++
 		}
 	}
@@ -706,13 +736,11 @@ func (s *Service) calculateLocationSpread(members []types.Identity) map[string]i
 	locations := make(map[string]int)
 	
 	for _, member := range members {
-		if loc, ok := member.RichAttributes["location"].(map[string]interface{}); ok {
-			if city, ok := loc["city"].(string); ok {
-				locations[city]++
-			} else if region, ok := loc["region"].(string); ok {
-				locations[region]++
-			} else if country, ok := loc["country"].(string); ok {
-				locations[country]++
+		if member.RichAttributes != nil && member.RichAttributes.Location != nil {
+			if member.RichAttributes.Location.City != "" {
+				locations[member.RichAttributes.Location.City]++
+			} else if member.RichAttributes.Location.Type != "" {
+				locations[member.RichAttributes.Location.Type]++
 			}
 		}
 	}
